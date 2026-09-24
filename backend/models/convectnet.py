@@ -3,7 +3,7 @@ ConvectNet — Multi-Task Spatiotemporal Nowcasting Model
 SIH PS-26084 · MoES/NCMRWF · DEBUG THUGS
 
 Architecture:
-  3D-CNN Encoder → SpatioTemporalConvLSTM → AdaptiveAvgPool2D (MPS-safe) → 4 Hazard Heads
+  3D-CNN Encoder (with Residuals and CBAM) → SpatioTemporalConvLSTM → AdaptiveAvgPool2D (MPS-safe) → SE Block → Shared FC → 4 Hazard Heads
 
 Input:  (B, 4, T=12, H=128, W=128)
         C0=VIL, C1=ΔZ, C2=IR-Tb cooling, C3=Lightning
@@ -18,10 +18,126 @@ Output: {
 
 CRITICAL: NO AdaptiveAvgPool3d — Apple MPS lacks aten::_adaptive_avg_pool3d.
           Uses AdaptiveAvgPool2d on the spatial dims after ConvLSTM.
+          CBAM uses 2D operations on reshaped tensors.
 """
 import torch
 import torch.nn as nn
-from typing import Dict
+from typing import Dict, Any
+
+
+class ChannelAttention(nn.Module):
+    """Channel attention module for CBAM."""
+    def __init__(self, in_planes: int, ratio: int = 16):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+           
+        self.mlp = nn.Sequential(
+            nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False)
+        )
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        avg_out = self.mlp(self.avg_pool(x))
+        max_out = self.mlp(self.max_pool(x))
+        out = avg_out + max_out
+        return self.sigmoid(out)
+
+
+class SpatialAttention(nn.Module):
+    """Spatial attention module for CBAM."""
+    def __init__(self, kernel_size: int = 7):
+        super().__init__()
+        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        padding = 3 if kernel_size == 7 else 1
+
+        self.conv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x_cat = torch.cat([avg_out, max_out], dim=1)
+        out = self.conv1(x_cat)
+        return self.sigmoid(out)
+
+
+class CBAM2D(nn.Module):
+    """CBAM: Convolutional Block Attention Module (Woo et al. 2018)."""
+    def __init__(self, in_planes: int, ratio: int = 16, kernel_size: int = 7):
+        super().__init__()
+        self.ca = ChannelAttention(in_planes, ratio)
+        self.sa = SpatialAttention(kernel_size)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = x * self.ca(x)
+        out = out * self.sa(out)
+        return out
+
+
+class CBAMBlock3DWrapper(nn.Module):
+    """Applies 2D CBAM to 3D spatiotemporal tensors by treating time as batch."""
+    def __init__(self, in_planes: int, ratio: int = 16, kernel_size: int = 7):
+        super().__init__()
+        self.cbam = CBAM2D(in_planes, ratio, kernel_size)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B, C, T, H, W = x.shape
+        # reshape to (B*T, C, H, W)
+        x_2d = x.transpose(1, 2).reshape(B * T, C, H, W)
+        out_2d = self.cbam(x_2d)
+        # reshape back to (B, C, T, H, W)
+        out_3d = out_2d.view(B, T, C, H, W).transpose(1, 2)
+        return out_3d
+
+
+class ResEncoderBlock(nn.Module):
+    """3D-CNN Encoder block with Residual connection and CBAM."""
+    def __init__(self, in_channels: int, out_channels: int, pool: bool = False):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv3d(in_channels, out_channels, kernel_size=(3, 3, 3), padding=1),
+            nn.BatchNorm3d(out_channels),
+            nn.LeakyReLU(0.1, inplace=True)
+        )
+        self.pool = nn.MaxPool3d((1, 2, 2)) if pool else nn.Identity()
+        self.cbam = CBAMBlock3DWrapper(out_channels)
+        
+        if in_channels != out_channels or pool:
+            stride = (1, 2, 2) if pool else (1, 1, 1)
+            self.skip = nn.Sequential(
+                nn.Conv3d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm3d(out_channels)
+            )
+        else:
+            self.skip = nn.Identity()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        identity = self.skip(x)
+        out = self.conv(x)
+        out = self.pool(out)
+        out = self.cbam(out)
+        out = out + identity
+        return nn.functional.leaky_relu(out, 0.1, inplace=True)
+
+
+class SEBlock1D(nn.Module):
+    """Squeeze-and-Excitation block for 1D latent representations."""
+    def __init__(self, channels: int, reduction: int = 16):
+        super().__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(channels, channels // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channels // reduction, channels, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x is (B, C)
+        weight = self.fc(x)
+        return x * weight
 
 
 class SpatioTemporalConvLSTMCell(nn.Module):
@@ -93,24 +209,10 @@ class ConvectNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        # ── 3D-CNN Encoder ──────────────────────────────────────────────
-        self.enc1 = nn.Sequential(
-            nn.Conv3d(4, 32, kernel_size=(3, 3, 3), padding=1),
-            nn.BatchNorm3d(32),
-            nn.LeakyReLU(0.1, inplace=True),
-        )
-        self.enc2 = nn.Sequential(
-            nn.Conv3d(32, 64, kernel_size=(3, 3, 3), padding=1),
-            nn.BatchNorm3d(64),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.MaxPool3d((1, 2, 2)),          # spatial /2, time preserved
-        )
-        self.enc3 = nn.Sequential(
-            nn.Conv3d(64, 128, kernel_size=(3, 3, 3), padding=1),
-            nn.BatchNorm3d(128),
-            nn.LeakyReLU(0.1, inplace=True),
-            nn.MaxPool3d((1, 2, 2)),          # spatial /4 total
-        )
+        # ── 3D-CNN Encoder with Residuals and CBAM ──────────────────────
+        self.enc1 = ResEncoderBlock(4, 32, pool=False)
+        self.enc2 = ResEncoderBlock(32, 64, pool=True)     # spatial /2
+        self.enc3 = ResEncoderBlock(64, 128, pool=True)    # spatial /4 total
 
         # ── Temporal fusion ─────────────────────────────────────────────
         self.convlstm = SpatioTemporalConvLSTM(
@@ -119,6 +221,9 @@ class ConvectNet(nn.Module):
 
         # ── MPS-SAFE 2D spatial pool (NO AdaptiveAvgPool3d!) ────────────
         self.spatial_pool = nn.AdaptiveAvgPool2d((1, 1))  # → (B, 128, 1, 1)
+
+        # ── Squeeze-and-Excitation on Latent ────────────────────────────
+        self.se_block = SEBlock1D(128)
 
         # ── Shared FC ───────────────────────────────────────────────────
         self.shared_fc = nn.Sequential(
@@ -160,6 +265,9 @@ class ConvectNet(nn.Module):
         # MPS-safe pool → (B, 128)
         x = self.spatial_pool(x)   # (B, 128, 1, 1)
         x = x.flatten(1)           # (B, 128)
+        
+        # Squeeze-and-Excitation on latent
+        x = self.se_block(x)
 
         latent = self.shared_fc(x) # (B, 128)
 
@@ -170,3 +278,32 @@ class ConvectNet(nn.Module):
             'ci':         self.ci_head(latent),
             'latent':     latent,
         }
+
+    def predict_with_uncertainty(self, x: torch.Tensor, n_samples: int = 10) -> Dict[str, Any]:
+        """
+        Runs the model n_samples times with dropout enabled to estimate epistemic uncertainty.
+        Returns mean predictions + std (uncertainty) for each head.
+        """
+        self.eval()
+        # Keep dropout ON
+        for m in self.modules():
+            if m.__class__.__name__.startswith('Dropout'):
+                m.train()
+                
+        preds = {k: [] for k in ['hail', 'cloudburst', 'downburst', 'ci', 'latent']}
+        
+        with torch.no_grad():
+            for _ in range(n_samples):
+                out = self.forward(x)
+                for k, v in out.items():
+                    preds[k].append(v)
+                    
+        res = {}
+        uncertainty = {}
+        for k, v_list in preds.items():
+            stacked = torch.stack(v_list, dim=0) # (n_samples, B, ...)
+            res[k] = stacked.mean(dim=0)
+            uncertainty[k] = stacked.std(dim=0)
+            
+        res['uncertainty'] = uncertainty
+        return res
