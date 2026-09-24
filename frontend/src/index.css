@@ -129,3 +129,8 @@ html, body, #root {
 ::-webkit-scrollbar-thumb:hover {
   background: #38a8ff;
 }
+
+/* Custom Deep Blue Midnight Tint for Map Tiles (Zoom Earth / Windy Style) */
+.map-tiles-blue-tint {
+  filter: sepia(100%) hue-rotate(185deg) saturate(250%) brightness(0.65) contrast(1.3);
+}
