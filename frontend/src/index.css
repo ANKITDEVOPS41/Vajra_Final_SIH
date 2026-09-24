@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* Blizzard High-Confidence Primary Pill Button (DESIGN.md) */
+  .btn-blizzard-primary {
+    background: linear-gradient(135deg, rgba(24, 136, 239, 0.95), rgba(0, 159, 233, 0.95));
+    color: #ffffff;
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 25px rgba(56, 168, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-blizzard-primary:hover {
+    box-shadow: 0 0 35px rgba(56, 168, 255, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px) scale(1.02);
+  }
+  .btn-blizzard-primary:active {
+    transform: translateY(1px) scale(0.98);
+  }
+
+  /* Blizzard Translucent Secondary Pill Control */
+  .btn-blizzard-secondary {
+    background: rgba(208, 233, 255, 0.12);
+    color: #d0e9ff;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn-blizzard-secondary:hover {
+    background: rgba(208, 233, 255, 0.22);
+    border-color: rgba(56, 168, 255, 0.5);
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(56, 168, 255, 0.25);
+  }
+
+  /* Blizzard Active Pill Selector */
+  .pill-blizzard-active {
+    background: linear-gradient(135deg, rgba(24, 136, 239, 0.95), rgba(0, 159, 233, 0.95));
+    color: #ffffff;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 18px rgba(56, 168, 255, 0.5);
+    font-weight: 600;
+  }
+
+  /* Blizzard Weather Console Card */
+  .card-blizzard {
+    background: rgba(32, 39, 60, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(208, 233, 255, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 16px 40px rgba(10, 13, 21, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Weather Climate Map Streamline Grid Overlay */
+  .weather-map-grid {
+    background-image: 
+      radial-gradient(circle at center, rgba(56, 168, 255, 0.08) 0%, transparent 70%),
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: rgba(32, 39, 60, 0.70);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(208, 233, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 16px 36px rgba(10, 13, 21, 0.5);
+  }
+
+  .glass-card-elevated {
+    background: rgba(50, 58, 72, 0.80);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 168, 255, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 20px 48px rgba(10, 13, 21, 0.7), 0 0 25px rgba(56, 168, 255, 0.15);
+  }
+
+  .glass-card-interactive {
+    background: rgba(32, 39, 60, 0.70);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(208, 233, 255, 0.15);
+    border-radius: 16px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card-interactive:hover {
+    background: rgba(50, 58, 72, 0.85);
+    border-color: rgba(56, 168, 255, 0.45);
+    box-shadow: 0 20px 40px -10px rgba(56, 168, 255, 0.25);
+    transform: translateY(-2px);
+  }
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #131928;
+}
+
+/* Custom Blizzard Midnight Navy scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0d15;
+}
+::-webkit-scrollbar-thumb {
+  background: #323a48;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38a8ff;
+}
