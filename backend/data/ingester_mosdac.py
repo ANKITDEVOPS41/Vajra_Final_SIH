@@ -316,3 +316,37 @@ class MOSDACIngester:
             results[ch] = self.calibrate_channel(counts, ch)
 
         return results
+
+    def fetch_live_catalog_metadata(self, dataset_id: str = "3RIMG_L1C_SGP", count: int = 5) -> Dict:
+        """
+        Queries official ISRO MOSDAC Open Search API (no authentication required)
+        to retrieve live INSAT-3DR metadata, latest granule IDs, and observation timestamps.
+        """
+        import requests
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        url = "https://mosdac.gov.in/apios/datasets.json"
+        try:
+            r = requests.get(url, params={"datasetId": dataset_id, "count": count}, timeout=10, verify=False)
+            if r.status_code == 200:
+                data = r.json()
+                return {
+                    "status": "success",
+                    "dataset_id": dataset_id,
+                    "total_granules_in_archive": data.get("totalResults", 0),
+                    "latest_granules": [
+                        {
+                            "identifier": e.get("identifier"),
+                            "granule_id": e.get("id"),
+                            "timestamp": e.get("updated"),
+                            "date_coverage": e.get("dcDate"),
+                            "download_link": e.get("enclosureLink")
+                        }
+                        for e in data.get("entries", [])
+                    ]
+                }
+            return {"status": "error", "code": r.status_code}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
