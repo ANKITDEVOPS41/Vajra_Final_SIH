@@ -165,11 +165,13 @@ def _resolve_path(path: str) -> str:
     if os.path.exists(path):
         return os.path.abspath(path)
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.environ.get("CONVECTNOW_ROOT", os.path.abspath(os.path.join(base_dir, "../../..")))
     candidates = [
         os.path.abspath(os.path.join(base_dir, "../../..", path)),
         os.path.abspath(os.path.join(base_dir, "../..", path)),
         os.path.abspath(os.path.join("..", path)),
-        os.path.join("/Users/gauravkumarnayak/Desktop/new sih", path)
+        os.path.abspath(os.path.join(".", path)),
+        os.path.join(project_root, path)
     ]
     for c in candidates:
         if os.path.exists(c):

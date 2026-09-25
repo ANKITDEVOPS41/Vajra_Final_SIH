@@ -57,6 +57,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 ingester = ConvectNowIngester(base_dir=BASE_DIR)
 nowcaster = ConvectiveNowcaster(grid_res_km=1.0, timestep_min=5.0)
 hazard_engine = ConvectiveHazardEngine(grid_res_km=1.0)
+evaluator = ConvectiveEvaluator()
 fusion_engine = MultimodalFusionEngine(radar_origin_lat=28.58, radar_origin_lon=77.21)
 
 # Initialize Deep Learning Inference Engine (MPS / CPU)

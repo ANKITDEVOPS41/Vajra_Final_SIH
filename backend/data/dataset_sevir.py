@@ -35,11 +35,13 @@ def _resolve_path(path: Optional[str]) -> Optional[str]:
     if os.path.exists(path):
         return os.path.abspath(path)
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.environ.get("CONVECTNOW_ROOT", os.path.abspath(os.path.join(base_dir, "../../..")))
     candidates = [
         os.path.abspath(os.path.join(base_dir, "../../..", path)),
         os.path.abspath(os.path.join(base_dir, "../..", path)),
         os.path.abspath(os.path.join("..", path)),
-        os.path.join("/Users/gauravkumarnayak/Desktop/new sih", path)
+        os.path.abspath(os.path.join(".", path)),
+        os.path.join(project_root, path)
     ]
     for c in candidates:
         if os.path.exists(c):
@@ -318,8 +320,8 @@ class ConvectDataset(Dataset):
         # Transpose to (49, 384, 384) -> (time, height, width)
         vil_frames = np.transpose(raw_vil, (2, 0, 1)).astype(np.float32)
 
-        # Physical VIL (kg/m^2) conversion
-        vil_kg_m2 = vil_frames / 3.5
+        # Physical VIL (kg/m^2) conversion: SEVIR uint8 [0, 255] linearly represents [0, 84] kg/m^2
+        vil_kg_m2 = vil_frames * (84.0 / 255.0)
 
         # Take input sequence (first sequence_length timesteps)
         vil_seq = vil_kg_m2[:self.sequence_length]
@@ -342,10 +344,10 @@ class ConvectDataset(Dataset):
         c1[1:] = np.clip((dbz_crop[1:] - dbz_crop[:-1]) / 30.0, -1.0, 1.0)
 
         # ---------------------------------------------------------------------
-        # Channel 2: Satellite IR Cloud-Top Cooling / Inverted Tb [0.0, 1.0]
-        # Physics proxy: High VIL + cold overshooting tops correspond to ~1.0
+        # Channel 2: Convective Core Energy / Overshooting Top Proxy [0.0, 1.0]
+        # (Derived from physical VIL kg/m^2 normalized against severe threshold 70 kg/m^2)
         # ---------------------------------------------------------------------
-        c2 = np.clip(vil_crop / 45.0, 0.0, 1.0)
+        c2 = np.clip(vil_crop / 70.0, 0.0, 1.0)
 
         # ---------------------------------------------------------------------
         # Channel 3: Normalized Lightning Strike Density [0.0, 1.0]

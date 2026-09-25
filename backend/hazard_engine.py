@@ -47,17 +47,24 @@ class ConvectiveHazardEngine:
 
     def compute_hail_parameters(self, dbz: np.ndarray, freezing_level_km: float = 4.2) -> Dict:
         """
-        Computes Severe Hail Index (SHI), Probability of Severe Hail (POSH), and
-        Maximum Expected Size of Hail (MESH) based on Witt et al. (1998).
+        Computes 2D Proxy Severe Hail Index (SHI), Probability of Severe Hail (POSH), and
+        Maximum Expected Size of Hail (MESH) adapted from Witt et al. (1998) / Waldvogel (1979).
+
+        NOTE ON OPERATIONAL FORMULATION (NCMRWF / IMD Context):
+        Witt et al. (1998) strictly requires a full 3D polar radar volume scan integrated
+        vertically across environmental temperature profiles (0°C to -20°C isotherms).
+        In operational composite / single-tilt MAX-Z mode without an active 3D thermodynamic
+        sounding cube, we compute an empirical 2D proxy: column-integrated hail energy E(Z)
+        weighted by effective convective core depth above the 0°C freezing level (0.45 empirical
+        attenuation factor). This provides immediate operational guidance prior to full Level-II
+        3D polar volume reconstruction.
         """
         # Linear reflectivity energy term E(Z)
         Z_lin = 10.0 ** (np.clip(dbz, 0, 75.0) / 10.0)
         E_z = np.where(dbz < 40.0, 0.0, (Z_lin - 10000.0) / 46000.0)
         E_z = np.maximum(0.0, E_z)
 
-        # Simplified vertical integration weighting above freezing level H0
-        # Standard: SHI = 0.1 * sum(w(T) * E(Z) * dh)
-        # Approximate column integrated SHI from surface maxZ
+        # 2D empirical vertical integration proxy above freezing level H0
         effective_depth_km = np.clip((dbz - 40.0) / 4.0, 0.0, 8.0)
         SHI = 0.1 * E_z * effective_depth_km * 0.45
 
