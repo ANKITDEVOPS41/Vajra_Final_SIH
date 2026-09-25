@@ -5,8 +5,8 @@ ACL: Asymmetric Continuous Loss for regression heads (under-prediction 3x penalt
 ConvectNetLoss: Multi-task combined loss
 """
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 
 class AsymmetricLoss(nn.Module):
@@ -114,11 +114,17 @@ class ConvectNetLoss(nn.Module):
         # CI
         ci_loss = self.asl(ci[:, 0], targets['ci_prob'])
 
+        # Spatial Nowcast (echo extrapolation loss if target available)
+        spatial_loss = torch.tensor(0.0, device=h.device)
+        if 'spatial_nowcast' in preds and 'future_vil' in targets:
+            spatial_loss = F.mse_loss(preds['spatial_nowcast'], targets['future_vil'])
+
         total = (
             self.w['hail'] * hail_loss +
             self.w['cloudburst'] * cb_loss +
             self.w['downburst'] * db_loss +
-            self.w['ci'] * ci_loss
+            self.w['ci'] * ci_loss +
+            0.40 * spatial_loss
         )
 
         return {
@@ -127,4 +133,5 @@ class ConvectNetLoss(nn.Module):
             'cloudburst': cb_loss.item(),
             'downburst':  db_loss.item(),
             'ci':         ci_loss.item(),
+            'spatial':    spatial_loss.item(),
         }

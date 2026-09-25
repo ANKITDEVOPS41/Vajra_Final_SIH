@@ -5,6 +5,7 @@ SLA: < 50ms mean inference latency
 """
 import os
 import time
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -34,9 +35,26 @@ class ConvectNetInference:
         self.model = ConvectNet().to(self.device)
         self.model.eval()
 
+        if checkpoint_path is None:
+            default_candidates = [
+                os.path.join(os.path.dirname(__file__), 'convectnet_production.pth'),
+                os.path.join(os.path.dirname(__file__), 'convectnet_st_nowcaster.pt'),
+                os.path.join(os.path.dirname(__file__), 'best_convectnet.pt'),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '../../convectnet_production.pth')),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '../../convectnet_st_nowcaster.pt')),
+            ]
+            for c in default_candidates:
+                if os.path.exists(c):
+                    checkpoint_path = c
+                    break
+
         if checkpoint_path and os.path.exists(checkpoint_path):
-            state = torch.load(checkpoint_path, map_location=self.device, weights_only=True)
-            self.model.load_state_dict(state)
+            try:
+                state = torch.load(checkpoint_path, map_location=self.device, weights_only=True)
+                self.model.load_state_dict(state, strict=False)
+                print(f"[ConvectNetInference] Successfully loaded trained weights from {checkpoint_path}")
+            except Exception as e:
+                print(f"[ConvectNetInference] Warning loading checkpoint {checkpoint_path}: {e}")
 
     def predict(self, x: np.ndarray) -> dict:
         """

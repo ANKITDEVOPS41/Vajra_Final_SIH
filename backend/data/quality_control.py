@@ -7,11 +7,11 @@ Implements:
 4. Partial Beam Blockage & Radial Gap Inpainting
 """
 
+
+import cv2
 import numpy as np
 import scipy.ndimage
-from scipy.ndimage import map_coordinates, uniform_filter, binary_opening
-import cv2
-from typing import Dict, Tuple, Optional, Union
+from scipy.ndimage import binary_opening, map_coordinates, uniform_filter
 
 
 class QualityControlFilter:
@@ -82,7 +82,7 @@ class QualityControlFilter:
         self,
         dbz: np.ndarray,
         replace_with_median: bool = False
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Detects and rejects ground clutter returns using the TDBZ metric.
 
@@ -116,7 +116,7 @@ class QualityControlFilter:
         self,
         dbz: np.ndarray,
         satellite_tb_k: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Cross-sensor Anomalous Propagation (AP) ducting gate.
 
@@ -228,11 +228,11 @@ class QualityControlFilter:
     def apply_full_qc(
         self,
         dbz: np.ndarray,
-        satellite_tb_k: Optional[np.ndarray] = None,
-        prev_dbz: Optional[np.ndarray] = None,
-        next_dbz: Optional[np.ndarray] = None,
+        satellite_tb_k: np.ndarray | None = None,
+        prev_dbz: np.ndarray | None = None,
+        next_dbz: np.ndarray | None = None,
         is_missing: bool = False
-    ) -> Dict[str, Union[np.ndarray, bool, Dict]]:
+    ) -> dict[str, np.ndarray | bool | dict]:
         """
         Executes the complete operational Quality Control pipeline:
         1. Missing frame detection & optical-flow imputation (if dropped)

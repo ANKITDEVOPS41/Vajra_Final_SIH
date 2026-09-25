@@ -8,10 +8,10 @@ Handles multi-source ingestion:
 """
 
 import os
+
 import h5py
 import numpy as np
-import pandas as pd
-from typing import Dict, List, Tuple, Optional
+
 
 class ConvectNowIngester:
     def __init__(self, base_dir: str = "."):
@@ -21,7 +21,7 @@ class ConvectNowIngester:
         self.sevir_catalog_path = os.path.join(base_dir, "datasets/sevir/CATALOG.csv")
         self.imd_radar_dir = os.path.join(base_dir, "datasets/imd_radar")
 
-    def list_available_storms(self) -> List[Dict]:
+    def list_available_storms(self) -> list[dict]:
         """Lists available storm events from the downloaded SEVIR dataset."""
         storms = []
         if not os.path.exists(self.sevir_vil_path):
@@ -39,7 +39,7 @@ class ConvectNowIngester:
                 })
         return storms
 
-    def load_storm_event(self, event_idx: int = 0) -> Dict:
+    def load_storm_event(self, event_idx: int = 0) -> dict:
         """
         Loads a complete 4-hour (49-frame) convective storm sequence at 1 km resolution.
         Returns:
@@ -81,7 +81,7 @@ class ConvectNowIngester:
             "resolution_km": 1.0
         }
 
-    def load_lightning_stream(self, max_records: int = 5000) -> List[Dict]:
+    def load_lightning_stream(self, max_records: int = 5000) -> list[dict]:
         """Loads geostationary lightning strikes from SEVIR GLM."""
         strikes = []
         if not os.path.exists(self.sevir_lght_path):
@@ -104,7 +104,7 @@ class ConvectNowIngester:
                 })
         return strikes
 
-    def get_imd_radar_metadata(self) -> Dict:
+    def get_imd_radar_metadata(self) -> dict:
         """Inspects downloaded operational IMD Doppler Radar products."""
         products = {}
         if not os.path.exists(self.imd_radar_dir):

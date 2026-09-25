@@ -330,7 +330,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
                 <h1 className="text-sm font-bold tracking-wider text-ice-100 uppercase">
                   Anatomy of a Cloudburst: 60 Minutes to Catastrophe
                 </h1>
-                <DataProvenanceBadge source="VIRTUAL" />
+                <DataProvenanceBadge source="DATASET" />
               </div>
               <p className="text-[10px] text-steel-400 font-mono">
                 Physical 4D Storm Evolution · Vertical Reflectivity Cross-Section (0–18 km)

@@ -7,9 +7,10 @@ Implements:
 4. Lightning Strike Density Estimation (Flashes/km^2/hr)
 """
 
+
 import numpy as np
 from scipy.ndimage import binary_opening
-from typing import Dict, Tuple
+
 
 class ConvectiveHazardEngine:
     def __init__(self, grid_res_km: float = 1.0):
@@ -26,7 +27,7 @@ class ConvectiveHazardEngine:
         rain_rate = (np.maximum(0, Z_linear) / 300.0) ** (1.0 / 1.5)
         return np.nan_to_num(rain_rate, nan=0.0)
 
-    def detect_cloudburst(self, rain_rate: np.ndarray, threshold_mmh: float = 100.0) -> Dict:
+    def detect_cloudburst(self, rain_rate: np.ndarray, threshold_mmh: float = 100.0) -> dict:
         """
         Flags localized cloudburst regions exceeding WMO/IMD operational threshold (>= 100 mm/hr).
         Applies morphological opening (3x3 footprint) to prevent isolated noise triggers.
@@ -45,7 +46,7 @@ class ConvectiveHazardEngine:
             "threat_tier": "EXTREME" if peak_rate >= 150.0 else ("WARNING" if peak_rate >= 100.0 else "ADVISORY")
         }
 
-    def compute_hail_parameters(self, dbz: np.ndarray, freezing_level_km: float = 4.2) -> Dict:
+    def compute_hail_parameters(self, dbz: np.ndarray, freezing_level_km: float = 4.2) -> dict:
         """
         Computes 2D Proxy Severe Hail Index (SHI), Probability of Severe Hail (POSH), and
         Maximum Expected Size of Hail (MESH) adapted from Witt et al. (1998) / Waldvogel (1979).
@@ -84,7 +85,7 @@ class ConvectiveHazardEngine:
             "hail_risk_level": "SEVERE" if max_posh >= 60.0 else ("MODERATE" if max_posh >= 30.0 else "LOW")
         }
 
-    def compute_downburst_velocity(self, dbz: np.ndarray, vil: np.ndarray, cape: float = 1800.0) -> Dict:
+    def compute_downburst_velocity(self, dbz: np.ndarray, vil: np.ndarray, cape: float = 1800.0) -> dict:
         """
         Computes Downburst / Microburst peak wind velocity based on VIL Density and MDAP.
         VIL Density = VIL / EchoTopHeight
@@ -108,7 +109,7 @@ class ConvectiveHazardEngine:
             "downburst_risk": "EXTREME" if peak_gust_kmh >= 90.0 else ("SEVERE" if peak_gust_kmh >= 60.0 else "MODERATE")
         }
 
-    def compute_lightning_density(self, dbz: np.ndarray, vil: np.ndarray) -> Dict:
+    def compute_lightning_density(self, dbz: np.ndarray, vil: np.ndarray) -> dict:
         """
         Estimates total lightning strike flash density (flashes/km^2/hr)
         correlating VIL supercooled water with maximum column reflectivity.
@@ -127,7 +128,7 @@ class ConvectiveHazardEngine:
             "threat_level": "HIGH" if peak_density >= 5.0 else ("MEDIUM" if peak_density >= 1.5 else "LOW")
         }
 
-    def evaluate_cell_hazards(self, cell_dbz: float, cell_vil: float) -> Dict:
+    def evaluate_cell_hazards(self, cell_dbz: float, cell_vil: float) -> dict:
         """
         Evaluates point hazard indices for an isolated storm cell object.
         """

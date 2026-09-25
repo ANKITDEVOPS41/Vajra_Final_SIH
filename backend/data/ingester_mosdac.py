@@ -8,13 +8,11 @@ Handles:
 """
 
 import os
-from datetime import datetime, timezone
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from datetime import datetime, timezone
 
-import numpy as np
 import h5py
-
+import numpy as np
 from convectnow.backend.data.projection import GridReprojector
 
 # -------------------------------------------------------------------------
@@ -77,13 +75,13 @@ class MOSDACProduct:
     satellite: str = "INSAT-3DR"
     sub_lon: float = 74.0        # Geostationary orbital sub-satellite longitude
     timestamp: str = ""
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)
 
     def to_epsg4326(
         self,
-        target_bbox: Tuple[float, float, float, float] = (8.0, 68.0, 37.0, 97.0),
-        target_shape: Tuple[int, int] = (256, 256)
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        target_bbox: tuple[float, float, float, float] = (8.0, 68.0, 37.0, 97.0),
+        target_shape: tuple[int, int] = (256, 256)
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Reprojects the satellite geostationary product onto a 1 km EPSG:4326 regular lat/lon grid.
         Returns:
@@ -129,7 +127,7 @@ class MOSDACIngester:
         self.data_dir = _resolve_path(data_dir)
 
     @staticmethod
-    def planck_radiance(tb_k: Union[float, np.ndarray], wavelength_um: float) -> Union[float, np.ndarray]:
+    def planck_radiance(tb_k: float | np.ndarray, wavelength_um: float) -> float | np.ndarray:
         """
         Computes blackbody spectral radiance L (W / (m^2 * sr * um)) from temperature T (Kelvin)
         via Planck's Radiation Law:
@@ -141,11 +139,11 @@ class MOSDACIngester:
 
     @staticmethod
     def planck_temperature(
-        radiance: Union[float, np.ndarray],
+        radiance: float | np.ndarray,
         wavelength_um: float,
         cal_a: float = 0.0,
         cal_b: float = 1.0
-    ) -> Union[float, np.ndarray]:
+    ) -> float | np.ndarray:
         """
         Inverts Planck's radiation law to convert spectral radiance L to effective
         brightness temperature Tb (Kelvin):
@@ -186,8 +184,8 @@ class MOSDACIngester:
         self,
         raw_counts: np.ndarray,
         channel: str,
-        slope: Optional[float] = None,
-        offset: Optional[float] = None
+        slope: float | None = None,
+        offset: float | None = None
     ) -> MOSDACProduct:
         """
         Performs full calibration pipeline for an INSAT-3DR multispectral band.
@@ -287,11 +285,11 @@ class MOSDACIngester:
 
     def generate_synthetic_insat3dr_cube(
         self,
-        shape: Tuple[int, int] = (256, 256),
-        storm_center: Tuple[int, int] = (128, 128),
+        shape: tuple[int, int] = (256, 256),
+        storm_center: tuple[int, int] = (128, 128),
         cold_core_k: float = 198.0,
         warm_bg_k: float = 302.0
-    ) -> Dict[str, MOSDACProduct]:
+    ) -> dict[str, MOSDACProduct]:
         """
         Generates a synthetic, physically consistent INSAT-3DR multispectral storm scene:
         - Cold overshooting convective top (Tb ~ 198 K / -75 °C)
@@ -341,7 +339,7 @@ class MOSDACIngester:
 
         return results
 
-    def fetch_live_catalog_metadata(self, dataset_id: str = "3RIMG_L1C_SGP", count: int = 5) -> Dict:
+    def fetch_live_catalog_metadata(self, dataset_id: str = "3RIMG_L1C_SGP", count: int = 5) -> dict:
         """
         Queries official ISRO MOSDAC Open Search API (no authentication required)
         to retrieve live INSAT-3DR metadata, latest granule IDs, and observation timestamps.
@@ -373,4 +371,45 @@ class MOSDACIngester:
             return {"status": "error", "code": r.status_code}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+    @staticmethod
+    def get_official_insat_catalog(satellite: str | None = None, sensor: str | None = None) -> list[dict]:
+        """
+        Retrieves the verified official ISRO MOSDAC INSAT satellite product catalog (155 products)
+        scraped directly from MOSDAC catalog APIs.
+        Supports filtering by satellite ('INSAT-3DR', 'INSAT-3DS', 'INSAT-3D', 'INSAT-3A')
+        and sensor ('IMAGER', 'SOUNDER', 'CCD', 'VHRR').
+        """
+        import json
+        catalog_path = _resolve_path("datasets/imd_live/mosdac_insat_official_directory.json")
+        if catalog_path and os.path.exists(catalog_path):
+            try:
+                with open(catalog_path, "r") as f:
+                    prods = json.load(f)
+                if satellite:
+                    prods = [p for p in prods if satellite.lower() in p.get("satellite", "").lower()]
+                if sensor:
+                    prods = [p for p in prods if sensor.lower() in p.get("sensor", "").lower()]
+                return prods
+            except Exception:
+                pass
+
+        # Robust curated fallback catalog for core convective nowcasting products
+        fallback = [
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L1C_SGP", "level": "L1C", "description": "Standard Georeferenced Product"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2B_HEM", "level": "L2B", "description": "Hydro-Estimator Rainfall Rate (mm/hr)"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2B_CTP", "level": "L2B", "description": "Cloud Top Parameters (Pressure/Temp/Height)"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2B_CMK", "level": "L2B", "description": "Cloud Mask (Convective Cloud Classification)"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2G_IMR", "level": "L2G", "description": "IMSRA Multispectral Rainfall Estimate"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2C_CMP", "level": "L2C", "description": "Convective Precipitation"},
+            {"satellite": "INSAT-3DR", "sensor": "IMAGER", "datasetId": "3RIMG_L2B_OLR", "level": "L2B", "description": "Outgoing Longwave Radiation (Deep Convection)"},
+            {"satellite": "INSAT-3DS", "sensor": "IMAGER", "datasetId": "3SIMG_L1C_SGP", "level": "L1C", "description": "INSAT-3DS Georeferenced Product"},
+            {"satellite": "INSAT-3DS", "sensor": "IMAGER", "datasetId": "3SIMG_L2B_HEM", "level": "L2B", "description": "INSAT-3DS Hydro-Estimator Precipitation"},
+            {"satellite": "INSAT-3D", "sensor": "IMAGER", "datasetId": "3DIMG_L1C_SGP", "level": "L1C", "description": "INSAT-3D Georeferenced Product"}
+        ]
+        if satellite:
+            fallback = [p for p in fallback if satellite.lower() in p.get("satellite", "").lower()]
+        if sensor:
+            fallback = [p for p in fallback if sensor.lower() in p.get("sensor", "").lower()]
+        return fallback
 

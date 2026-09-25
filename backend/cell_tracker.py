@@ -8,7 +8,6 @@ Implements:
 5. Multi-scan trajectory history accumulation
 """
 
-from typing import Dict, List, Tuple, Optional
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
@@ -33,9 +32,9 @@ class PersistentCellTracker:
         self.max_lost_scans = max_lost_scans
 
         self.next_cell_num = 1
-        self.active_tracks: Dict[str, Dict] = {}  # cell_id -> track state
+        self.active_tracks: dict[str, dict] = {}  # cell_id -> track state
 
-    def _compute_iou(self, bbox_a: List[int], bbox_b: List[int]) -> float:
+    def _compute_iou(self, bbox_a: list[int], bbox_b: list[int]) -> float:
         """Computes Intersection-over-Union between two bounding boxes [min_x, min_y, max_x, max_y]."""
         x_left = max(bbox_a[0], bbox_b[0])
         y_top = max(bbox_a[1], bbox_b[1])
@@ -54,10 +53,10 @@ class PersistentCellTracker:
 
     def update(
         self,
-        current_detections: List[Dict],
+        current_detections: list[dict],
         dt_minutes: float = 5.0,
         grid_res_km: float = 1.0,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """
         Matches incoming detections from the current radar scan to active cell tracks.
         Returns list of matched cells with persistent cell_ids and calculated kinematics.

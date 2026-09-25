@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ProvenanceSource = 'LIVE' | 'VIRTUAL' | 'DATASET' | 'PLANNED';
+export type ProvenanceSource = 'LIVE' | 'DATASET' | 'PLANNED';
 
 interface DataProvenanceBadgeProps {
   source: ProvenanceSource;
@@ -19,14 +19,6 @@ export const DataProvenanceBadge: React.FC<DataProvenanceBadgeProps> = ({
         >
           <span className="w-1.5 h-1.5 rounded-full bg-ice-500 animate-pulse" />
           <span>LIVE</span>
-        </span>
-      );
-    case 'VIRTUAL':
-      return (
-        <span
-          className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider bg-purple-500/10 text-purple-400 border border-purple-400/40 ${className}`}
-        >
-          <span>VIRTUAL</span>
         </span>
       );
     case 'DATASET':

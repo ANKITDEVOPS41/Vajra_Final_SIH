@@ -15,15 +15,14 @@ INSTRUCTIONS FOR GOOGLE COLAB / AWS:
      AI's compute on training the rare hazard heads (Hail, Downburst) on specialized, balanced datasets.
 """
 
+import logging
 import os
+
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from convectnow.backend.models.convectnet import ConvectNet
+from torch import nn, optim
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
-import logging
-
-from convectnow.backend.models.convectnet import ConvectNet
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 logger = logging.getLogger(__name__)

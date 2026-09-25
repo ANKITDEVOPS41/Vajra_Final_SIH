@@ -1,7 +1,7 @@
-import logging
 import asyncio
 import json
-from typing import List, Callable, Optional
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -17,7 +17,7 @@ class LightningStrike:
     latitude: float
     longitude: float
     polarity: int  # 1 for positive, -1 for negative, 0 for unknown
-    amplitude_ka: Optional[float] = None
+    amplitude_ka: float | None = None
     
 class LightningIngestor:
     """
@@ -28,7 +28,7 @@ class LightningIngestor:
     def __init__(self, websocket_url: str = "wss://ws1.blitzortung.org:443/"):
         self.websocket_url = websocket_url
         self.is_running = False
-        self._callbacks: List[Callable[[LightningStrike], None]] = []
+        self._callbacks: list[Callable[[LightningStrike], None]] = []
         
     def add_callback(self, callback: Callable[[LightningStrike], None]):
         """Register a function to be called on every new lightning strike."""

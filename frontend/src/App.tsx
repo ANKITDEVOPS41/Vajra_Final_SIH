@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   Radio,
   ExternalLink,
-  Sparkles
+  Sparkles,
+  Server,
+  Clock
 } from 'lucide-react';
 import { HazardMap } from './components/HazardMap';
 import { ETACountdown } from './components/ETACountdown';
@@ -21,6 +23,9 @@ import { HazardMeters } from './components/HazardMeters';
 import { EvaluationPanel } from './components/EvaluationPanel';
 import { CapAlertModal } from './components/CapAlertModal';
 import { StormAnatomyScrolly } from './components/scrollytelling/StormAnatomyScrolly';
+// Import ArchitecturePage - Agent 2 is creating this
+// @ts-ignore
+import ArchitecturePage from './components/ArchitecturePage';
 
 export default function App() {
   const [stormData, setStormData] = useState<any>(null);
@@ -29,10 +34,11 @@ export default function App() {
   const [evalData, setEvalData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   const [selectedCell, setSelectedCell] = useState<any>(null);
   const [activeLayer, setActiveLayer] = useState<string>('dbz');
-  const [viewMode, setViewMode] = useState<'tactical' | 'anatomy' | 'public'>('tactical');
+  const [viewMode, setViewMode] = useState<'tactical' | 'anatomy' | 'public' | 'architecture'>('tactical');
   
   // 4D timeline scrubber (0 = T0, 60 = T+60m)
   const [leadTimeMin, setLeadTimeMin] = useState<number>(0);
@@ -42,6 +48,11 @@ export default function App() {
   const [showEvalModal, setShowEvalModal] = useState(false);
   const [activeAlertCellId, setActiveAlertCellId] = useState<string | null>(null);
 
+  // Clock
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
   
   const fetchReplayEvents = async () => {
     try {
@@ -133,24 +144,32 @@ export default function App() {
           </div>
         </div>
 
-        {/* Live Multi-Source Ingestion Telemetry */}
-        <div className="hidden lg:flex items-center space-x-3.5 text-xs font-mono bg-[#131928]/80 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-md">
-          <div className="flex items-center space-x-1.5 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <Radar className="w-3.5 h-3.5 text-emerald-400" />
-            <span>DWR 250m: <strong className="text-emerald-400">SYNCED</strong></span>
+        {/* Live Multi-Source Ingestion Telemetry & Clock */}
+        <div className="hidden lg:flex items-center space-x-4">
+          <div className="flex items-center space-x-3.5 text-xs font-mono bg-[#131928]/80 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-md">
+            <div className="flex items-center space-x-1.5 text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <Radar className="w-3.5 h-3.5 text-emerald-400" />
+              <span>DWR 250m: <strong className="text-emerald-400">SYNCED</strong></span>
+            </div>
+            <div className="w-px h-3.5 bg-white/10" />
+            <div className="flex items-center space-x-1.5 text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-[#38a8ff]" />
+              <Satellite className="w-3.5 h-3.5 text-[#38a8ff]" />
+              <span>INSAT-3DR: <strong className="text-[#38a8ff]">10.8µm ACTIVE</strong></span>
+            </div>
+            <div className="w-px h-3.5 bg-white/10" />
+            <div className="flex items-center space-x-1.5 text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <CloudLightning className="w-3.5 h-3.5 text-yellow-400" />
+              <span>GLM/IITM: <strong className="text-yellow-400">STREAMING</strong></span>
+            </div>
           </div>
-          <div className="w-px h-3.5 bg-white/10" />
-          <div className="flex items-center space-x-1.5 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-[#38a8ff]" />
-            <Satellite className="w-3.5 h-3.5 text-[#38a8ff]" />
-            <span>INSAT-3DR: <strong className="text-[#38a8ff]">10.8µm ACTIVE</strong></span>
-          </div>
-          <div className="w-px h-3.5 bg-white/10" />
-          <div className="flex items-center space-x-1.5 text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-            <CloudLightning className="w-3.5 h-3.5 text-yellow-400" />
-            <span>GLM/IITM: <strong className="text-yellow-400">STREAMING</strong></span>
+          
+          {/* Real-time Clock */}
+          <div className="flex items-center space-x-2 text-xs font-mono bg-[#131928]/80 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md text-[#38a8ff]">
+            <Clock className="w-3.5 h-3.5" />
+            <span>{currentTime.toISOString().split('T')[1].substring(0,8)} UTC</span>
           </div>
         </div>
 
@@ -177,7 +196,18 @@ export default function App() {
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>4D Storm Anatomy</span>
+              <span>4D Anatomy</span>
+            </button>
+            <button
+              onClick={() => setViewMode('architecture')}
+              className={`px-4 py-1.5 rounded-full transition-all flex items-center space-x-1.5 ${
+                viewMode === 'architecture'
+                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Server className="w-3.5 h-3.5" />
+              <span>System Arch</span>
             </button>
             <button
               onClick={() => setViewMode('public')}
@@ -191,19 +221,23 @@ export default function App() {
             </button>
           </div>
 
-          {/* Scientific Verification Modal Button (Blizzard Pill) */}
+          {/* Scientific Verification Modal Button */}
           <button
             onClick={() => setShowEvalModal(true)}
-            className="btn-blizzard-secondary text-xs px-4 py-1.5 flex items-center space-x-5"
+            className="btn-blizzard-secondary text-xs px-4 py-1.5 flex items-center space-x-2"
           >
             <BarChart3 className="w-3.5 h-3.5 text-[#38a8ff]" />
-            <span>CSI / Skill Scores</span>
+            <span>Skill Scores</span>
           </button>
         </div>
       </header>
 
       {/* Main App Body */}
-      {viewMode === 'anatomy' ? (
+      {viewMode === 'architecture' ? (
+        <React.Suspense fallback={<div className="flex-1 flex items-center justify-center text-[#38a8ff]">Loading Architecture...</div>}>
+          <ArchitecturePage />
+        </React.Suspense>
+      ) : viewMode === 'anatomy' ? (
         <StormAnatomyScrolly onBackToTactical={() => setViewMode('tactical')} />
       ) : viewMode === 'tactical' ? (
         <main className="flex-1 flex overflow-hidden p-3 gap-3">
@@ -309,9 +343,17 @@ export default function App() {
                       setIsPlaying(false);
                     }}
                   >
-                    <option value="0">SEVIR-2019-0612 (Oklahoma)</option>
-                    <option value="1">IMD-2023-0814 (Uttarakhand)</option>
-                    <option value="2">MOSDAC-2024-0511 (Mumbai)</option>
+                    {replayEvents.length > 0 ? (
+                      replayEvents.map((evt, i) => (
+                        <option key={i} value={i}>{evt.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="0">SEVIR-2019-0612 (Oklahoma)</option>
+                        <option value="1">IMD-2023-0814 (Uttarakhand)</option>
+                        <option value="2">MOSDAC-2024-0511 (Mumbai)</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -340,9 +382,12 @@ export default function App() {
         </main>
       ) : (
         /* Public Simplified Alert Card View (Blizzard Styled) */
-        <main className="flex-1 flex items-center justify-center p-6 bg-[#0a0d15]">
-          <div className="max-w-lg w-full card-blizzard border-2 border-red-500/60 rounded-3xl p-7 shadow-[0_20px_60px_rgba(239,68,68,0.25)] text-center space-y-6">
-            <div className="inline-flex p-4 rounded-full bg-red-950/80 border border-red-600/60 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.4)] animate-bounce">
+        <main className="flex-1 flex items-center justify-center p-6 bg-[#0a0d15] relative overflow-hidden">
+          {/* Subtle background glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-900/10 rounded-full blur-[100px] pointer-events-none"></div>
+          
+          <div className="max-w-lg w-full card-blizzard border-2 border-red-500/60 rounded-3xl p-7 shadow-[0_20px_60px_rgba(239,68,68,0.25)] text-center space-y-6 relative z-10 animate-in fade-in zoom-in duration-500">
+            <div className="inline-flex p-4 rounded-full bg-red-950/80 border border-red-600/60 text-red-400 shadow-[0_0_30px_rgba(239,68,68,0.4)] animate-pulse">
               <AlertTriangle className="w-12 h-12" />
             </div>
 
@@ -350,22 +395,26 @@ export default function App() {
               <span className="text-xs uppercase font-mono font-bold tracking-widest text-red-300 bg-red-950/90 px-3.5 py-1.5 rounded-full border border-red-700/80 shadow-sm">
                 🔴 IMMEDIATE SEVERE STORM ALERT
               </span>
-              <h2 className="text-2xl font-black text-white mt-4 font-heading tracking-wide">
-                DEHRADUN &amp; RISHIKESH SECTOR
+              <h2 className="text-2xl font-black text-white mt-4 font-heading tracking-wide uppercase">
+                {selectedCell ? `${selectedCell.severity} THUNDERSTORM` : "SEVERE WEATHER ALERT"}
               </h2>
               <p className="text-sm text-slate-300 mt-2 font-sans">
-                ConvectNow radar fusion has detected an explosive convective thunderstorm cell approaching your area.
+                ConvectNow radar fusion has detected an explosive convective thunderstorm cell approaching.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3.5 py-3 border-y border-white/10 text-left">
               <div className="bg-[#131928]/80 p-3.5 rounded-2xl border border-white/10">
                 <span className="text-[10px] text-slate-400 uppercase font-mono">Expected Arrival</span>
-                <div className="text-xl font-bold font-mono text-[#38a8ff] mt-0.5">24 – 38 min</div>
+                <div className="text-xl font-bold font-mono text-[#38a8ff] mt-0.5">
+                  {selectedCell ? `${selectedCell.eta_minutes} min` : "24 - 38 min"}
+                </div>
               </div>
               <div className="bg-[#131928]/80 p-3.5 rounded-2xl border border-white/10">
-                <span className="text-[10px] text-slate-400 uppercase font-mono">Hail &amp; Wind Threat</span>
-                <div className="text-xl font-bold font-mono text-red-400 mt-0.5">SEVERE (60+ km/h)</div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono">Max Intensity</span>
+                <div className="text-xl font-bold font-mono text-red-400 mt-0.5">
+                  {selectedCell ? `${selectedCell.max_dbz} dBZ` : "SEVERE"}
+                </div>
               </div>
             </div>
 

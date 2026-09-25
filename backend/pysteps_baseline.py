@@ -1,6 +1,6 @@
-import numpy as np
+
 import cv2
-from typing import Dict, List, Tuple, Optional
+import numpy as np
 
 # Attempt to import evaluator if available in the same backend folder
 try:
@@ -81,7 +81,7 @@ class PyStepsBaseline:
         
         return forecast
     
-    def compare_against_model(self, obs_sequence: np.ndarray, model_forecast: np.ndarray, future_obs: np.ndarray, n_leadtimes: int = 12, threshold: float = 35.0) -> Dict:
+    def compare_against_model(self, obs_sequence: np.ndarray, model_forecast: np.ndarray, future_obs: np.ndarray, n_leadtimes: int = 12, threshold: float = 35.0) -> dict:
         """
         Runs the baseline on the same observed data, then computes metrics for both.
         Returns: {
@@ -105,10 +105,10 @@ class PyStepsBaseline:
             # Truth
             truth = (future_obs[t] >= threshold)
             
-            def compute_metrics(pred: np.ndarray, true: np.ndarray) -> Tuple[float, float]:
-                hits = np.sum((pred & true))
-                misses = np.sum((~pred & true))
-                fa = np.sum((pred & ~true))
+            def compute_metrics(pred: np.ndarray, true: np.ndarray) -> tuple[float, float]:
+                hits = np.sum(pred & true)
+                misses = np.sum(~pred & true)
+                fa = np.sum(pred & ~true)
                 
                 csi = hits / (hits + misses + fa + 1e-7)
                 pod = hits / (hits + misses + 1e-7)

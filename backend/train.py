@@ -1,14 +1,13 @@
-import os
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-import numpy as np
 import logging
-from tqdm import tqdm
+import os
+
+import torch
 
 # Import our model
 from convectnow.backend.models.convectnet import ConvectNet
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

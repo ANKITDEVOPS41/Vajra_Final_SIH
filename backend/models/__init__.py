@@ -1,5 +1,5 @@
 from .convectnet import ConvectNet
-from .losses import ConvectNetLoss, AsymmetricLoss, AsymmetricContinuousLoss
 from .inference import ConvectNetInference
+from .losses import AsymmetricContinuousLoss, AsymmetricLoss, ConvectNetLoss
 
-__all__ = ['ConvectNet', 'ConvectNetLoss', 'AsymmetricLoss', 'AsymmetricContinuousLoss', 'ConvectNetInference']
+__all__ = ['AsymmetricContinuousLoss', 'AsymmetricLoss', 'ConvectNet', 'ConvectNetInference', 'ConvectNetLoss']

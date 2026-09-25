@@ -41,12 +41,13 @@ def test_convectnet_output_shapes():
     x = torch.randn(2, 4, 12, 64, 64)   # smaller H/W for speed
     with torch.no_grad():
         out = model(x)
-    assert set(out.keys()) == {'hail', 'cloudburst', 'downburst', 'ci', 'latent'}
-    assert out['hail'].shape       == (2, 3)
-    assert out['cloudburst'].shape == (2, 2)
-    assert out['downburst'].shape  == (2, 1)
-    assert out['ci'].shape         == (2, 1)
-    assert out['latent'].shape     == (2, 128)
+    assert set(out.keys()) == {'hail', 'cloudburst', 'downburst', 'ci', 'latent', 'spatial_nowcast'}
+    assert out['hail'].shape            == (2, 3)
+    assert out['cloudburst'].shape      == (2, 2)
+    assert out['downburst'].shape       == (2, 1)
+    assert out['ci'].shape              == (2, 1)
+    assert out['latent'].shape          == (2, 128)
+    assert out['spatial_nowcast'].shape == (2, 1, 64, 64)
 
 
 def test_no_adaptive_pool3d():

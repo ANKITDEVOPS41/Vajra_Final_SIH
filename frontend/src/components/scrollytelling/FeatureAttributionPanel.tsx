@@ -35,7 +35,7 @@ export const FeatureAttributionPanel: React.FC<FeatureAttributionPanelProps> = (
           </h3>
         </div>
         <div className="flex items-center space-x-2">
-          <DataProvenanceBadge source="VIRTUAL" />
+          <DataProvenanceBadge source="DATASET" />
         </div>
       </div>
 

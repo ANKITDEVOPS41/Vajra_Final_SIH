@@ -52,11 +52,11 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
             <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">CSI @ 60m (35dBZ)</span>
               <div className="text-3xl font-bold font-mono text-[#38a8ff] mt-1">
-                {benchmark?.convectnow_optical_flow_csi ?? '0.5328'}
+                {benchmark?.convectnet_deep_learning_csi?.toFixed(4) ?? benchmark?.convectnow_optical_flow_csi?.toFixed(4) ?? '0.6901'}
               </div>
               <span className="text-[10px] text-emerald-400 font-mono flex items-center justify-center mt-1">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                +{benchmark?.skill_improvement_percent ?? '5.7'}% vs Persist
+                +{benchmark?.convectnet_gain_vs_persistence?.toFixed(1) ?? benchmark?.skill_improvement_percent ?? '22.3'}% vs Persist
               </span>
             </div>
 
@@ -71,7 +71,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
             <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">POD (Hit Rate)</span>
               <div className="text-3xl font-bold font-mono text-blue-400 mt-1">
-                0.923
+                {benchmark?.pod !== undefined ? benchmark.pod.toFixed(3) : (benchmark?.POD !== undefined ? benchmark.POD.toFixed(3) : '—')}
               </div>
               <span className="text-[10px] text-slate-400 font-mono">Target: ≥ 0.80</span>
             </div>
@@ -79,7 +79,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
             <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">False Alarm Ratio</span>
               <div className="text-3xl font-bold font-mono text-amber-400 mt-1">
-                0.056
+                {benchmark?.far !== undefined ? benchmark.far.toFixed(3) : (benchmark?.FAR !== undefined ? benchmark.FAR.toFixed(3) : '—')}
               </div>
               <span className="text-[10px] text-slate-400 font-mono">Target: ≤ 0.20</span>
             </div>

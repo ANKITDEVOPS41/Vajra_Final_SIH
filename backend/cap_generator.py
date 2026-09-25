@@ -1,9 +1,9 @@
 import datetime
-import uuid
 import xml.etree.ElementTree as ET
-from typing import Dict, Any
+from typing import Any
 
-def generate_cap_xml(cell_id: str, hazard_data: Dict[str, Any], coordinates: tuple = (21.0, 84.0)) -> str:
+
+def generate_cap_xml(cell_id: str, hazard_data: dict[str, Any], coordinates: tuple = (21.0, 84.0)) -> str:
     """
     Generates a formalized NDMA Common Alerting Protocol (CAP v1.2 XML)
     warning message for dissemination to disaster management authorities.
@@ -34,7 +34,7 @@ def generate_cap_xml(cell_id: str, hazard_data: Dict[str, Any], coordinates: tup
         headline = f"SEVERE WEATHER WARNING: Convective Cell {cell_id}"
         if rain >= 50: descriptions.append(f"Heavy rain rate {rain} mm/hr.")
         if wind >= 60: descriptions.append(f"Severe gusts up to {wind} km/h.")
-        if posh >= 30: descriptions.append(f"Moderate hail risk.")
+        if posh >= 30: descriptions.append("Moderate hail risk.")
     else:
         descriptions.append("Standard convective precipitation. No immediate extreme hazard.")
 

@@ -8,9 +8,10 @@ Fuses multi-sensor meteorological evidence for each individual storm cell:
 5. Graceful handling of missing modalities with dynamic confidence attenuation
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
+
 import numpy as np
 
 try:
@@ -42,17 +43,17 @@ class UnifiedCellState:
     area_km2: float
     # Evolution (Milestone 3)
     evolution_state: EvolutionState
-    evolution_probabilities: Dict[str, float]
+    evolution_probabilities: dict[str, float]
     trend_summary: str
     footprint_expansion_factor: float
     # Multimodal fused evidence (Milestone 4)
-    radar_evidence: Dict[str, Any]
-    lightning_evidence: Dict[str, Any]
-    satellite_evidence: Dict[str, Any]
-    environment_evidence: Dict[str, Any]
+    radar_evidence: dict[str, Any]
+    lightning_evidence: dict[str, Any]
+    satellite_evidence: dict[str, Any]
+    environment_evidence: dict[str, Any]
     # Data provenance & confidence
-    modalities_present: List[str]
-    data_freshness: Dict[str, ModalityFreshness]
+    modalities_present: list[str]
+    data_freshness: dict[str, ModalityFreshness]
     fusion_confidence: float         # 0.0 to 1.0
     confidence_tier: str            # "HIGH", "MEDIUM", "LOW"
 
@@ -69,7 +70,7 @@ class MultimodalFusionEngine:
         self.radar_origin_lon = radar_origin_lon
         self.km_per_deg = km_per_deg
 
-    def pixel_to_latlon(self, x_px: float, y_px: float, grid_res_km: float = 1.0, grid_dim: int = 128) -> Tuple[float, float]:
+    def pixel_to_latlon(self, x_px: float, y_px: float, grid_res_km: float = 1.0, grid_dim: int = 128) -> tuple[float, float]:
         """
         Converts local Cartesian radar grid coordinates to geographical Lat/Lon.
         Center of grid (grid_dim/2, grid_dim/2) is mapped to radar origin.
@@ -84,10 +85,10 @@ class MultimodalFusionEngine:
 
     def extract_cell_lightning(
         self,
-        cell_bbox: List[int],
-        lightning_grid: Optional[np.ndarray] = None,
-        lightning_points: Optional[List[Dict[str, float]]] = None
-    ) -> Dict[str, Any]:
+        cell_bbox: list[int],
+        lightning_grid: np.ndarray | None = None,
+        lightning_points: list[dict[str, float]] | None = None
+    ) -> dict[str, Any]:
         """
         Extracts lightning strikes occurring inside or within a 5 km buffer of the storm cell.
         """
@@ -129,9 +130,9 @@ class MultimodalFusionEngine:
 
     def extract_cell_satellite(
         self,
-        cell_bbox: List[int],
-        ir_grid: Optional[np.ndarray] = None,
-    ) -> Dict[str, Any]:
+        cell_bbox: list[int],
+        ir_grid: np.ndarray | None = None,
+    ) -> dict[str, Any]:
         """
         Extracts cloud-top thermal information from geostationary satellite IR channels.
         Cold brightness temperatures (< 215 K / -58°C) indicate high-reaching convective overshooting tops.
@@ -173,7 +174,7 @@ class MultimodalFusionEngine:
             "thermal_signature": "NO_SATELLITE_FEED",
         }
 
-    def extract_cell_environment(self, nwp_fields: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
+    def extract_cell_environment(self, nwp_fields: dict[str, float] | None = None) -> dict[str, Any]:
         """
         Extracts environmental background thermodynamic stability (CAPE, CIN, 0°C Isotherm).
         """
@@ -201,11 +202,11 @@ class MultimodalFusionEngine:
 
     def fuse_cell(
         self,
-        cell_dict: Dict[str, Any],
+        cell_dict: dict[str, Any],
         evolution_record: CellEvolutionRecord,
-        lightning_grid: Optional[np.ndarray] = None,
-        satellite_ir_grid: Optional[np.ndarray] = None,
-        nwp_fields: Optional[Dict[str, float]] = None,
+        lightning_grid: np.ndarray | None = None,
+        satellite_ir_grid: np.ndarray | None = None,
+        nwp_fields: dict[str, float] | None = None,
         radar_latency_sec: float = 120.0,
         lightning_latency_sec: float = 45.0,
         satellite_latency_sec: float = 480.0,

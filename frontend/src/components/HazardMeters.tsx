@@ -47,7 +47,7 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
           </h3>
         </div>
         <div className="flex items-center space-x-2">
-          <DataProvenanceBadge source="VIRTUAL" />
+          <DataProvenanceBadge source="DATASET" />
           <span className="text-xs font-mono text-[#38a8ff] font-bold bg-[#38a8ff]/10 px-2.5 py-0.5 rounded-full border border-[#38a8ff]/30">
             {selectedCell ? selectedCell.cell_id : 'BASIN PEAK'}
           </span>

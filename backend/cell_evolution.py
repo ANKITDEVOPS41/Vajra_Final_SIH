@@ -11,7 +11,7 @@ Tracks individual storm cells over time to determine:
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
 
@@ -32,21 +32,21 @@ class CellObservation:
     mean_dbz: float
     area_km2: float
     lightning_rate_per_min: float
-    cloud_top_temp_k: Optional[float] = None
+    cloud_top_temp_k: float | None = None
 
 
 @dataclass
 class CellEvolutionRecord:
     cell_id: str
     current_state: EvolutionState
-    state_probabilities: Dict[str, float]
+    state_probabilities: dict[str, float]
     trend_summary: str
     rate_dbz_per_10min: float
     rate_area_percent_per_10min: float
     rate_lightning_per_10min: float
     cooling_rate_k_per_10min: float
     footprint_expansion_factor: float   # > 1.0 means growing footprint
-    history: List[Dict] = field(default_factory=list)
+    history: list[dict] = field(default_factory=list)
 
 
 class CellEvolutionTracker:
@@ -57,7 +57,7 @@ class CellEvolutionTracker:
 
     def __init__(self, max_history_scans: int = 12):
         self.max_history_scans = max_history_scans
-        self.cell_histories: Dict[str, List[CellObservation]] = {}
+        self.cell_histories: dict[str, list[CellObservation]] = {}
 
     def record_observation(
         self,
@@ -68,8 +68,8 @@ class CellEvolutionTracker:
         mean_dbz: float,
         area_km2: float,
         lightning_rate_per_min: float = 0.0,
-        cloud_top_temp_k: Optional[float] = None,
-        timestamp_utc: Optional[str] = None,
+        cloud_top_temp_k: float | None = None,
+        timestamp_utc: str | None = None,
         minute_offset: float = 0.0,
     ) -> CellEvolutionRecord:
         """

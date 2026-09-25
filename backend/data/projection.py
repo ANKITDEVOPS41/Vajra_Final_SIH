@@ -7,9 +7,9 @@ Handles:
 4. Uniform 1 km EPSG:4326 regular lat/lon grid interpolation without external C-GIS libs
 """
 
+
 import numpy as np
 from scipy.ndimage import map_coordinates
-from typing import Tuple, Dict, Optional, Union
 
 # WGS-84 & Spherical Earth Constants
 R_EARTH_SPHERE = 6370997.0        # SEVIR authalic spherical radius (m)
@@ -21,12 +21,12 @@ KM_PER_DEG_LAT = 111.195          # Nominal km per degree latitude
 
 
 def laea_forward(
-    lat: Union[float, np.ndarray],
-    lon: Union[float, np.ndarray],
+    lat: float | np.ndarray,
+    lon: float | np.ndarray,
     lat_0: float = 38.0,
     lon_0: float = -98.0,
     R: float = R_EARTH_SPHERE
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Closed-form forward spherical Lambert Azimuthal Equal Area (LAEA) projection.
     Maps geographic coordinates (lat, lon in degrees) to projected coordinates (x, y in meters).
@@ -45,12 +45,12 @@ def laea_forward(
 
 
 def laea_inverse(
-    x: Union[float, np.ndarray],
-    y: Union[float, np.ndarray],
+    x: float | np.ndarray,
+    y: float | np.ndarray,
     lat_0: float = 38.0,
     lon_0: float = -98.0,
     R: float = R_EARTH_SPHERE
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Closed-form inverse spherical Lambert Azimuthal Equal Area (LAEA) projection.
     Maps projected coordinates (x, y in meters) back to geographic coordinates (lat, lon in degrees).
@@ -73,13 +73,13 @@ def laea_inverse(
 
 
 def geos_forward(
-    lat: Union[float, np.ndarray],
-    lon: Union[float, np.ndarray],
+    lat: float | np.ndarray,
+    lon: float | np.ndarray,
     lon_0: float = 74.0,
     h: float = H_GEOSTATIONARY,
     req: float = R_EARTH_EQUATORIAL,
     rpol: float = R_EARTH_POLAR
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray], Union[bool, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray, bool | np.ndarray]:
     """
     Standard CGMS / WMO Geostationary forward projection (INSAT-3DR / GOES).
     Maps (lat, lon) in degrees to normalized scan angles (x_rad, y_rad) in radians.
@@ -117,13 +117,13 @@ def geos_forward(
 
 
 def geos_inverse(
-    scan_x: Union[float, np.ndarray],
-    scan_y: Union[float, np.ndarray],
+    scan_x: float | np.ndarray,
+    scan_y: float | np.ndarray,
     lon_0: float = 74.0,
     h: float = H_GEOSTATIONARY,
     req: float = R_EARTH_EQUATORIAL,
     rpol: float = R_EARTH_POLAR
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray], Union[bool, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray, bool | np.ndarray]:
     """
     Standard CGMS / WMO Geostationary inverse projection.
     Maps normalized scan angles (scan_x, scan_y in radians) back to (lat, lon in degrees).
@@ -159,9 +159,9 @@ def geos_inverse(
 
 
 def polar_to_cartesian(
-    r_km: Union[float, np.ndarray],
-    theta_deg: Union[float, np.ndarray]
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+    r_km: float | np.ndarray,
+    theta_deg: float | np.ndarray
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Converts meteorological polar coordinates (r in km, theta in degrees azimuth clockwise from North)
     to local Cartesian (x_km East, y_km North).
@@ -173,11 +173,11 @@ def polar_to_cartesian(
 
 
 def cartesian_to_latlon(
-    x_km: Union[float, np.ndarray],
-    y_km: Union[float, np.ndarray],
+    x_km: float | np.ndarray,
+    y_km: float | np.ndarray,
     station_lat: float,
     station_lon: float
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Converts local Cartesian coordinates (x_km East, y_km North from radar station)
     to geographic coordinates (lat, lon in degrees EPSG:4326).
@@ -190,11 +190,11 @@ def cartesian_to_latlon(
 
 
 def latlon_to_cartesian(
-    lat: Union[float, np.ndarray],
-    lon: Union[float, np.ndarray],
+    lat: float | np.ndarray,
+    lon: float | np.ndarray,
     station_lat: float,
     station_lon: float
-) -> Tuple[Union[float, np.ndarray], Union[float, np.ndarray]]:
+) -> tuple[float | np.ndarray, float | np.ndarray]:
     """
     Converts geographic coordinates (lat, lon in degrees EPSG:4326)
     to local Cartesian offsets (x_km East, y_km North from radar station).
@@ -221,8 +221,8 @@ class GridReprojector:
         llcrnrlon: float,
         urcrnrlat: float,
         urcrnrlon: float,
-        target_shape: Optional[Tuple[int, int]] = None
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        target_shape: tuple[int, int] | None = None
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Reprojects a SEVIR LAEA grid to a regular lat/lon EPSG:4326 grid using
         closed-form LAEA forward mapping and bilinear interpolation.
@@ -277,7 +277,7 @@ class GridReprojector:
         self,
         polar_data: np.ndarray,
         max_range_km: float = 250.0,
-        out_shape: Tuple[int, int] = (720, 720)
+        out_shape: tuple[int, int] = (720, 720)
     ) -> np.ndarray:
         """
         Converts radar polar sweep (n_gates, n_rays) to local Cartesian square grid (out_shape).
@@ -324,9 +324,9 @@ class GridReprojector:
         station_lat: float,
         station_lon: float,
         max_range_km: float = 250.0,
-        target_bbox: Optional[Tuple[float, float, float, float]] = None,
-        target_shape: Tuple[int, int] = (256, 256)
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        target_bbox: tuple[float, float, float, float] | None = None,
+        target_shape: tuple[int, int] = (256, 256)
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Reprojects Cartesian radar product centered at (station_lat, station_lon)
         onto a regular geographic lat/lon EPSG:4326 bounding box.
@@ -377,11 +377,11 @@ class GridReprojector:
         self,
         sat_grid: np.ndarray,
         sat_lon_0: float = 74.0,
-        scan_x_range: Optional[Tuple[float, float]] = None,
-        scan_y_range: Optional[Tuple[float, float]] = None,
-        target_bbox: Tuple[float, float, float, float] = (8.0, 68.0, 37.0, 97.0),
-        target_shape: Tuple[int, int] = (256, 256)
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        scan_x_range: tuple[float, float] | None = None,
+        scan_y_range: tuple[float, float] | None = None,
+        target_bbox: tuple[float, float, float, float] = (8.0, 68.0, 37.0, 97.0),
+        target_shape: tuple[int, int] = (256, 256)
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Reprojects Geostationary satellite imagery (INSAT-3DR) to regular EPSG:4326 grid.
 

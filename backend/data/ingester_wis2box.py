@@ -1,9 +1,10 @@
 import logging
-import requests
-import urllib3
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Any
+
+import requests
+import urllib3
 
 # Suppress insecure request warnings due to the Indian Government intermediate CA.
 # This is explicitly required to hit wis2box.imd.gov.in without verification errors.
@@ -22,11 +23,11 @@ class SurfaceObservation:
     timestamp: datetime
     latitude: float
     longitude: float
-    temperature_c: Optional[float] = None
-    dewpoint_c: Optional[float] = None
-    pressure_hpa: Optional[float] = None
-    wind_speed_ms: Optional[float] = None
-    wind_dir_deg: Optional[float] = None
+    temperature_c: float | None = None
+    dewpoint_c: float | None = None
+    pressure_hpa: float | None = None
+    wind_speed_ms: float | None = None
+    wind_dir_deg: float | None = None
     
     @property
     def is_valid(self) -> bool:
@@ -45,7 +46,7 @@ class WIS2BoxIngestor:
         self.session.verify = False 
         self.session.headers.update({"Accept": "application/json"})
         
-    def fetch_odisha_synop(self, bbox: str = "82.0,17.8,87.5,22.6", limit: int = 200) -> List[SurfaceObservation]:
+    def fetch_odisha_synop(self, bbox: str = "82.0,17.8,87.5,22.6", limit: int = 200) -> list[SurfaceObservation]:
         """
         Fetches the latest surface observations within the Odisha bounding box.
         
@@ -82,7 +83,7 @@ class WIS2BoxIngestor:
             return []
 
 
-    def _parse_geojson_features(self, features: List[Dict[str, Any]]) -> List[SurfaceObservation]:
+    def _parse_geojson_features(self, features: list[dict[str, Any]]) -> list[SurfaceObservation]:
         """Maps WMO GeoJSON (one variable per feature) to our internal standard data class."""
         # WIS2Box often returns one feature per variable rather than wide rows.
         # We need to aggregate by station_id
@@ -138,7 +139,7 @@ class WIS2BoxIngestor:
         return list(station_buffers.values())
         
     @staticmethod
-    def _extract_float(properties: Dict[str, Any], key: str) -> Optional[float]:
+    def _extract_float(properties: dict[str, Any], key: str) -> float | None:
         """Safely extract and cast float values from dynamic JSON payloads."""
         val = properties.get(key)
         if val is None:

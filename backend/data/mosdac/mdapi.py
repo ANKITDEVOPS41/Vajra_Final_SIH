@@ -1,14 +1,12 @@
-import requests
-import os
-from pathlib import Path
 import json
-import glob
-import time
 import logging
-import threading
-from datetime import datetime
+import os
 import re
 import sys
+import time
+from datetime import datetime
+
+import requests
 
 try:
     from tqdm.auto import tqdm
@@ -64,7 +62,7 @@ def load_config():
             }
         return config
     
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         print("[ERROR] 'config.json' Not Found!")
         exit(1)
         
@@ -212,22 +210,7 @@ def get_token():
     except requests.exceptions.RequestException as e:
         
         error_msg = str(e)
-        if '503 Server Error' in error_msg:
-            print("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            if generate_logs:
-                logger.error("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            sys.exit(1)
-        elif 'Service Unavailable for url' in error_msg:
-            print("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            if generate_logs:
-                logger.error("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            sys.exit(1)
-        elif 'Not Found for url' in error_msg:
-            print("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            if generate_logs:
-                logger.error("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
-            sys.exit(1)
-        elif 'Max retries exceeded with url: /download_api/gettoken':
+        if '503 Server Error' in error_msg or 'Service Unavailable for url' in error_msg or 'Not Found for url' in error_msg or 'Max retries exceeded with url: /download_api/gettoken':
             print("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
             if generate_logs:
                 logger.error("\nServer Unavailable: The server is currently unreachable or not responding.\nPlease Try Again later or Contact Support if the issue persists. Thank you for your patience!\n")
@@ -307,7 +290,7 @@ def search_results():
     except requests.exceptions.RequestException as e:
             print(f"\n[ERROR] Unexpected Status Code encountered in Search API's Response:\nError Details: {e}")
             if generate_logs:
-                logger.error(f"\nUnexpected Status Code encountered in Search API's Response:\nError Details: ", exc_info=True)
+                logger.error("\nUnexpected Status Code encountered in Search API's Response:\nError Details: ", exc_info=True)
             sys.exit(1)
 
 def fetch_and_download_data(total_files, access_token, refresh_token):
@@ -633,9 +616,9 @@ def download_data(bearer_token, record_id, identifier, prod_date, counter, total
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
                 print(f"\n[WARNING] Network Error encountered: Please check your Internet connection and reconnect if needed.\nError Details: {e}")
                 if delay is None:
-                    print(f"\n[ERROR] Download Stopped after Multiple Attempts due to Network Error. Please check your Internet connection and Try Again.")
+                    print("\n[ERROR] Download Stopped after Multiple Attempts due to Network Error. Please check your Internet connection and Try Again.")
                     if generate_logs:
-                        logger.error(f"\nDownload was Stopped after Multiple Attempts due to the encountered Network Error. Please check your Internet connection and Try Again.\n")
+                        logger.error("\nDownload was Stopped after Multiple Attempts due to the encountered Network Error. Please check your Internet connection and Try Again.\n")
                     return None
                 print(f"\n[INFO] Retrying in {delay} seconds...")
                 if tmp_file_path and os.path.exists(tmp_file_path):
@@ -651,9 +634,9 @@ def download_data(bearer_token, record_id, identifier, prod_date, counter, total
                         logger.warning(f"\n[WARNING] {identifier}: This file is Not Available on the Server, and hence was Skipped during the Download.")
                     return None
                 elif os.path.exists(tmp_file_path):
-                    print(f"\n[WARNING] Download was Interrupted due to Connection Loss. Resuming from the last point..")
+                    print("\n[WARNING] Download was Interrupted due to Connection Loss. Resuming from the last point..")
                 else:
-                    print(f"\n[ERROR] Error downloading data.", e)
+                    print("\n[ERROR] Error downloading data.", e)
                     if generate_logs:
                         logger.error("[ERROR] Error encountered in 'download()' method.\nError Details: ", exc_info=True)
                     return None
@@ -703,7 +686,7 @@ def logout():
 
         except (requests.ConnectionError, requests.Timeout, OSError):
             if attempt < len(retry_delays) - 1:
-                print(f"\n[WARNING] Network Error encountered during Logout. Please check your Internet Connection.")
+                print("\n[WARNING] Network Error encountered during Logout. Please check your Internet Connection.")
                 print(f"[INFO] Retrying in {delay} seconds...")
                 time.sleep(delay)
             else:
@@ -713,9 +696,9 @@ def logout():
                 return
 
         except requests.exceptions.RequestException as e:
-            print(f"[ERROR] Error encountered in logout()", e)
+            print("[ERROR] Error encountered in logout()", e)
             if generate_logs:
-                logger.error(f"Error Encountered during Logout | Error Details: ", exc_info=True)
+                logger.error("Error Encountered during Logout | Error Details: ", exc_info=True)
         
 
 def main():

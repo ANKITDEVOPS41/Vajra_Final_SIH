@@ -1,5 +1,6 @@
+
 import numpy as np
-from typing import Dict, List, Union
+
 
 class MeteorologicalVerification:
     """
@@ -47,7 +48,7 @@ class MeteorologicalVerification:
         return float((hits + false_alarms) / denominator)
     
     @staticmethod
-    def reliability_diagram_data(prob_forecast: np.ndarray, binary_obs: np.ndarray, n_bins: int = 10) -> Dict[str, np.ndarray]:
+    def reliability_diagram_data(prob_forecast: np.ndarray, binary_obs: np.ndarray, n_bins: int = 10) -> dict[str, np.ndarray]:
         """Returns binned forecast probabilities vs observed frequencies for reliability diagram."""
         bins = np.linspace(0, 1, n_bins + 1)
         bin_indices = np.digitize(prob_forecast, bins) - 1
@@ -123,7 +124,7 @@ class MeteorologicalVerification:
         return float(np.mean(crps_vals))
     
     @staticmethod
-    def lead_time_skill_decay(model_scores_by_leadtime: List[float], baseline_scores_by_leadtime: List[float], lead_time_mins: Optional[List[int]] = None, threshold: float = 0.3) -> Dict[str, Union[int, float, str]]:
+    def lead_time_skill_decay(model_scores_by_leadtime: list[float], baseline_scores_by_leadtime: list[float], lead_time_mins: Optional[list[int]] = None, threshold: float = 0.3) -> dict[str, int | float | str]:
         """
         Computes the lead time at which model skill drops below baseline.
         This is THE key metric for proving DL value: 'ConvectNet maintains

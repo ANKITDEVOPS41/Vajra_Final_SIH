@@ -9,17 +9,16 @@ Usage:
     python -m convectnow.backend.data.web_scraper_imd --scrape-all
 """
 
-import os
-import ssl
 import json
 import logging
+import os
+import ssl
 import urllib.request
-from typing import Dict, List, Optional
 from datetime import datetime, timezone
-from PIL import Image
+
 import numpy as np
 
-from .ingester_imd import IMDGeoServerWorker, IMDRadarProduct
+from .ingester_imd import IMDGeoServerWorker
 
 logger = logging.getLogger("ConvectNow.WebScraper")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -54,7 +53,7 @@ class IMDWebScraper:
         self.ctx.check_hostname = False
         self.ctx.verify_mode = ssl.CERT_NONE
 
-    def scrape_wis2box_synop(self, limit: int = 150) -> Dict:
+    def scrape_wis2box_synop(self, limit: int = 150) -> dict:
         """Scrapes real-time Indian surface synoptic weather records from IMD WIS2Box."""
         url = f"https://wis2box.imd.gov.in/oapi/collections/urn:wmo:md:in-imd:surface-based-observations.synop/items?f=json&limit={limit}"
         logger.info(f"Fetching live surface observations from IMD WIS2Box: {url}")
@@ -97,7 +96,7 @@ class IMDWebScraper:
             logger.error(f"Failed to scrape IMD WIS2Box: {e}")
             return {"error": str(e), "count": 0, "records": []}
 
-    def scrape_radar_animation(self, code: str, station_name: str) -> Optional[str]:
+    def scrape_radar_animation(self, code: str, station_name: str) -> str | None:
         """Downloads live Doppler Weather Radar animation GIF from mausam.imd.gov.in."""
         url = f"https://mausam.imd.gov.in/Radar/animation/Converted/{code}_MAXZ.gif"
         out_gif = os.path.join(self.radar_dir, f"{station_name}_maxz.gif")
@@ -115,7 +114,7 @@ class IMDWebScraper:
             logger.warning(f"Could not download DWR GIF for {station_name}: {e}")
             return None
 
-    def decode_radar_gif_to_dbz(self, gif_path: str, station_name: str) -> Optional[np.ndarray]:
+    def decode_radar_gif_to_dbz(self, gif_path: str, station_name: str) -> np.ndarray | None:
         """Decodes the latest frame of a downloaded IMD radar GIF into calibrated dBZ reflectivity."""
         try:
             worker = IMDGeoServerWorker(station=station_name)
@@ -128,7 +127,7 @@ class IMDWebScraper:
             logger.error(f"Error decoding palette for {station_name}: {e}")
             return None
 
-    def scrape_all_active_radars(self) -> Dict[str, str]:
+    def scrape_all_active_radars(self) -> dict[str, str]:
         """Scrapes and decodes radar frames for all active Indian DWR stations."""
         results = {}
         for code, name, desc in ACTIVE_RADAR_STATIONS:

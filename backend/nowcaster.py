@@ -8,10 +8,11 @@ Features:
 5. Hyper-Local Location Arrival Time (ETA) Estimation
 """
 
+
 import cv2
 import numpy as np
-from scipy.ndimage import map_coordinates, label, center_of_mass
-from typing import Dict, List, Tuple, Optional
+from scipy.ndimage import center_of_mass, label, map_coordinates
+
 
 class ConvectiveNowcaster:
     def __init__(self, grid_res_km: float = 1.0, timestep_min: float = 5.0):
@@ -73,7 +74,7 @@ class ConvectiveNowcaster:
 
         return np.array(forecasts)
 
-    def generate_probabilistic_ensemble(self, frame: np.ndarray, flow: np.ndarray, steps: int = 12, n_members: int = 10) -> Dict[str, np.ndarray]:
+    def generate_probabilistic_ensemble(self, frame: np.ndarray, flow: np.ndarray, steps: int = 12, n_members: int = 10) -> dict[str, np.ndarray]:
         """
         Generates a stochastic ensemble of nowcasts by perturbing the optical flow field.
         Returns:
@@ -108,7 +109,7 @@ class ConvectiveNowcaster:
             "members": all_members
         }
 
-    def detect_storm_cells(self, dbz_frame: np.ndarray, min_dbz: float = 35.0, min_area_px: int = 25) -> List[Dict]:
+    def detect_storm_cells(self, dbz_frame: np.ndarray, min_dbz: float = 35.0, min_area_px: int = 25) -> list[dict]:
         """
         Identifies coherent convective storm cells (connected regions with dBZ >= 35).
         Returns list of cell records with centroid, peak dBZ, area, and bounding box.
@@ -147,7 +148,7 @@ class ConvectiveNowcaster:
         cells.sort(key=lambda c: c["peak_dbz"], reverse=True)
         return cells
 
-    def track_cells_and_compute_eta(self, cells: List[Dict], flow: np.ndarray, target_locations: List[Dict]) -> List[Dict]:
+    def track_cells_and_compute_eta(self, cells: list[dict], flow: np.ndarray, target_locations: list[dict]) -> list[dict]:
         """
         Tracks storm cells, estimates forward motion velocity vectors, and calculates
         arrival countdowns (ETA ± uncertainty) for critical target assets/cities.

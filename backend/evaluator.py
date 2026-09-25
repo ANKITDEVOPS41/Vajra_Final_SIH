@@ -7,13 +7,14 @@ Implements standard WMO / NCMRWF verification metrics:
 4. ETA Mean Absolute Error (MAE)
 """
 
+
 import numpy as np
 from scipy.ndimage import uniform_filter
-from typing import Dict, List, Tuple
+
 
 class ConvectiveEvaluator:
     @staticmethod
-    def compute_contingency_table(obs: np.ndarray, pred: np.ndarray, threshold: float = 35.0) -> Dict[str, float]:
+    def compute_contingency_table(obs: np.ndarray, pred: np.ndarray, threshold: float = 35.0) -> dict[str, float]:
         """
         Computes binary contingency table metrics for convection threshold exceedance (e.g. 35 dBZ).
         Hits (TP), False Alarms (FP), Misses (FN), Correct Negatives (TN).
@@ -78,7 +79,7 @@ class ConvectiveEvaluator:
         return float(round(np.clip(fss, 0.0, 1.0), 4))
 
     @classmethod
-    def evaluate_lead_time_decay(cls, ground_truth_seq: np.ndarray, forecast_seq: np.ndarray) -> List[Dict]:
+    def evaluate_lead_time_decay(cls, ground_truth_seq: np.ndarray, forecast_seq: np.ndarray) -> list[dict]:
         """
         Evaluates forecast decay over lead times (T+15, T+30, T+60, T+90 min).
         """
