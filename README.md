@@ -135,8 +135,8 @@ convectnow/
 
 | Variable           | Description                       | Default                              |
 | ------------------ | --------------------------------- | -------------------------------------- |
-| `MOSDAC_USER`      | ISRO MOSDAC SSO Username          | `gaurav711` |
-| `MOSDAC_PASS`      | ISRO MOSDAC SSO Password          | `Gaurav@2005` |
+| `MOSDAC_USER`      | ISRO MOSDAC SSO Username          | `<YOUR_USERNAME>` |
+| `MOSDAC_PASS`      | ISRO MOSDAC SSO Password          | `<YOUR_PASSWORD>` |
 
 ## Available Scripts
 

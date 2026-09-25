@@ -5,7 +5,7 @@
 # COMPLETE MULTI-SOURCE METEOROLOGICAL SYSTEM:
 # 1. FOUNDATION PRE-TRAINING: 1.4 GB Authentic SEVIR Radar Benchmark (AWS Open Data)
 # 2. SOVEREIGN INDIAN INGESTION: ISRO MOSDAC INSAT-3DR/3DS Live Search & Download
-#    - Official credentials for download.mosdac.gov.in API: gaurav711
+#    - Official credentials for download.mosdac.gov.in API: <YOUR_MOSDAC_USERNAME>
 #    - Thermodynamic Planck Radiation Calibration (Digital Numbers -> Radiance -> Tb in K/°C)
 #    - TIR1 (10.8µm), TIR2 (12.0µm), Water Vapor (6.9µm), Visible (0.65µm)
 # 3. PRODUCTION DEEP LEARNING ARCHITECTURE (ConvectNet):
@@ -110,7 +110,7 @@ class MOSDACIndiaPipeline:
     3. Rigorous Planck's Law thermodynamic calibration (Digital Counts -> Radiance -> Brightness Temp)
     4. Convective cloud-top cooling rate calculation (d(Tb)/dt) for Convective Initiation
     """
-    def __init__(self, username: str = "gaurav711", password: str = "Gaurav@2005"):
+    def __init__(self, username: str = "<YOUR_MOSDAC_USERNAME>", password: str = "<YOUR_MOSDAC_PASSWORD>"):
         self.username = username
         self.password = password
         self.search_url = "https://mosdac.gov.in/apios/datasets.json"
@@ -836,7 +836,7 @@ def train_and_evaluate(epochs: int = 15, batch_size: int = 16, lr: float = 1e-3)
     # 10. ISRO MOSDAC SOVEREIGN INDIAN DEPLOYMENT DEMO
     # -------------------------------------------------------------------------
     print("\n[MOSDAC PIPELINE] Demonstrating Live ISRO Satellite Ingestion & Planck Calibration...")
-    mosdac_pipe = MOSDACIndiaPipeline(username="gaurav711", password="Gaurav@2005")
+    mosdac_pipe = MOSDACIndiaPipeline(username="<YOUR_MOSDAC_USERNAME>", password="<YOUR_MOSDAC_PASSWORD>")
     catalog_res = mosdac_pipe.query_live_catalog(dataset_id="3RIMG_L1C_SGP", count=3)
     auth_token = mosdac_pipe.authenticate_download_token()
 
@@ -919,7 +919,7 @@ def train_and_evaluate(epochs: int = 15, batch_size: int = 16, lr: float = 1e-3)
             "gain_vs_optical_flow_pct": ((mean_cn - mean_of)/max(1e-4, mean_of))*100,
         },
         "mosdac_integration": {
-            "user": "gaurav711",
+            "user": "<YOUR_MOSDAC_USERNAME>",
             "channels": ["TIR1", "TIR2", "WV", "VIS"],
             "planck_calibration": True
         },
