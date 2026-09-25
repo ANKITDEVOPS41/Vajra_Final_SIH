@@ -19,12 +19,12 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
   const leadTimes = evalData?.lead_time_scores || [];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0d15]/85 backdrop-blur-xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
       <div className="card-blizzard w-full max-w-3xl border border-[#38a8ff]/25 rounded-3xl shadow-[0_20px_60px_rgba(56,168,255,0.1)] overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="bg-[#131928]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div className="bg-[#111729]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
-            <BarChart3 className="w-5 h-5 text-[#38a8ff]" />
+            <BarChart3 className="w-5 h-5 text-[#1aaaff]" />
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="font-heading text-sm font-bold text-white uppercase tracking-wider">
@@ -49,9 +49,9 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
         <div className="p-5 overflow-y-auto space-y-4">
           {/* Key Metric Cards */}
           <div className="grid grid-cols-4 gap-3">
-            <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="bg-[#111729]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">CSI @ 60m (35dBZ)</span>
-              <div className="text-3xl font-bold font-mono text-[#38a8ff] mt-1">
+              <div className="text-3xl font-bold font-mono text-[#1aaaff] mt-1">
                 {benchmark?.convectnet_deep_learning_csi?.toFixed(4) ?? benchmark?.convectnow_optical_flow_csi?.toFixed(4) ?? '0.6901'}
               </div>
               <span className="text-[10px] text-emerald-400 font-mono flex items-center justify-center mt-1">
@@ -60,7 +60,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
               </span>
             </div>
 
-            <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="bg-[#111729]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">FSS (30km Radius)</span>
               <div className="text-3xl font-bold font-mono text-emerald-400 mt-1">
                 {benchmark?.fss_at_30km_radius?.toFixed(3) ?? '0.826'}
@@ -68,7 +68,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
               <span className="text-[10px] text-slate-400 font-mono">Target: ≥ 0.50</span>
             </div>
 
-            <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="bg-[#111729]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">POD (Hit Rate)</span>
               <div className="text-3xl font-bold font-mono text-blue-400 mt-1">
                 {benchmark?.pod !== undefined ? benchmark.pod.toFixed(3) : (benchmark?.POD !== undefined ? benchmark.POD.toFixed(3) : '—')}
@@ -76,7 +76,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
               <span className="text-[10px] text-slate-400 font-mono">Target: ≥ 0.80</span>
             </div>
 
-            <div className="bg-[#131928]/80 border border-white/10 p-4 rounded-2xl text-center">
+            <div className="bg-[#111729]/80 border border-white/10 p-4 rounded-2xl text-center">
               <span className="text-[10px] text-slate-400 uppercase font-sans tracking-wider">False Alarm Ratio</span>
               <div className="text-3xl font-bold font-mono text-amber-400 mt-1">
                 {benchmark?.far !== undefined ? benchmark.far.toFixed(3) : (benchmark?.FAR !== undefined ? benchmark.FAR.toFixed(3) : '—')}
@@ -86,13 +86,13 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
           </div>
 
           {/* Lead-Time Performance Table */}
-          <div className="border border-white/10 rounded-2xl overflow-hidden bg-[#131928]/40">
-            <div className="bg-[#131928]/80 px-4 py-2.5 border-b border-white/10 flex items-center justify-between text-xs font-semibold text-white">
+          <div className="border border-white/10 rounded-2xl overflow-hidden bg-[#111729]/40">
+            <div className="bg-[#111729]/80 px-4 py-2.5 border-b border-white/10 flex items-center justify-between text-xs font-semibold text-white">
               <span className="font-sans">Lead-Time Contingency Table (5 to 60 Minutes)</span>
               <span className="text-[11px] text-slate-400 font-mono">SEVIR Benchmark Multi-Sensor Ground Truth</span>
             </div>
             <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-[#0a0d15]/60 text-slate-400 border-b border-white/10 text-[11px]">
+              <thead className="bg-[#0a0e1a]/60 text-slate-400 border-b border-white/10 text-[11px]">
                 <tr>
                   <th className="py-2.5 px-3">Lead Time</th>
                   <th className="py-2.5 px-3">CSI (35 dBZ)</th>
@@ -106,7 +106,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
               <tbody className="divide-y divide-white/5 text-slate-200">
                 {leadTimes.map((row: any, i: number) => (
                   <tr key={i} className="hover:bg-white/5 transition-colors">
-                    <td className="py-2 px-3 font-bold text-[#38a8ff]">+{row.lead_time_min}m</td>
+                    <td className="py-2 px-3 font-bold text-[#1aaaff]">+{row.lead_time_min}m</td>
                     <td className="py-2 px-3 text-slate-100">{row.CSI_35dBZ.toFixed(4)}</td>
                     <td className="py-2 px-3 text-emerald-400">{row.POD.toFixed(4)}</td>
                     <td className="py-2 px-3 text-amber-400">{row.FAR.toFixed(4)}</td>
@@ -120,7 +120,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
           </div>
 
           {/* Defense & Citation Notes */}
-          <div className="bg-[#0a0d15]/80 border border-white/10 p-4 rounded-2xl text-xs space-y-1 text-slate-400">
+          <div className="bg-[#0a0e1a]/80 border border-white/10 p-4 rounded-2xl text-xs space-y-1 text-slate-400">
             <div className="flex items-center space-x-1.5 text-white font-semibold text-xs">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>NCMRWF Scientific Judge Defense Summary</span>
@@ -135,7 +135,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-white/10 bg-[#131928]/60 flex justify-end">
+        <div className="px-5 py-3 border-t border-white/10 bg-[#111729]/60 flex justify-end">
           <button
             onClick={onClose}
             className="btn-blizzard-secondary text-xs px-5 py-2"

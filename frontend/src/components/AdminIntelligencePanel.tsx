@@ -181,7 +181,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
         </div>
         <div className="flex items-center space-x-2">
           <DataProvenanceBadge source="LIVE" />
-          <span className="text-[10px] font-mono bg-[#131928] text-[#38a8ff] px-2.5 py-0.5 rounded-full border border-[#38a8ff]/30 font-bold">
+          <span className="text-[10px] font-mono bg-[#111729] text-[#1aaaff] px-2.5 py-0.5 rounded-full border border-[#1aaaff]/30 font-bold">
             NDMA CAP v1.2
           </span>
         </div>
@@ -221,16 +221,16 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       {/* Radio Communication Toast */}
       {radioFeedback && (
         <div className="bg-ocean-950/90 border border-[#38a8ff]/60 p-2.5 rounded-xl text-xs text-[#d0e9ff] font-mono flex items-center space-x-2 animate-in fade-in">
-          <Activity className="w-4 h-4 text-[#38a8ff] animate-pulse" />
+          <Activity className="w-4 h-4 text-[#1aaaff] animate-pulse" />
           <span>{radioFeedback}</span>
         </div>
       )}
 
       {/* Storm Cell Selector & Core Telemetry Strip */}
-      <div className="bg-[#131928]/90 border border-white/[0.1] rounded-2xl p-3 space-y-2.5 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3 space-y-2.5 shadow-sm">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
-            <Layers className="w-3.5 h-3.5 text-[#38a8ff]" />
+            <Layers className="w-3.5 h-3.5 text-[#1aaaff]" />
             <span>Active Storm Cell Selection</span>
           </span>
           <span className="text-[10px] font-mono text-slate-500">
@@ -249,7 +249,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 onClick={() => onSelectCell && onSelectCell(cell)}
                 className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all flex items-center space-x-2 border ${
                   isSelected
-                    ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold border-white/40 shadow-[0_0_15px_rgba(56,168,255,0.4)]'
+                    ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold border-white/40 shadow-[0_0_15px_rgba(56,168,255,0.4)]'
                     : 'bg-ocean-900/80 text-slate-300 border-white/10 hover:border-[#38a8ff]/40 hover:text-white'
                 }`}
               >
@@ -277,7 +277,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
           </div>
           <div className="bg-ocean-950/60 p-2 rounded-xl border border-white/5">
             <span className="text-[9px] text-slate-400 block uppercase">Heading</span>
-            <span className="text-sm font-bold text-[#38a8ff] flex items-center justify-center gap-0.5">
+            <span className="text-sm font-bold text-[#1aaaff] flex items-center justify-center gap-0.5">
               <Compass className="w-3 h-3" />
               {currentCell.heading_deg}°
             </span>
@@ -292,10 +292,10 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Demographic Risk Assessment Section */}
-      <div className="bg-[#131928]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-[#38a8ff]" />
+            <Users className="w-4 h-4 text-[#1aaaff]" />
             <h4 className="text-xs font-display font-bold uppercase tracking-wider text-white">
               Demographic Risk & Population Exposure
             </h4>
@@ -322,7 +322,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 onClick={() => setSelectedSettlement(type)}
                 className={`px-2 py-1 rounded-lg shrink-0 transition-all border ${
                   isSelected
-                    ? 'bg-[#38a8ff]/20 text-[#38a8ff] border-[#38a8ff]/60 font-bold'
+                    ? 'bg-[#38a8ff]/20 text-[#1aaaff] border-[#38a8ff]/60 font-bold'
                     : 'bg-ocean-950/60 text-slate-400 border-white/5 hover:text-white'
                 }`}
                 title={SETTLEMENT_PROFILES[type].description}
@@ -343,7 +343,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
             <div className="text-lg font-black font-mono text-white mt-0.5">
               {demographics.totalExposedPopulation.toLocaleString()}
             </div>
-            <span className="text-[9px] text-[#38a8ff] font-mono">
+            <span className="text-[9px] text-[#1aaaff] font-mono">
               {demographics.footprintAreaKm2} km² corridor
             </span>
           </div>
@@ -387,7 +387,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Building Structural Vulnerability (BMTPC / NDMA 4-Tier Matrix) */}
-      <div className="bg-[#131928]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Building2 className="w-4 h-4 text-amber-400" />
@@ -469,7 +469,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
 
           {/* Type D: Lifeline Infrastructure Assets */}
           <div className="bg-ocean-950/60 p-2.5 rounded-xl border border-white/5 text-[11px] font-mono space-y-1.5">
-            <span className="text-[10px] uppercase text-[#38a8ff] font-bold block">
+            <span className="text-[10px] uppercase text-[#1aaaff] font-bold block">
               Type D Lifeline Infrastructure Assets:
             </span>
             {buildingVulnerability.typeD_lifeline.assets.map((asset, i) => (
@@ -491,7 +491,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Real-World NDRF / SDRF Battalions Proximity Table */}
-      <div className="bg-[#131928]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Truck className="w-4 h-4 text-emerald-400" />
@@ -510,11 +510,11 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
             return (
               <div 
                 key={bn.id}
-                className="bg-ocean-950/80 p-2.5 rounded-xl border border-white/5 hover:border-[#38a8ff]/30 transition-all space-y-1.5"
+                className="bg-ocean-950/80 p-2.5 rounded-xl border border-white/5 hover:border-[#1aaaff]/30 transition-all space-y-1.5"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5">
-                    <span className="text-[10px] font-mono font-bold bg-[#1888ef]/20 text-[#38a8ff] px-1.5 py-0.5 rounded border border-[#38a8ff]/30">
+                    <span className="text-[10px] font-mono font-bold bg-[#1888ef]/20 text-[#1aaaff] px-1.5 py-0.5 rounded border border-[#1aaaff]/30">
                       #{idx + 1}
                     </span>
                     <strong className="text-xs font-heading text-white">{bn.name}</strong>
@@ -526,7 +526,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
 
                 <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
                   <span>📍 {bn.baseLocation}, {bn.state}</span>
-                  <span className="text-[#38a8ff] font-bold">{item.roadDistanceKm} km road</span>
+                  <span className="text-[#1aaaff] font-bold">{item.roadDistanceKm} km road</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[9px] font-mono">
@@ -538,7 +538,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                     className="px-2 py-1 rounded bg-ocean-800 hover:bg-[#1888ef] text-white transition-colors flex items-center space-x-1 border border-white/10"
                     title={`Call on ${bn.contactRadio} or ${bn.hotlinePhone}`}
                   >
-                    <PhoneCall className="w-2.5 h-2.5 text-[#38a8ff]" />
+                    <PhoneCall className="w-2.5 h-2.5 text-[#1aaaff]" />
                     <span>Radio Net</span>
                   </button>
                 </div>
@@ -592,7 +592,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
           <div className="text-center pt-1">
             <button
               onClick={onSwitchToCitizenView}
-              className="text-[11px] font-mono text-[#38a8ff] hover:text-white underline underline-offset-4 flex items-center justify-center gap-1 mx-auto transition-colors"
+              className="text-[11px] font-mono text-[#1aaaff] hover:text-white underline underline-offset-4 flex items-center justify-center gap-1 mx-auto transition-colors"
             >
               <span>Preview in Mausam App (Citizen POV)</span>
               <ChevronRight className="w-3.5 h-3.5" />

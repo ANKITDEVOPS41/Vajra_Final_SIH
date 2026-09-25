@@ -7,40 +7,43 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Blizzard DESIGN.md System Tokens
-        blizzard: {
-          bg: '#131928',
-          bgDeep: '#0a0d15',
-          surface: '#20273c',
-          surfaceRaised: '#323a48',
-          surfaceSoft: 'rgba(208, 233, 255, 0.20)',
-          brand: '#38a8ff',
-          brandStart: '#1888ef',
-          brandEnd: '#009fe9',
-          brandSoft: '#d0e9ff',
-          border: 'rgba(255, 255, 255, 0.15)',
-          borderStrong: 'rgba(208, 233, 255, 0.42)',
-          scrim: 'rgba(10, 13, 21, 0.78)',
+        // Axiom DESIGN.md System Tokens
+        axiom: {
+          bg: '#0a0e1a',           // deep navy with blue tilt
+          bgSoft: '#06080f',       // darker footer / nav band / code-block ground
+          bgElevated: '#111729',   // raised card surface
+          bgDeep: '#03050a',       // deepest tier
+          surface: '#161d33',      // secondary panel
+          surfaceHover: '#1d2540',
+          surfaceActive: '#243057',
+          surfaceElevated: '#1a2240',
+          text: '#ffffff',
+          textMuted: '#b8c0d4',
+          textSoft: '#7a86a3',
+          textFaint: '#4a5575',
+          brand: '#1aaaff',        // electric cyan
+          brandHover: '#0e8ed8',
+          border: 'rgba(255, 255, 255, 0.08)' // 0x14 approx
         },
         ocean: {
-          950: '#0a0d15', // Midnight deep
-          900: '#131928', // Midnight navy
-          800: '#20273c', // Surface navy
-          700: '#26314d', // Elevated surface
-          600: '#323a48', // Interactive raised
+          950: '#0a0e1a', // Axiom bg
+          900: '#111729', // Axiom bg-elevated
+          800: '#161d33', // Axiom surface
+          700: '#1d2540', // Axiom surface-hover
+          600: '#243057', // Axiom surface-active
         },
         ice: {
-          100: '#ffffff', // Frost white
-          200: '#d0e9ff', // Brand soft
-          400: '#7ec6ff', // Light cyan
-          500: '#38a8ff', // Blizzard brand blue
-          600: '#1888ef', // Deep electric blue
+          100: '#ffffff',
+          200: '#e0f4ff', 
+          400: '#7ec6ff',
+          500: '#1aaaff', // Axiom brand
+          600: '#0e8ed8', // Axiom brand hover
         },
         steel: {
-          400: 'rgba(255, 255, 255, 0.70)', // text-muted
-          600: 'rgba(255, 255, 255, 0.35)',
-          800: 'rgba(255, 255, 255, 0.15)', // border
-          900: '#0a0d15',
+          400: '#b8c0d4', // Axiom textMuted
+          600: '#7a86a3', // Axiom textSoft
+          800: 'rgba(255, 255, 255, 0.08)', // Axiom border
+          900: '#06080f', // Axiom bgSoft
         },
         health: {
           nominal: '#43c59e',
@@ -50,19 +53,20 @@ export default {
         }
       },
       fontFamily: {
-        display: ['Poppins', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        body: ['Archivo', 'Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        sans: ['Archivo', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        body: ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'monospace'],
+        heading: ['Inter', 'sans-serif']
       },
       borderRadius: {
         pill: '100px',
       },
       boxShadow: {
-        'blizzard-btn': '0 0 25px rgba(56, 168, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
-        'blizzard-btn-hover': '0 0 35px rgba(56, 168, 255, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.6)',
-        'blizzard-card': '0 16px 40px rgba(10, 13, 21, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-        'blizzard-glow': '0 0 20px rgba(56, 168, 255, 0.3)',
+        'blizzard-btn': '0 0 0 rgba(0,0,0,0)', // Axiom uses flat solid buttons
+        'blizzard-btn-hover': '0 0 0 rgba(0,0,0,0)',
+        'blizzard-card': '0 4px 12px rgba(0,0,0,0.2)', // Axiom has sharp clean cards, not super glowing
+        'blizzard-glow': '0 0 0 rgba(0,0,0,0)',
       },
       backdropBlur: {
         xs: '2px',

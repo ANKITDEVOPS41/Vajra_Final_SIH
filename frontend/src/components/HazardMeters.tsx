@@ -48,7 +48,7 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
         </div>
         <div className="flex items-center space-x-2">
           <DataProvenanceBadge source="DATASET" />
-          <span className="text-xs font-mono text-[#38a8ff] font-bold bg-[#38a8ff]/10 px-2.5 py-0.5 rounded-full border border-[#38a8ff]/30">
+          <span className="text-xs font-mono text-[#1aaaff] font-bold bg-[#38a8ff]/10 px-2.5 py-0.5 rounded-full border border-[#1aaaff]/30">
             {selectedCell ? selectedCell.cell_id : 'BASIN PEAK'}
           </span>
         </div>
@@ -57,10 +57,10 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
       {/* 4 Hazard Metric Cards Grid */}
       <div className="grid grid-cols-2 gap-3 my-3">
         {/* 1. Cloudburst Exceedance */}
-        <div className="bg-[#131928]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
+        <div className="bg-[#111729]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
           <div className="flex items-center justify-between text-xs text-white/60 font-body">
             <span className="flex items-center space-x-1.5 font-semibold">
-              <CloudRain className="w-3.5 h-3.5 text-[#38a8ff]" />
+              <CloudRain className="w-3.5 h-3.5 text-[#1aaaff]" />
               <span>RAIN RATE</span>
             </span>
             {rainRate >= 100 ? (
@@ -85,7 +85,7 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
         </div>
 
         {/* 2. Severe Hail Probability (POSH / MESH) */}
-        <div className="bg-[#131928]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
+        <div className="bg-[#111729]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
           <div className="flex items-center justify-between text-xs text-white/60 font-body">
             <span className="flex items-center space-x-1.5 font-semibold">
               <Zap className="w-3.5 h-3.5 text-[#a855f7]" />
@@ -115,10 +115,10 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
         </div>
 
         {/* 3. Downburst Peak Gusts */}
-        <div className="bg-[#131928]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
+        <div className="bg-[#111729]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
           <div className="flex items-center justify-between text-xs text-white/60 font-body">
             <span className="flex items-center space-x-1.5 font-semibold">
-              <Wind className="w-3.5 h-3.5 text-[#38a8ff]" />
+              <Wind className="w-3.5 h-3.5 text-[#1aaaff]" />
               <span>DOWNBURST GUST</span>
             </span>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
@@ -143,7 +143,7 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
         </div>
 
         {/* 4. Lightning Density */}
-        <div className="bg-[#131928]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
+        <div className="bg-[#111729]/90 border border-white/[0.1] p-3 rounded-2xl flex flex-col justify-between hover:border-[#38a8ff]/40 transition-all shadow-sm">
           <div className="flex items-center justify-between text-xs text-white/60 font-body">
             <span className="flex items-center space-x-1.5 font-semibold">
               <CloudLightning className="w-3.5 h-3.5 text-[#f0b44d]" />
@@ -168,8 +168,8 @@ export const HazardMeters: React.FC<HazardMetersProps> = ({ summary, selectedCel
       </div>
 
       {/* Physics Explainability Card */}
-      <div className="bg-[#0a0d15]/90 border border-white/[0.1] rounded-2xl p-3.5 text-xs shadow-inner">
-        <div className="flex items-center space-x-1.5 text-[#38a8ff] font-display font-semibold mb-1 text-xs">
+      <div className="bg-[#0a0e1a]/90 border border-white/[0.1] rounded-2xl p-3.5 text-xs shadow-inner">
+        <div className="flex items-center space-x-1.5 text-[#1aaaff] font-display font-semibold mb-1 text-xs">
           <Info className="w-3.5 h-3.5" />
           <span>Physics Explainability (Feature Attribution)</span>
         </div>

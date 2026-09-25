@@ -57,10 +57,10 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0d15]/85 backdrop-blur-xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
       <div className="card-blizzard w-full max-w-2xl border border-red-500/40 rounded-3xl shadow-[0_20px_60px_rgba(239,68,68,0.2)] overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="bg-[#131928]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+        <div className="bg-[#111729]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
             <ShieldAlert className="w-5 h-5 text-red-400" />
             <div>
@@ -84,14 +84,14 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
         </div>
 
         {/* XML Viewer */}
-        <div className="bg-[#0a0d15] p-5 flex-1 overflow-y-auto">
+        <div className="bg-[#0a0e1a] p-5 flex-1 overflow-y-auto">
           <pre className="text-xs font-mono text-emerald-400 leading-relaxed whitespace-pre-wrap select-all">
             {capXml}
           </pre>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-white/10 bg-[#131928]/60 flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-white/10 bg-[#111729]/60 flex items-center justify-between">
           <span className="text-[11px] text-slate-400 font-mono">
             OASIS CAP v1.2 Standard · NDMA Direct Ingestion Standard
           </span>

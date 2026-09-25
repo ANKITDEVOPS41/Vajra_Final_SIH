@@ -300,7 +300,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       />
 
       {/* Left Sidebar (Zoom Earth Style) */}
-      <div className="absolute top-4 left-4 z-20 w-56 bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="absolute top-4 left-4 z-20 w-56 max-h-[calc(100%-2rem)] bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-y-auto flex flex-col">
         <div className="p-4 flex items-center space-x-3 border-b border-white/10">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
              <Eye size={16} className="text-white" />

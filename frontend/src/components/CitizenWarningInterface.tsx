@@ -153,7 +153,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
       case 'ZapOff':
         return <ZapOff className="w-5 h-5 text-amber-400" />;
       case 'Waves':
-        return <Waves className="w-5 h-5 text-[#38a8ff]" />;
+        return <Waves className="w-5 h-5 text-[#1aaaff]" />;
       case 'Trees':
         return <Trees className="w-5 h-5 text-rose-400" />;
       default:
@@ -162,7 +162,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full w-full bg-[#0a0d15] text-slate-100 overflow-hidden font-sans relative">
+    <div className="flex-1 flex flex-col lg:flex-row h-full w-full bg-[#0a0e1a] text-slate-100 overflow-hidden font-sans relative">
       {/* Background Ambient Glow */}
       <div className="absolute top-1/3 left-1/3 w-[650px] h-[650px] bg-red-950/20 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-[450px] h-[450px] bg-[#1888ef]/10 rounded-full blur-[120px] pointer-events-none" />
@@ -177,7 +177,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
               onClick={() => setIsPhoneFrame(true)}
               className={`px-3 py-1.5 rounded-full flex items-center space-x-1.5 transition-all border ${
                 isPhoneFrame
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold border-white/30 shadow-[0_0_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold border-white/30 shadow-[0_0_12px_rgba(56,168,255,0.4)]'
                   : 'bg-ocean-900/80 text-slate-400 border-white/10 hover:text-white'
               }`}
             >
@@ -188,7 +188,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
               onClick={() => setIsPhoneFrame(false)}
               className={`px-3 py-1.5 rounded-full flex items-center space-x-1.5 transition-all border ${
                 !isPhoneFrame
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold border-white/30 shadow-[0_0_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold border-white/30 shadow-[0_0_12px_rgba(56,168,255,0.4)]'
                   : 'bg-ocean-900/80 text-slate-400 border-white/10 hover:text-white'
               }`}
             >
@@ -199,7 +199,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
 
           <div className="flex items-center space-x-2">
             {/* Language Switcher */}
-            <div className="bg-[#131928] border border-white/10 p-0.5 rounded-full flex items-center text-[11px]">
+            <div className="bg-[#111729] border border-white/10 p-0.5 rounded-full flex items-center text-[11px]">
               <button
                 onClick={() => setLang('en')}
                 className={`px-2 py-0.5 rounded-full transition-all ${
@@ -233,7 +233,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
         <div 
           className={`transition-all duration-300 ${
             isPhoneFrame 
-              ? 'w-full max-w-[400px] h-[820px] bg-[#0a0d15] rounded-[52px] border-[8px] border-[#1c1f2e] shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(56,168,255,0.15)] flex flex-col relative overflow-hidden select-none' 
+              ? 'w-full max-w-[400px] h-[820px] bg-[#0a0e1a] rounded-[52px] border-[8px] border-[#1c1f2e] shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_50px_rgba(56,168,255,0.15)] flex flex-col relative overflow-hidden select-none' 
               : 'w-full max-w-4xl card-blizzard rounded-3xl border border-white/15 p-6 shadow-2xl relative'
           }`}
         >
@@ -272,7 +272,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
             
             {/* Simulated Incoming Push Notification Banner */}
             {showPushNotification && (
-              <div className="bg-[#131928]/95 border-2 border-red-500/60 p-3 rounded-2xl shadow-[0_10px_35px_rgba(239,68,68,0.35)] backdrop-blur-xl animate-in slide-in-from-top duration-500 relative">
+              <div className="bg-[#111729]/95 border-2 border-red-500/60 p-3 rounded-2xl shadow-[0_10px_35px_rgba(239,68,68,0.35)] backdrop-blur-xl animate-in slide-in-from-top duration-500 relative">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#1888ef] to-[#38a8ff] flex items-center justify-center shadow-[0_0_10px_rgba(56,168,255,0.4)]">
@@ -306,7 +306,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                   <span className="text-emerald-400 font-bold">
                     📍 {lang === 'hi' ? 'पद्मापुर वार्ड 4' : 'Padmapur Ward 4 (GPS Verified)'}
                   </span>
-                  <span className="text-[#38a8ff]">Tap to follow SOPs ↓</span>
+                  <span className="text-[#1aaaff]">Tap to follow SOPs ↓</span>
                 </div>
               </div>
             )}
@@ -328,7 +328,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                   NOWCAST LIVE
                 </span>
               </div>
-              <div className="mt-1.5 flex items-center space-x-1.5 text-[11px] text-[#38a8ff] font-mono">
+              <div className="mt-1.5 flex items-center space-x-1.5 text-[11px] text-[#1aaaff] font-mono">
                 <MapPin className="w-3.5 h-3.5 shrink-0" />
                 <span>{lang === 'hi' ? activeAlert.targetLocationHi : activeAlert.targetLocation}</span>
               </div>
@@ -391,7 +391,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                 {activeAlert.ndmaSops.map((sop) => (
                   <div
                     key={sop.id}
-                    className="bg-[#131928]/90 border border-white/[0.1] rounded-2xl p-3 flex items-start space-x-3 hover:border-[#38a8ff]/40 transition-all shadow-sm"
+                    className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3 flex items-start space-x-3 hover:border-[#38a8ff]/40 transition-all shadow-sm"
                   >
                     <div className="w-9 h-9 rounded-xl bg-ocean-800 border border-white/10 flex items-center justify-center shrink-0 mt-0.5 shadow-inner">
                       {renderSopIcon(sop.iconName)}
@@ -412,7 +412,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                       <p className="text-[11px] text-slate-300 mt-1 leading-snug font-sans">
                         {lang === 'hi' ? sop.instructionHi : sop.instructionEn}
                       </p>
-                      <div className="mt-1.5 inline-block text-[10px] font-mono font-bold text-[#38a8ff] bg-[#38a8ff]/10 px-2 py-0.5 rounded border border-[#38a8ff]/20">
+                      <div className="mt-1.5 inline-block text-[10px] font-mono font-bold text-[#1aaaff] bg-[#38a8ff]/10 px-2 py-0.5 rounded border border-[#38a8ff]/20">
                         ⚡ {lang === 'hi' ? sop.highlightHi : sop.highlightEn}
                       </div>
                     </div>
@@ -452,7 +452,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                 </div>
                 <div className="bg-ocean-900/80 p-2 rounded-xl border border-white/5">
                   <span className="text-[9px] text-slate-400 block uppercase">Vehicle ETA</span>
-                  <span className="text-xs font-bold text-[#38a8ff]">
+                  <span className="text-xs font-bold text-[#1aaaff]">
                     ~{shelter.driveEtaMinutes} min (Bypass)
                   </span>
                 </div>
@@ -501,7 +501,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                   <a
                     key={i}
                     href={`tel:${line.number}`}
-                    className="p-2 rounded-xl bg-[#131928] border border-white/10 text-center hover:border-red-500/50 hover:bg-ocean-800 transition-all flex flex-col items-center group shadow-sm"
+                    className="p-2 rounded-xl bg-[#111729] border border-white/10 text-center hover:border-red-500/50 hover:bg-ocean-800 transition-all flex flex-col items-center group shadow-sm"
                   >
                     <PhoneCall className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform mb-0.5" />
                     <span className="text-xs font-black text-white">{line.number}</span>
@@ -523,21 +523,21 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
       </div>
 
       {/* Side Controller & Judge Test Bench */}
-      <aside className="w-full lg:w-80 bg-[#0a0d15]/95 border-t lg:border-t-0 lg:border-l border-white/10 p-5 flex flex-col justify-between shrink-0 z-20 backdrop-blur-xl">
+      <aside className="w-full lg:w-80 bg-[#0a0e1a]/95 border-t lg:border-t-0 lg:border-l border-white/10 p-5 flex flex-col justify-between shrink-0 z-20 backdrop-blur-xl">
         <div className="space-y-5">
           {/* Back to Tactical Command Button */}
           <button
             onClick={onBackToAdmin}
             className="w-full btn-blizzard-secondary py-2.5 px-4 rounded-full text-xs font-bold font-display flex items-center justify-center space-x-2 text-white hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4 text-[#38a8ff]" />
+            <ArrowLeft className="w-4 h-4 text-[#1aaaff]" />
             <span>Return to Tactical Command</span>
           </button>
 
           {/* Test Bench Header */}
           <div className="border-b border-white/10 pb-3">
             <h3 className="text-xs font-display font-bold uppercase tracking-wider text-white flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-[#38a8ff]" />
+              <Sparkles className="w-4 h-4 text-[#1aaaff]" />
               <span>Mausam Test Bench & Simulator</span>
             </h3>
             <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
@@ -581,7 +581,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
                     }}
                     className={`w-full p-2 rounded-xl text-left flex items-center justify-between border transition-all ${
                       isSelected
-                        ? 'bg-[#1888ef]/20 text-[#38a8ff] border-[#38a8ff]/50 font-bold'
+                        ? 'bg-[#1888ef]/20 text-[#1aaaff] border-[#38a8ff]/50 font-bold'
                         : 'bg-ocean-950/60 text-slate-400 border-white/5 hover:text-white'
                     }`}
                   >
@@ -601,7 +601,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
             </div>
             <div className="flex justify-between">
               <span>Protocol:</span>
-              <strong className="text-[#38a8ff]">NDMA CAP v1.2 Push</strong>
+              <strong className="text-[#1aaaff]">NDMA CAP v1.2 Push</strong>
             </div>
             <div className="flex justify-between">
               <span>GPS Sector:</span>

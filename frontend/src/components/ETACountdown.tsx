@@ -34,7 +34,7 @@ export const ETACountdown: React.FC<ETACountdownProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.12]">
         <div className="flex items-center space-x-2.5">
-          <Clock className="w-4 h-4 text-[#38a8ff] animate-pulse" />
+          <Clock className="w-4 h-4 text-[#1aaaff] animate-pulse" />
           <h3 className="text-xs font-display font-bold uppercase tracking-wider text-white">
             Per-Storm Arrival Countdown (ETA)
           </h3>
@@ -51,7 +51,7 @@ export const ETACountdown: React.FC<ETACountdownProps> = ({
       <div className="flex-1 overflow-y-auto mt-3 space-y-2.5 pr-1">
         {allETAs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-44 text-white/50 text-center px-4">
-            <Navigation className="w-8 h-8 mb-2 opacity-30 text-[#38a8ff]" />
+            <Navigation className="w-8 h-8 mb-2 opacity-30 text-[#1aaaff]" />
             <p className="text-xs font-medium text-white/80 font-body">No monitored assets currently in direct storm trajectory path.</p>
             <p className="text-[11px] text-white/40 mt-1 font-mono">Convective core heading ENE (73°) towards non-urban sector.</p>
           </div>
@@ -62,22 +62,22 @@ export const ETACountdown: React.FC<ETACountdownProps> = ({
               className={`p-3 rounded-2xl border transition-all ${
                 item.eta_minutes <= 30
                   ? 'bg-red-950/30 border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]'
-                  : 'bg-[#131928]/80 border-white/[0.1] hover:border-[#38a8ff]/40 shadow-sm'
+                  : 'bg-[#111729]/80 border-white/[0.1] hover:border-[#38a8ff]/40 shadow-sm'
               }`}
             >
               <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center space-x-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#f0b44d]" />
-                    <span className="text-xs font-display font-semibold text-white">{item.target_name}</span>
+                <div className="min-w-0 flex-1 pr-2">
+                  <div className="flex items-center space-x-1.5 min-w-0">
+                    <MapPin className="w-3.5 h-3.5 text-[#f0b44d] shrink-0" />
+                    <span className="text-xs font-display font-semibold text-white truncate" title={item.target_name}>{item.target_name}</span>
                   </div>
-                  <div className="text-[11px] text-white/60 font-mono mt-0.5">
-                    Target Threat: <span className="text-[#ef5a67] font-bold">{item.cell_id}</span> ({item.peak_dbz.toFixed(0)} dBZ core)
+                  <div className="text-[11px] text-white/60 font-mono mt-0.5 truncate">
+                    Target Threat: <span className="text-[#ef5a67] font-bold">{item.cell_id}</span> ({item.peak_dbz.toFixed(0)} dBZ)
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="text-sm font-bold font-mono text-[#38a8ff]">
+                <div className="text-right shrink-0">
+                  <div className="text-sm font-bold font-mono text-[#1aaaff]">
                     {Math.floor(item.eta_minutes)}m {Math.floor((item.eta_minutes % 1) * 60)}s
                   </div>
                   <div className="text-[10px] text-white/50 font-mono">

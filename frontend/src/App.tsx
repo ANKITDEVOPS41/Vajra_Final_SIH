@@ -143,52 +143,52 @@ export default function App() {
     : stormData?.radar_preview?.t60_dbz_grid ?? [];
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0a0d15] text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-screen bg-[#0a0e1a] text-slate-100 overflow-hidden font-sans">
       {/* Top Ministry / NCMRWF Header (Blizzard Styled) */}
-      <header className="h-16 bg-[#0a0d15]/95 border-b border-white/10 px-6 flex items-center justify-between shrink-0 backdrop-blur-xl z-20">
+      <header className="h-16 bg-[#0a0e1a]/95 border-b border-white/10 px-6 flex items-center justify-between shrink-0 backdrop-blur-xl z-20">
         <div className="flex items-center space-x-3.5">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#1888ef] to-[#38a8ff] flex items-center justify-center shadow-[0_0_18px_rgba(56,168,255,0.45)]">
+          <div className="w-9 h-9 rounded-md bg-gradient-to-tr from-[#1888ef] to-[#38a8ff] flex items-center justify-center shadow-[0_0_18px_rgba(56,168,255,0.45)]">
             <Radio className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="flex items-center space-x-5.5">
+            <div className="flex items-center space-x-3">
               <h1 className="text-base font-black tracking-wide text-white font-heading uppercase">
                 ConvectNow
               </h1>
-              <span className="text-[10px] bg-[#131928] text-[#38a8ff] px-2.5 py-0.5 rounded-full border border-[#38a8ff]/30 font-mono font-bold tracking-wider">
+              <span className="text-[10px] bg-[#111729] text-[#1aaaff] px-2.5 py-0.5 rounded-md border border-[#1aaaff]/30 font-mono font-bold tracking-wider whitespace-nowrap">
                 1–2 km CONVECTIVE NOWCASTER
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono tracking-tight">
+            <p className="text-[11px] text-slate-400 font-mono tracking-tight whitespace-nowrap truncate">
               Ministry of Earth Sciences (MoES) · NCMRWF · SIH PS-26084
             </p>
           </div>
         </div>
 
         {/* Live Multi-Source Ingestion Telemetry & Clock */}
-        <div className="hidden lg:flex items-center space-x-4">
-          <div className="flex items-center space-x-3.5 text-xs font-mono bg-[#131928]/80 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-md">
-            <div className="flex items-center space-x-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="hidden xl:flex items-center space-x-4">
+          <div className="flex items-center space-x-3.5 text-xs font-mono bg-[#111729]/80 border border-white/10 px-4 py-1.5 rounded-md backdrop-blur-md">
+            <div className="flex items-center space-x-1.5 text-slate-300 whitespace-nowrap">
+              <span className="w-2 h-2 rounded-md bg-emerald-400 animate-pulse" />
               <Radar className="w-3.5 h-3.5 text-emerald-400" />
               <span>DWR 250m: <strong className="text-emerald-400">SYNCED</strong></span>
             </div>
             <div className="w-px h-3.5 bg-white/10" />
-            <div className="flex items-center space-x-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-[#38a8ff]" />
-              <Satellite className="w-3.5 h-3.5 text-[#38a8ff]" />
-              <span>INSAT-3DR: <strong className="text-[#38a8ff]">10.8µm ACTIVE</strong></span>
+            <div className="flex items-center space-x-1.5 text-slate-300 whitespace-nowrap">
+              <span className="w-2 h-2 rounded-md bg-[#38a8ff]" />
+              <Satellite className="w-3.5 h-3.5 text-[#1aaaff]" />
+              <span>INSAT-3DR: <strong className="text-[#1aaaff]">10.8µm ACTIVE</strong></span>
             </div>
             <div className="w-px h-3.5 bg-white/10" />
-            <div className="flex items-center space-x-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+            <div className="flex items-center space-x-1.5 text-slate-300 whitespace-nowrap">
+              <span className="w-2 h-2 rounded-md bg-yellow-400 animate-pulse" />
               <CloudLightning className="w-3.5 h-3.5 text-yellow-400" />
               <span>GLM/IITM: <strong className="text-yellow-400">STREAMING</strong></span>
             </div>
           </div>
           
           {/* Real-time Clock */}
-          <div className="flex items-center space-x-2 text-xs font-mono bg-[#131928]/80 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md text-[#38a8ff]">
+          <div className="flex items-center space-x-2 text-xs font-mono bg-[#111729]/80 border border-white/10 px-3 py-1.5 rounded-md backdrop-blur-md text-[#1aaaff]">
             <Clock className="w-3.5 h-3.5" />
             <span>{currentTime.toISOString().split('T')[1].substring(0,8)} UTC</span>
           </div>
@@ -197,12 +197,12 @@ export default function App() {
         {/* Action Controls */}
         <div className="flex items-center space-x-3">
           {/* Mode Switcher Pill */}
-          <div className="bg-[#131928] border border-white/10 p-1 rounded-full flex items-center text-xs shadow-inner">
+          <div className="bg-[#111729] border border-white/10 p-1 rounded-md flex items-center text-xs shadow-inner">
             <button
               onClick={() => setViewMode('tactical')}
-              className={`px-4 py-1.5 rounded-full transition-all flex items-center space-x-1.5 ${
+              className={`px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 ${
                 viewMode === 'tactical'
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -210,9 +210,9 @@ export default function App() {
             </button>
             <button
               onClick={() => setViewMode('anatomy')}
-              className={`px-4 py-1.5 rounded-full transition-all flex items-center space-x-1.5 ${
+              className={`px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 ${
                 viewMode === 'anatomy'
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -221,9 +221,9 @@ export default function App() {
             </button>
             <button
               onClick={() => setViewMode('architecture')}
-              className={`px-4 py-1.5 rounded-full transition-all flex items-center space-x-1.5 ${
+              className={`px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 ${
                 viewMode === 'architecture'
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -232,16 +232,16 @@ export default function App() {
             </button>
             <button
               onClick={() => setViewMode('public')}
-              className={`px-4 py-1.5 rounded-full transition-all flex items-center space-x-1.5 ${
+              className={`px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 ${
                 viewMode === 'public'
-                  ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
+                  ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_12px_rgba(56,168,255,0.4)]'
                   : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>Mausam App (Citizen)</span>
               {dispatchedAlert && (
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping ml-0.5" />
+                <span className="w-1.5 h-1.5 rounded-md bg-red-500 animate-ping ml-0.5" />
               )}
             </button>
           </div>
@@ -251,7 +251,7 @@ export default function App() {
             onClick={() => setShowEvalModal(true)}
             className="btn-blizzard-secondary text-xs px-4 py-1.5 flex items-center space-x-2"
           >
-            <BarChart3 className="w-3.5 h-3.5 text-[#38a8ff]" />
+            <BarChart3 className="w-3.5 h-3.5 text-[#1aaaff]" />
             <span>Skill Scores</span>
           </button>
         </div>
@@ -259,7 +259,7 @@ export default function App() {
 
       {/* Main App Body */}
       {viewMode === 'architecture' ? (
-        <React.Suspense fallback={<div className="flex-1 flex items-center justify-center text-[#38a8ff]">Loading Architecture...</div>}>
+        <React.Suspense fallback={<div className="flex-1 flex items-center justify-center text-[#1aaaff]">Loading Architecture...</div>}>
           <ArchitecturePage />
         </React.Suspense>
       ) : viewMode === 'anatomy' ? (
@@ -270,8 +270,8 @@ export default function App() {
           {dispatchedAlert && (
             <div className="bg-gradient-to-r from-red-950/90 via-[#18233a]/90 to-ocean-950/90 border border-red-500/50 px-4 py-2 rounded-2xl flex items-center justify-between shrink-0 shadow-[0_4px_20px_rgba(239,68,68,0.2)] animate-in fade-in">
               <div className="flex items-center space-x-3 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
-                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-red-300 bg-red-950 px-2.5 py-0.5 rounded-full border border-red-700/60 shrink-0">
+                <span className="w-2.5 h-2.5 rounded-md bg-red-500 animate-ping shrink-0" />
+                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-red-300 bg-red-950 px-2.5 py-0.5 rounded-md border border-red-700/60 shrink-0">
                   {dispatchedAlert.threatLevel} BROADCAST ACTIVE
                 </span>
                 <span className="text-xs text-white font-heading truncate">
@@ -322,14 +322,14 @@ export default function App() {
                         setIsPlaying(false);
                         setLeadTimeMin(prev => Math.max(0, prev - 5));
                       }}
-                      className="p-2.5 rounded-full bg-[#131928] hover:bg-[#1a233a] text-slate-400 hover:text-white border border-white/10 transition-all active:scale-95 shadow-sm"
+                      className="p-2.5 rounded-md bg-[#111729] hover:bg-[#1a233a] text-slate-400 hover:text-white border border-white/10 transition-all active:scale-95 shadow-sm"
                       title="Step Backward"
                     >
                       <RotateCcw className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setIsPlaying(!isPlaying)}
-                      className="p-3 rounded-full bg-gradient-to-br from-[#38a8ff] to-[#0070f3] text-white transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(56,168,255,0.4)]"
+                      className="p-3 rounded-md bg-gradient-to-br from-[#38a8ff] to-[#0070f3] text-white transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(56,168,255,0.4)]"
                       title={isPlaying ? "Pause Forecast Loop" : "Play Forecast Loop"}
                     >
                       {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
@@ -339,7 +339,7 @@ export default function App() {
                         setIsPlaying(false);
                         setLeadTimeMin(0);
                       }}
-                      className="p-2.5 rounded-full bg-[#131928] hover:bg-[#1a233a] text-slate-400 hover:text-white border border-white/10 transition-all active:scale-95 shadow-sm"
+                      className="p-2.5 rounded-md bg-[#111729] hover:bg-[#1a233a] text-slate-400 hover:text-white border border-white/10 transition-all active:scale-95 shadow-sm"
                       title="Reset to T0 Analysis"
                     >
                       <RefreshCw className="w-4 h-4" />
@@ -362,7 +362,7 @@ export default function App() {
                           setIsPlaying(false);
                           setLeadTimeMin(parseInt(e.target.value));
                         }}
-                        className="w-full accent-[#38a8ff] cursor-pointer h-2 bg-[#1a233a] rounded-full appearance-none outline-none group-hover:bg-[#222d4a] transition-colors"
+                        className="w-full accent-[#38a8ff] cursor-pointer h-2 bg-[#1a233a] rounded-md appearance-none outline-none group-hover:bg-[#222d4a] transition-colors"
                         style={{
                           background: `linear-gradient(to right, #38a8ff ${(leadTimeMin / 60) * 100}%, #1a233a ${(leadTimeMin / 60) * 100}%)`
                         }}
@@ -375,7 +375,7 @@ export default function App() {
                         <span>60m</span>
                       </div>
                     </div>
-                    <span className="text-sm font-mono text-white font-bold whitespace-nowrap min-w-[75px] bg-[#1a233a] px-3 py-1.5 rounded-lg border border-[#38a8ff]/30 text-center shadow-inner">
+                    <span className="text-sm font-mono text-white font-bold whitespace-nowrap min-w-[75px] bg-[#1a233a] px-3 py-1.5 rounded-lg border border-[#1aaaff]/30 text-center shadow-inner">
                       +{leadTimeMin} min
                     </span>
                   </div>
@@ -386,7 +386,7 @@ export default function App() {
                       Historical Replay
                     </div>
                     <select 
-                      className="bg-[#0f1423] text-xs font-mono text-[#38a8ff] border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#38a8ff]/50 shadow-inner cursor-pointer"
+                      className="bg-[#0f1423] text-xs font-mono text-[#1aaaff] border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#38a8ff]/50 shadow-inner cursor-pointer"
                       value={selectedEventId}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -431,12 +431,12 @@ export default function App() {
               </div>
 
               {/* Segmented Tab Switcher between [ ⚡ Physics Hazards | 🛡️ SDMA Disaster Intel ] */}
-              <div className="bg-[#131928] border border-white/10 p-1 rounded-2xl flex items-center text-xs shadow-inner shrink-0">
+              <div className="bg-[#111729] border border-white/10 p-1 rounded-2xl flex items-center text-xs shadow-inner shrink-0">
                 <button
                   onClick={() => setSidebarTab('physics')}
                   className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 font-mono text-[11px] ${
                     sidebarTab === 'physics'
-                      ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_10px_rgba(56,168,255,0.4)]'
+                      ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_10px_rgba(56,168,255,0.4)]'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -446,7 +446,7 @@ export default function App() {
                   onClick={() => setSidebarTab('intel')}
                   className={`flex-1 py-1.5 px-3 rounded-xl transition-all flex items-center justify-center space-x-1.5 font-mono text-[11px] ${
                     sidebarTab === 'intel'
-                      ? 'bg-gradient-to-r from-[#1888ef] to-[#009fe9] text-white font-bold shadow-[0_2px_10px_rgba(56,168,255,0.4)]'
+                      ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold shadow-[0_2px_10px_rgba(56,168,255,0.4)]'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
