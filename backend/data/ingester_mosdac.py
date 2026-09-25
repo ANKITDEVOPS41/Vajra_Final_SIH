@@ -255,6 +255,30 @@ class MOSDACIngester:
                 raise KeyError(f"Dataset {ds_name} not found in {h5_path}. Available: {available}")
 
             raw_counts = f[ds_name][:]
+
+            # If official ISRO ground-station calibrated temperature LUT exists, use it directly!
+            temp_lut_name = f"IMG_{channel}_TEMP"
+            if temp_lut_name in f or f"{ds_name}_TEMP" in f:
+                lut_key = temp_lut_name if temp_lut_name in f else f"{ds_name}_TEMP"
+                lut = f[lut_key][:]
+                counts_clipped = np.clip(raw_counts, 0, len(lut) - 1).astype(int)
+                tb_k = lut[counts_clipped]
+                tb_c = tb_k - 273.15
+                spec = CHANNEL_SPECS.get(channel, CHANNEL_SPECS["TIR1"])
+                rad = self.planck_radiance(tb_k, spec["wavelength_um"])
+                return MOSDACProduct(
+                    tb_k=tb_k,
+                    tb_c=tb_c,
+                    radiance=rad,
+                    raw_counts=raw_counts,
+                    channel=channel,
+                    wavelength_um=spec["wavelength_um"],
+                    satellite="INSAT-3DR",
+                    sub_lon=74.0,
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    metadata={"source": "ISRO/MOSDAC Direct Calibration Table", "file": os.path.basename(h5_path)}
+                )
+
             # Read metadata attributes if available
             slope = float(f[ds_name].attrs.get("CAL_SLOPE", CHANNEL_SPECS[channel]["default_slope"]))
             offset = float(f[ds_name].attrs.get("CAL_OFFSET", CHANNEL_SPECS[channel]["default_offset"]))

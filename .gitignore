@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & Credentials
+.env
+.env.*
+config.json
+convectnow/backend/data/mosdac/config.json
+*.pem
+*.key
+
+# Large Datasets & Model Weights
+datasets/
+*.h5
+*.hdf5
+*.pth
+*.pt
+*.npy
+*.gif
+*.png
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
