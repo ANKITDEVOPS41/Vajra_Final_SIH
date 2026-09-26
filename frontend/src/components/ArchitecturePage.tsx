@@ -65,7 +65,7 @@ const ArchitecturePage: React.FC = () => {
           System Architecture
         </h1>
         <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-          Explore the inner workings of ConvectNow's hybrid physical-AI pipeline, merging dense optical flow with advanced spatiotemporal deep learning.
+          Explore the inner workings of VAJRA's hybrid physical-AI pipeline, merging dense optical flow with advanced spatiotemporal deep learning.
         </p>
       </div>
 

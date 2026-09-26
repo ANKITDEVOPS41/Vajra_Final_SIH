@@ -2,134 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-  /* Axiom Styled Primary Button */
-  .btn-blizzard-primary {
-    background: #1aaaff !important;
-    color: #ffffff !important;
-    border-radius: 6px !important;
-    border: none !important;
-    box-shadow: none !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-  }
-  .btn-blizzard-primary:hover {
-    background: #0e8ed8 !important;
-    transform: none !important;
-  }
-  .btn-blizzard-primary:active {
-    transform: translateY(1px) !important;
-  }
-
-  /* Axiom Styled Secondary Button */
-  .btn-blizzard-secondary {
-    background: transparent !important;
-    color: #ffffff !important;
-    border-radius: 6px !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-  }
-  .btn-blizzard-secondary:hover {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-    box-shadow: none !important;
-  }
-
-  /* Axiom Styled Active Pill Selector */
-  .pill-blizzard-active {
-    background: #1aaaff !important;
-    color: #ffffff !important;
-    border-radius: 6px !important;
-    border: none !important;
-    box-shadow: none !important;
-    font-weight: 500 !important;
-  }
-
-  /* Axiom Styled Weather Console Card */
-  .card-blizzard {
-    background: #111729 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-  }
-
-  /* Weather Climate Map Streamline Grid Overlay */
-  .weather-map-grid {
-    background-image: 
-      radial-gradient(circle at center, rgba(26, 170, 255, 0.08) 0%, transparent 70%),
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
-  }
-}
-
-@layer utilities {
-  .glass-card {
-    background: #111729 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-  }
-
-  .glass-card-elevated {
-    background: #161d33 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
-  }
-
-  .glass-card-interactive {
-    background: #111729 !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 8px !important;
-    transition: all 0.2s ease !important;
-  }
-  .glass-card-interactive:hover {
-    background: #161d33 !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    transform: none !important;
-  }
-}
-
 html, body, #root {
-  height: 100%;
-  width: 100%;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
-  background-color: #0a0e1a !important; /* Axiom bg */
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
+  background-color: #08090a;
+  color: #f7f8f8;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
-/* Custom Axiom scrollbars */
+/* Custom Linear scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0e1a;
+  background: #08090a;
 }
 ::-webkit-scrollbar-thumb {
-  background: #243057;
-  border-radius: 4px;
+  background: #23252a;
+  border: 2px solid #08090a;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7a86a3;
+  background: #34343a;
 }
 
-.map-tiles-blue-tint {
-  filter: sepia(100%) hue-rotate(185deg) saturate(250%) brightness(0.65) contrast(1.3);
-}

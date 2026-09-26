@@ -1,5 +1,5 @@
 /**
- * ConvectNow — Intelligence Dispatch & Citizen Warning System
+ * VAJRA — Intelligence Dispatch & Citizen Warning System
  * Types, Mathematical Models, Real-World NDRF Registry & Fallback Data
  * SIH PS-26084 · MoES / NCMRWF
  */
@@ -40,11 +40,11 @@ export interface StormCell {
     distance_km: number;
     eta_minutes: number;
     eta_window_min: string;
-    threat_level: 'WARNING' | 'WATCH';
+    threat_level: 'WARNING' | 'WATCH' | 'EMERGENCY';
     is_footprint_expanding?: boolean;
   }>;
   evolution?: {
-    state: 'INITIATING' | 'INTENSIFYING' | 'MATURE' | 'DECAYING';
+    state: 'INITIATING' | 'INTENSIFYING' | 'MATURE' | 'DECAYING' | 'MICROBURST' | 'TRAINING' | 'DISSIPATING' | 'TRACKING';
     probabilities?: Record<string, number>;
     trend_summary?: string;
     rate_dbz_per_10min?: number;
@@ -824,15 +824,15 @@ export function calculateBattalionProximity(
 export const FALLBACK_STORM_CELLS: StormCell[] = [
   {
     cell_id: 'CELL-701',
-    centroid_lat: 17.785,
-    centroid_lon: 83.245,
-    area_km2: 142.5,
+    centroid_lat: 22.6620,
+    centroid_lon: 88.4380,
+    area_km2: 14.5,
     peak_dbz: 66.8,
     mean_dbz: 52.4,
     velocity_kmh: 46.0,
-    heading_deg: 72,
+    heading_deg: 193,
     severity: 'EXTREME',
-    eta_minutes: 18,
+    eta_minutes: 8,
     hazards: {
       rain_rate_mmh: 118.5,
       cloudburst_flag: true,
@@ -848,39 +848,47 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Padmapur Coastal Sector & Ward 4',
-        distance_km: 13.8,
-        eta_minutes: 18,
-        eta_window_min: '15–22 min',
+        target_name: 'Runway 19L Touchdown Zone',
+        distance_km: 1.2,
+        eta_minutes: 4,
+        eta_window_min: '3–6 min',
+        threat_level: 'EMERGENCY',
+        is_footprint_expanding: true
+      },
+      {
+        target_name: 'Terminal 2 Apron & Stand 14',
+        distance_km: 2.1,
+        eta_minutes: 8,
+        eta_window_min: '6–10 min',
         threat_level: 'WARNING',
         is_footprint_expanding: true
       },
       {
-        target_name: 'Visakhapatnam Industrial Port Zone',
-        distance_km: 26.4,
-        eta_minutes: 34,
-        eta_window_min: '30–40 min',
+        target_name: 'Air Traffic Control Tower',
+        distance_km: 2.4,
+        eta_minutes: 9,
+        eta_window_min: '8–12 min',
         threat_level: 'WARNING',
         is_footprint_expanding: true
       }
     ],
     evolution: {
-      state: 'MATURE',
+      state: 'MICROBURST',
       footprint_expansion_factor: 1.32,
-      trend_summary: 'Severe convective cloudburst cell advancing at 46 km/h with heavy microburst signature'
+      trend_summary: 'Severe convective cloudburst cell advancing at 46 km/h with heavy microburst signature over Runway 19L'
     }
   },
   {
     cell_id: 'CELL-702',
-    centroid_lat: 17.92,
-    centroid_lon: 83.15,
-    area_km2: 88.0,
+    centroid_lat: 22.6850,
+    centroid_lon: 88.4200,
+    area_km2: 8.8,
     peak_dbz: 58.2,
     mean_dbz: 46.1,
     velocity_kmh: 38.0,
-    heading_deg: 85,
+    heading_deg: 165,
     severity: 'SEVERE',
-    eta_minutes: 32,
+    eta_minutes: 18,
     hazards: {
       rain_rate_mmh: 72.0,
       cloudburst_flag: false,
@@ -896,10 +904,10 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Anandapuram Suburban Taluk',
-        distance_km: 20.2,
-        eta_minutes: 32,
-        eta_window_min: '28–36 min',
+        target_name: 'North Approach Holding Sector',
+        distance_km: 4.8,
+        eta_minutes: 18,
+        eta_window_min: '15–22 min',
         threat_level: 'WARNING',
         is_footprint_expanding: false
       }
@@ -907,20 +915,20 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     evolution: {
       state: 'INTENSIFYING',
       footprint_expansion_factor: 1.18,
-      trend_summary: 'Multicell line intensifying along coastal sea-breeze front'
+      trend_summary: 'Multicell line intensifying along northern aerodrome approach corridor'
     }
   },
   {
     cell_id: 'CELL-703',
-    centroid_lat: 18.05,
-    centroid_lon: 83.02,
-    area_km2: 54.0,
+    centroid_lat: 22.6350,
+    centroid_lon: 88.4650,
+    area_km2: 5.4,
     peak_dbz: 51.5,
     mean_dbz: 41.0,
     velocity_kmh: 32.0,
-    heading_deg: 94,
+    heading_deg: 45,
     severity: 'MODERATE',
-    eta_minutes: 48,
+    eta_minutes: 35,
     hazards: {
       rain_rate_mmh: 42.0,
       cloudburst_flag: false,
@@ -929,12 +937,142 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
       downburst_gust_kmh: 52.0,
       lightning_density: 2.1
     },
+    target_etas: [
+      {
+        target_name: 'Runway 01R Departure Climb-out',
+        distance_km: 3.2,
+        eta_minutes: 35,
+        eta_window_min: '30–40 min',
+        threat_level: 'WATCH',
+        is_footprint_expanding: false
+      }
+    ],
     evolution: {
       state: 'INITIATING',
       footprint_expansion_factor: 1.10,
-      trend_summary: 'Newly initiated convective cell over Eastern Ghats foothills'
+      trend_summary: 'Newly initiated convective cell southeast of aerodrome perimeter'
     }
-  }
+  },
+  {
+    cell_id: 'CELL-805',
+    centroid_lat: 22.58,
+    centroid_lon: 88.42,
+    area_km2: 12.5,
+    peak_dbz: 68.2,
+    mean_dbz: 55.0,
+    velocity_kmh: 45.0,
+    heading_deg: 42,
+    severity: 'EXTREME',
+    eta_minutes: 8,
+    hazards: {
+      rain_rate_mmh: 125.0,
+      cloudburst_flag: true,
+      posh_percent: 92,
+      mesh_hail_mm: 45.0,
+      downburst_gust_kmh: 105.0,
+      lightning_density: 12.4,
+      explainability: {
+        radar_core_driver: 'Explosive updraft. Cloud top cooling at 15K/min.',
+        vil_liquid_driver: 'Extreme VIL density 9.2 g/m³',
+        convective_severity: 'Supercell characteristics detected'
+      }
+    },
+    target_etas: [
+      {
+        target_name: 'CCU Airport (Netaji Subhas)',
+        distance_km: 6.0,
+        eta_minutes: 8,
+        eta_window_min: '6-10 min',
+        threat_level: 'EMERGENCY',
+        is_footprint_expanding: true
+      }
+    ],
+    evolution: {
+      state: 'MICROBURST',
+      footprint_expansion_factor: 1.45,
+      trend_summary: 'Severe microburst collapsing directly over approach path.'
+    }
+  },
+  {
+    cell_id: 'CELL-912',
+    centroid_lat: 22.40,
+    centroid_lon: 88.35,
+    area_km2: 215.0,
+    peak_dbz: 52.0,
+    mean_dbz: 44.5,
+    velocity_kmh: 15.0,
+    heading_deg: 90,
+    severity: 'SEVERE',
+    eta_minutes: 45,
+    hazards: {
+      rain_rate_mmh: 65.0,
+      cloudburst_flag: false,
+      posh_percent: 40,
+      mesh_hail_mm: 15.0,
+      downburst_gust_kmh: 55.0,
+      lightning_density: 4.2,
+      explainability: {
+        radar_core_driver: 'Broad stratiform region with embedded convective cores.',
+        vil_liquid_driver: 'VIL density 2.8 g/m³',
+        convective_severity: 'Training multicell system'
+      }
+    },
+    target_etas: [
+      {
+        target_name: 'Howrah Station',
+        distance_km: 11.2,
+        eta_minutes: 45,
+        eta_window_min: '40-55 min',
+        threat_level: 'WARNING',
+        is_footprint_expanding: true
+      }
+    ],
+    evolution: {
+      state: 'TRAINING',
+      footprint_expansion_factor: 1.10,
+      trend_summary: 'Cells training over same area leading to urban flooding risk.'
+    }
+  },
+  {
+    cell_id: 'CELL-401',
+    centroid_lat: 22.75,
+    centroid_lon: 88.20,
+    area_km2: 8.0,
+    peak_dbz: 42.0,
+    mean_dbz: 35.0,
+    velocity_kmh: 55.0,
+    heading_deg: 120,
+    severity: 'MODERATE',
+    eta_minutes: 25,
+    hazards: {
+      rain_rate_mmh: 15.0,
+      cloudburst_flag: false,
+      posh_percent: 5,
+      mesh_hail_mm: 0.0,
+      downburst_gust_kmh: 30.0,
+      lightning_density: 0.5,
+      explainability: {
+        radar_core_driver: 'Shallow convection, low echo tops.',
+        vil_liquid_driver: 'VIL density 0.8 g/m³',
+        convective_severity: 'Ordinary cell'
+      }
+    },
+    target_etas: [
+      {
+        target_name: 'Chandannagar',
+        distance_km: 22.9,
+        eta_minutes: 25,
+        eta_window_min: '22-28 min',
+        threat_level: 'WATCH',
+        is_footprint_expanding: false
+      }
+    ],
+    evolution: {
+      state: 'DISSIPATING',
+      footprint_expansion_factor: 0.85,
+      trend_summary: 'Cell is moving into hostile environment and dissipating.'
+    }
+  },
 ];
 
 export const DEFAULT_SAFE_SHELTER: DesignatedShelter = {

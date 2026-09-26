@@ -32,7 +32,7 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
     <severity>Extreme</severity>
     <certainty>Observed</certainty>
     <headline>IMMEDIATE HAZARD: Convective Storm Cell ${cellId} Approaching Rapidly</headline>
-    <description>ConvectNow multi-source radar and satellite fusion has detected an explosive convective core. Rain rate exceeding 100 mm/hr with high hail probability and severe downburst gusts up to 90 km/h.</description>
+    <description>VAJRA multi-source radar and satellite fusion has detected an explosive convective core. Rain rate exceeding 100 mm/hr with high hail probability and severe downburst gusts up to 90 km/h.</description>
     <instruction>Take immediate shelter indoors. Avoid open fields, metal structures, and flood-prone drainage basins.</instruction>
     <area>
       <areaDesc>Northern Sector Urban &amp; Airport Corridor</areaDesc>

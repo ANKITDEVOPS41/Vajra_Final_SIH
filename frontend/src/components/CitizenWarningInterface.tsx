@@ -613,7 +613,7 @@ export const CitizenWarningInterface: React.FC<CitizenWarningInterfaceProps> = (
         {/* Footer info */}
         <div className="pt-4 border-t border-white/10 text-center">
           <p className="text-[10px] text-slate-500 font-mono">
-            ConvectNow Intelligence Dispatch Suite · SIH PS-26084
+            VAJRA Intelligence Dispatch Suite · SIH PS-26084
           </p>
         </div>
       </aside>

@@ -7,69 +7,72 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Axiom DESIGN.md System Tokens
-        axiom: {
-          bg: '#0a0e1a',           // deep navy with blue tilt
-          bgSoft: '#06080f',       // darker footer / nav band / code-block ground
-          bgElevated: '#111729',   // raised card surface
-          bgDeep: '#03050a',       // deepest tier
-          surface: '#161d33',      // secondary panel
-          surfaceHover: '#1d2540',
-          surfaceActive: '#243057',
-          surfaceElevated: '#1a2240',
-          text: '#ffffff',
-          textMuted: '#b8c0d4',
-          textSoft: '#7a86a3',
-          textFaint: '#4a5575',
-          brand: '#1aaaff',        // electric cyan
-          brandHover: '#0e8ed8',
-          border: 'rgba(255, 255, 255, 0.08)' // 0x14 approx
-        },
-        ocean: {
-          950: '#0a0e1a', // Axiom bg
-          900: '#111729', // Axiom bg-elevated
-          800: '#161d33', // Axiom surface
-          700: '#1d2540', // Axiom surface-hover
-          600: '#243057', // Axiom surface-active
-        },
-        ice: {
-          100: '#ffffff',
-          200: '#e0f4ff', 
-          400: '#7ec6ff',
-          500: '#1aaaff', // Axiom brand
-          600: '#0e8ed8', // Axiom brand hover
-        },
-        steel: {
-          400: '#b8c0d4', // Axiom textMuted
-          600: '#7a86a3', // Axiom textSoft
-          800: 'rgba(255, 255, 255, 0.08)', // Axiom border
-          900: '#06080f', // Axiom bgSoft
-        },
-        health: {
-          nominal: '#43c59e',
-          degraded: '#f0b44d',
-          critical: '#ef5a67',
-          offline: '#64748b',
+        linear: {
+          bg: '#08090a',
+          bgMarketing: '#010102',
+          bgLevel1: '#0f1011',
+          bgLevel2: '#141516',
+          bgLevel3: '#1a1b1d',
+          bgOverlay: 'rgba(8,9,10,0.72)',
+          surface: '#0f1011',
+          surfaceStrong: '#141516',
+          surfaceTintedBrand: 'rgba(94,106,210,0.08)',
+          text: '#f7f8f8',
+          textStrong: '#ffffff',
+          textSecondary: '#d0d6e0',
+          textTertiary: '#8a8f98',
+          textQuaternary: '#62666d',
+          textDisabled: '#3d3f44',
+          brand: '#5e6ad2',
+          brandHover: '#7170ff',
+          brandPress: '#4a55c1',
+          brandSoft: 'rgba(94,106,210,0.16)',
+          accent: '#7170ff',
+          link: '#828fff',
+          linkHover: '#a3acff',
+          border: '#23252a',
+          borderStrong: '#34343a',
+          borderSubtle: 'rgba(255,255,255,0.06)',
+          borderBrand: '#5e6ad2',
+          ctaFill: '#e5e5e6',
+          ctaFillHover: '#f3f3f4',
+          ctaFillPress: '#cfcfd1',
+          ctaText: '#08090a',
+          success: '#4cb782',
+          successBg: 'rgba(76,183,130,0.12)',
+          warning: '#f2c94c',
+          warningBg: 'rgba(242,201,76,0.12)',
+          danger: '#eb5757',
+          dangerBg: 'rgba(235,87,87,0.12)',
+          info: '#5e6ad2',
+          infoBg: 'rgba(94,106,210,0.12)',
+          chipBg: '#1a1b1d',
+          chipText: '#d0d6e0',
+          chipBorder: '#34343a',
+          onBrand: '#ffffff'
         }
       },
       fontFamily: {
-        display: ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        body: ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'monospace'],
+        display: ['Inter', 'SF Pro Display', '-apple-system', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'SF Pro Display', '-apple-system', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', 'SF Mono', 'Berkeley Mono', 'Menlo', 'monospace'],
         heading: ['Inter', 'sans-serif']
       },
       borderRadius: {
-        pill: '100px',
+        pill: '9999px',
+        micro: '2px',
+        sm: '4px',
+        md: '8px',
+        lg: '12px',
+        xl: '16px',
+        card: '24px'
       },
       boxShadow: {
-        'blizzard-btn': '0 0 0 rgba(0,0,0,0)', // Axiom uses flat solid buttons
-        'blizzard-btn-hover': '0 0 0 rgba(0,0,0,0)',
-        'blizzard-card': '0 4px 12px rgba(0,0,0,0.2)', // Axiom has sharp clean cards, not super glowing
-        'blizzard-glow': '0 0 0 rgba(0,0,0,0)',
-      },
-      backdropBlur: {
-        xs: '2px',
+        'ambient': '0 1px 2px rgba(0,0,0,0.4)',
+        'popover': '0 8px 24px rgba(0,0,0,0.5)',
+        'modal': '0 24px 48px rgba(0,0,0,0.6)',
+        'ring-focus': '0 0 0 3px rgba(94,106,210,0.32)',
+        'ring-cta': '0 0 0 2px #7170ff'
       }
     },
   },
