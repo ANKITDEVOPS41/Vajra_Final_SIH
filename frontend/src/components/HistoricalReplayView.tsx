@@ -116,7 +116,7 @@ export const HistoricalReplayView: React.FC = () => {
           </div>
 
           <MapContainer center={[LAT, LON]} zoom={10} scrollWheelZoom={false} zoomControl={false} dragging={false} className="w-full h-full bg-[#0a0d15]">
-            <TileLayer url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" opacity={0.6} />
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" opacity={0.65} attribution="&copy; Esri" />
             
             <Marker position={[LAT, LON]}>
               <Popup>CCU Airport Target</Popup>
@@ -137,7 +137,7 @@ export const HistoricalReplayView: React.FC = () => {
           </div>
 
           <MapContainer center={[LAT, LON]} zoom={10} scrollWheelZoom={false} zoomControl={false} dragging={false} className="w-full h-full bg-[#0a0d15]">
-            <TileLayer url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" opacity={0.6} />
+            <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" opacity={0.65} attribution="&copy; Esri" />
             
             <Marker position={[LAT, LON]}>
               <Popup>CCU Airport Target</Popup>

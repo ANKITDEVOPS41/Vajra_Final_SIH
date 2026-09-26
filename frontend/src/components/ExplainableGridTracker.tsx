@@ -104,7 +104,7 @@ export const ExplainableGridTracker: React.FC = () => {
            </div>
            
            <MapContainer center={[22.6, 88.35]} zoom={10.5} scrollWheelZoom={true} className="w-full h-full bg-[#0a0d15]">
-              <TileLayer url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" opacity={0.6} attribution="&copy; Google" />
+              <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" opacity={0.65} attribution="&copy; Esri" />
               
               {/* Draw Grid */}
               {gridCells.map((cell, idx) => (
