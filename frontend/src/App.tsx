@@ -11,6 +11,7 @@ import { HistoricalReplayView } from './components/HistoricalReplayView';
 import { ExplainableGridTracker } from './components/ExplainableGridTracker';
 import { MicroburstSimulationView } from './components/MicroburstSimulationView';
 import { TacticalAirportMapEngine } from './components/TacticalAirportMapEngine';
+import HazardDashboard from './components/HazardDashboard';
 import { 
   DispatchedAlert, 
   createDispatchedAlert, 
@@ -21,7 +22,7 @@ export default function App() {
   const [stormData, setStormData] = useState<any>(null);
   const [selectedCell, setSelectedCell] = useState<any>(null);
   const [dispatchedAlert, setDispatchedAlert] = useState<DispatchedAlert | null>(null);
-  const [viewMode, setViewMode] = useState<'tactical' | 'inference' | 'public' | 'hyperlocal' | 'replay' | 'grid' | 'microburst'>('microburst');
+  const [viewMode, setViewMode] = useState<'hazard' | 'tactical' | 'inference' | 'public' | 'hyperlocal' | 'replay' | 'grid' | 'microburst'>('hazard');
 
   useEffect(() => {
     setStormData({
@@ -50,6 +51,13 @@ export default function App() {
         <div className="flex items-center space-x-4">
           
           <div className="flex p-1 bg-[#141516] border border-[#23252a] rounded-full">
+             <button 
+                onClick={() => setViewMode('hazard')}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors flex items-center space-x-1.5 ${viewMode === 'hazard' ? 'bg-[#38bdf8] text-slate-950 shadow-md' : 'text-[#8a8f98] hover:text-[#d0d6e0]'}`}
+             >
+                <Radar className="w-3.5 h-3.5" />
+                <span>Hazard GIS (PS-26084)</span>
+             </button>
              <button 
                 onClick={() => setViewMode('tactical')}
                 className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition-colors ${viewMode === 'tactical' ? 'bg-[#23252a] text-[#f7f8f8]' : 'text-[#8a8f98] hover:text-[#d0d6e0]'}`}
@@ -102,6 +110,12 @@ export default function App() {
           </span>
         </div>
       </header>
+
+      {viewMode === 'hazard' && (
+        <main className="w-full h-[calc(100vh-72px)] overflow-hidden">
+          <HazardDashboard />
+        </main>
+      )}
 
       {viewMode === 'tactical' && (
         <main className="max-w-[1280px] mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 pb-24">
