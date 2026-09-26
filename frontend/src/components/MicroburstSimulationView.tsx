@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Circle, Polyline, Tooltip, Rectangle } from 'react-leaflet';
-import { CloudLightning, Wind, Droplets, AlertOctagon, Play, Pause, Activity } from 'lucide-react';
-import { TacticalAirportMapEngine, CCU_AIRPORT_CENTER, CCU_AIRPORT_BOUNDS } from './TacticalAirportMapEngine';
+import { Circle, Polyline, Tooltip, Rectangle, Marker, Popup } from 'react-leaflet';
+import { CloudLightning, Wind, Droplets, AlertOctagon, Play, Pause, Activity, ShieldAlert, Crosshair, Radio } from 'lucide-react';
+import { 
+  TacticalAirportMapEngine, 
+  VEBS_AIRPORT_CENTER, 
+  VEBS_DOMAIN_BOUNDS, 
+  RUNWAY_01_19 
+} from './TacticalAirportMapEngine';
+import { 
+  TACTICAL_3X3_GRID, 
+  SURROUNDING_AWS_STATIONS, 
+  VEBS_AIRPORT_SPECS 
+} from '../types/tacticalGrid';
 
-// CCU Airport Runways Center
-const LAT = CCU_AIRPORT_CENTER[0];
-const LON = CCU_AIRPORT_CENTER[1];
+// Biju Patnaik International Airport (VEBS) Runway 01/19 Coordinates
+const LAT = VEBS_AIRPORT_CENTER[0]; // 20.2444
+const LON = VEBS_AIRPORT_CENTER[1]; // 85.8178
 
 export const MicroburstSimulationView: React.FC = () => {
-  const [timeStep, setTimeStep] = useState(0); // 0 to 60 mins
+  const [timeStep, setTimeStep] = useState(25); // 0 to 60 mins (default to peak impact)
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -16,56 +26,67 @@ export const MicroburstSimulationView: React.FC = () => {
     if (isPlaying) {
       interval = setInterval(() => {
         setTimeStep(prev => (prev < 60 ? prev + 1 : 0));
-      }, 150);
+      }, 180);
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Simulate a microburst moving from SW to NE directly across the airport runways
+  // Simulate severe microburst moving from SW approach directly across VEBS Runway 01
   const getStormCore = (t: number) => {
-    // Start SW within tactical domain, move NE across CCU runways
-    const startLat = 22.6420;
-    const startLon = 88.4340;
-    const endLat = 22.6660;
-    const endLon = 88.4580;
+    // Start South-West of Runway 01 approach (over Jatni/Khurda), move North-East across Runway 01 touchdown zone
+    const startLat = 20.2180;
+    const startLon = 85.7980;
+    const endLat = 20.2680;
+    const endLon = 85.8360;
     
-    // Total movement over 60 mins
+    // Progress over 60 mins
     const progress = t / 60;
     const currentLat = startLat + progress * (endLat - startLat);
     const currentLon = startLon + progress * (endLon - startLon);
     
-    // Intensity peaks at t=30 (directly over Runway 19L / Apron)
-    const intensity = 1 - Math.abs(t - 30) / 30; // 0 to 1
+    // Intensity peaks at t=28 (directly over Runway 01 Threshold: 20.2338, 85.8150)
+    const intensity = Math.max(0, 1 - Math.abs(t - 28) / 24);
+    const isPeak = t >= 22 && t <= 34;
     
     return {
       lat: currentLat,
       lon: currentLon,
-      coreRadius: 250 + intensity * 250, // 250m to 500m tactical core
-      outerRadius: 600 + intensity * 500, // 600m to 1100m outer shear band
-      windGust: Math.round(45 + intensity * 65), // km/h
-      rainRate: Math.round(25 + intensity * 95), // mm/hr
-      isPeak: t >= 25 && t <= 35
+      coreRadius: Math.round(300 + intensity * 450), // 300m to 750m high-shear core
+      outerRadius: Math.round(700 + intensity * 800), // 700m to 1500m divergent gust ring
+      windGust: Math.round(48 + intensity * 51), // 48 to 99 km/h (54 kt)
+      velocityShear: Math.round(18 + intensity * 30), // 18 to 48 m/s (LLWS threshold > 15 m/s)
+      rainRate: Math.round(20 + intensity * 154), // 20 to 174 mm/h
+      coreDbz: +(45 + intensity * 19.5).toFixed(1), // 45 to 64.5 dBZ
+      coldPoolDelta: -(2.1 + intensity * 5.7).toFixed(1), // -2.1 to -7.8°C
+      isPeak
     };
   };
 
   const storm = getStormCore(timeStep);
 
   return (
-    <div className="w-full min-h-[800px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans">
+    <div className="w-full min-h-[820px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans">
       
       {/* Header */}
       <div className="px-6 py-4 border-b border-[#23252a] bg-[#0f1011] flex justify-between items-center shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-[#eb5757]/10 to-transparent pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-red-500/10 to-transparent pointer-events-none"></div>
         <div>
-          <h2 className="text-[20px] font-bold text-[#f7f8f8] flex items-center tracking-tight">
-            <CloudLightning className="w-5 h-5 mr-2 text-[#eb5757]" />
-            Hyper-Local 3x3km Prediction
+          <h2 className="text-[18px] font-bold text-[#f7f8f8] flex items-center tracking-tight">
+            <CloudLightning className="w-5 h-5 mr-2 text-rose-500" />
+            Hyper-Local 3x3km Microburst Simulation &amp; LLWS Intercept
           </h2>
-          <p className="text-[13px] text-[#8a8f98] mt-1">High-resolution microburst tracking over CCU Airport runways</p>
+          <p className="text-[12px] text-[#8a8f98] mt-0.5">
+            Biju Patnaik International Airport (VEBS) • Runway 01/19 Low-Level Wind Shear (LLWS) Detection Model
+          </p>
         </div>
         <div className="flex items-center space-x-3">
-           <div className={`px-3 py-1 border rounded text-[11px] font-mono font-bold uppercase transition-colors ${storm.isPeak ? 'bg-[#eb5757]/20 border-[#eb5757] text-[#eb5757] animate-pulse' : 'bg-[#f2c94c]/10 border-[#f2c94c]/30 text-[#f2c94c]'}`}>
-             {storm.isPeak ? 'Microburst Impact' : 'Approaching Target'}
+           <div className={`px-3 py-1 border rounded text-[11px] font-mono font-bold uppercase transition-colors flex items-center space-x-1.5 ${
+             storm.isPeak 
+               ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse' 
+               : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+           }`}>
+             <AlertOctagon className="w-3.5 h-3.5" />
+             <span>{storm.isPeak ? 'CRITICAL LLWS: RWY 01 GO-AROUND' : 'OUTFLOW FRONT MONITORING'}</span>
            </div>
         </div>
       </div>
@@ -74,147 +95,188 @@ export const MicroburstSimulationView: React.FC = () => {
         
         {/* Left: The High-Res Map */}
         <div className="flex-1 border border-[#34343a] rounded-xl bg-[#141516] flex flex-col overflow-hidden relative shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-           <div className="absolute top-4 left-4 z-[400] px-3 py-2 bg-[#08090a]/90 border border-[#34343a] rounded-lg shadow-lg backdrop-blur-md">
+           <div className="absolute top-4 left-4 z-[400] px-3.5 py-2.5 bg-[#08090a]/92 border border-[#34343a] rounded-lg shadow-lg backdrop-blur-md">
                <div className="text-[12px] font-bold text-[#f7f8f8] uppercase tracking-wider mb-1 flex items-center">
-                   <Activity className="w-3.5 h-3.5 mr-1.5 text-[#38a8ff]" />
-                   T+{timeStep} Minutes
+                   <Activity className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+                   T+{timeStep} Minutes Interpolation
                </div>
                <div className="text-[11px] font-mono text-[#8a8f98]">
-                   1-Min Interval Interpolation
+                   VEBS Runway 01 Touchdown Intercept Window
                </div>
            </div>
            
            <TacticalAirportMapEngine 
               center={[LAT, LON]} 
-              zoom={16} 
-              minZoom={15}
+              zoom={14} 
+              minZoom={12} 
               maxZoom={18}
               scrollWheelZoom={true} 
               className="w-full h-full bg-[#0a0d15]"
+              showTacticalGrid={true}
+              showAwsStations={true}
               showProviderToggle={true}
               providerTogglePosition="top-right"
            >
-              {/* 3x3 km bounding box reference */}
-              <Rectangle bounds={CCU_AIRPORT_BOUNDS} pathOptions={{ color: '#00e5ff', weight: 1.5, dashArray: '8, 8', fill: false, opacity: 0.4 }} />
-
-              {/* Storm Outer Band (Yellow/Orange) */}
+              {/* Divergent Outflow Ring (Yellow/Orange) */}
               <Circle 
                 center={[storm.lat, storm.lon]} 
                 radius={storm.outerRadius} 
-                pathOptions={{ color: '#f2c94c', weight: 0, fillColor: '#f2c94c', fillOpacity: 0.3 }}
-              />
-              
-              {/* Storm Inner Core (Red/Magenta) */}
-              <Circle 
-                center={[storm.lat, storm.lon]} 
-                radius={storm.coreRadius} 
-                pathOptions={{ color: '#eb5757', weight: 2, fillColor: '#eb5757', fillOpacity: 0.65 }}
+                pathOptions={{ 
+                  color: '#f59e0b', 
+                  fillColor: '#f59e0b', 
+                  fillOpacity: 0.18, 
+                  weight: 1.5,
+                  dashArray: '6, 6'
+                }} 
               >
-                <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono text-white font-bold drop-shadow-md">
-                  CORE
+                <Tooltip direction="top" className="bg-slate-900 text-amber-300 font-mono text-[10px]">
+                  Outflow Boundary: Gust {storm.windGust} km/h (ΔT {storm.coldPoolDelta}°C)
                 </Tooltip>
               </Circle>
 
-              {/* Trajectory Prediction Line across Runway 19L */}
-              <Polyline 
-                positions={[
-                  [storm.lat, storm.lon],
-                  [22.6660, 88.4580]
-                ]} 
-                pathOptions={{ color: '#f7f8f8', weight: 2.5, dashArray: '6, 6', opacity: 0.85 }} 
-              />
+              {/* Severe Microburst Downdraft Core (Deep Red) */}
+              <Circle 
+                center={[storm.lat, storm.lon]} 
+                radius={storm.coreRadius} 
+                pathOptions={{ 
+                  color: '#ef4444', 
+                  fillColor: '#ef4444', 
+                  fillOpacity: storm.isPeak ? 0.65 : 0.40, 
+                  weight: 2 
+                }} 
+              >
+                <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono font-bold text-white drop-shadow">
+                  {storm.coreDbz} dBZ
+                </Tooltip>
+              </Circle>
+
+              {/* Center Touchdown Point */}
+              <Marker position={[storm.lat, storm.lon]}>
+                <Popup className="dark-gis-popup">
+                  <div className="p-2 text-xs font-mono bg-slate-950 text-slate-100 rounded space-y-1">
+                    <strong className="text-red-400">Microburst Downdraft Footprint</strong><br/>
+                    <div>Reflectivity: <span className="font-bold text-amber-300">{storm.coreDbz} dBZ</span></div>
+                    <div>Rain Rate: <span className="font-bold text-sky-300">{storm.rainRate} mm/h</span></div>
+                    <div>Velocity Shear ΔV: <span className="font-bold text-rose-400">{storm.velocityShear} m/s</span></div>
+                    <div>Peak Surface Gust: <span className="text-white font-bold">{storm.windGust} km/h</span></div>
+                  </div>
+                </Popup>
+              </Marker>
            </TacticalAirportMapEngine>
 
-           {/* Timeline Scrubber */}
-           <div className="absolute bottom-0 left-0 w-full p-4 bg-[#08090a]/90 backdrop-blur-md border-t border-[#34343a] z-[400]">
+           {/* Timeline Controls */}
+           <div className="absolute bottom-0 left-0 w-full p-4 bg-[#08090a]/92 backdrop-blur-md border-t border-[#34343a] z-[400]">
               <div className="flex items-center space-x-4">
                  <button 
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-10 h-10 rounded-full bg-[#38a8ff] flex items-center justify-center text-white hover:bg-[#5bb7ff] transition-colors"
+                    className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-500 transition-colors shadow-lg"
                  >
-                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-1" />}
+                    {isPlaying ? (
+                      <Pause className="w-4 h-4 text-white" />
+                    ) : (
+                      <Play className="w-4 h-4 text-white ml-0.5" />
+                    )}
                  </button>
-                 <div className="flex-1 relative pt-4">
+                 <div className="flex-1 relative pt-2">
                     <input 
                       type="range" 
                       min="0" 
                       max="60" 
                       value={timeStep}
                       onChange={(e) => setTimeStep(parseInt(e.target.value))}
-                      className="w-full accent-[#38a8ff] h-1.5 bg-[#34343a] rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-red-500 h-1.5 bg-[#34343a] rounded-lg appearance-none cursor-pointer"
                     />
-                    <div className="flex justify-between mt-2 text-[10px] font-mono text-[#8a8f98]">
-                       <span>T+0m</span>
+                    <div className="flex justify-between mt-1 text-[10px] font-mono text-[#8a8f98]">
+                       <span>T+0m (Approach)</span>
                        <span>T+15m</span>
-                       <span>T+30m</span>
+                       <span className="text-rose-400 font-bold">T+28m (RWY 01 Impact)</span>
                        <span>T+45m</span>
-                       <span>T+60m</span>
+                       <span>T+60m (Departure)</span>
                     </div>
                  </div>
               </div>
            </div>
         </div>
 
-        {/* Right: Telemetry Panel */}
-        <div className="w-[35%] flex flex-col gap-4">
+        {/* Right: Operational Telemetry & ATC Advisory */}
+        <div className="w-80 flex flex-col gap-4">
            
-           <div className="p-5 border border-[#34343a] bg-[#141516] rounded-xl relative overflow-hidden">
-              {storm.isPeak && <div className="absolute inset-0 bg-[#eb5757]/5 animate-pulse"></div>}
-              
-              <h3 className="text-[14px] font-bold text-[#f7f8f8] flex items-center mb-6 uppercase tracking-wider relative z-10">
-                 <AlertOctagon className={`w-4 h-4 mr-2 ${storm.isPeak ? 'text-[#eb5757]' : 'text-[#8a8f98]'}`} /> 
-                 Live Convective Telemetry
+           <div className="p-4 border border-[#23252a] bg-[#0f1011] rounded-xl space-y-3">
+              <h3 className="text-[12px] font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center">
+                 <Crosshair className="w-3.5 h-3.5 mr-1.5 text-sky-400" /> VEBS Airfield Telemetry
               </h3>
-              
-              <div className="space-y-6 relative z-10">
-                 
-                 <div>
-                    <div className="flex justify-between text-[12px] mb-2">
-                       <span className="text-[#8a8f98] flex items-center"><Wind className="w-4 h-4 mr-2 text-[#38a8ff]" /> Surface Wind Gust</span>
-                       <span className="font-mono text-[16px] font-bold text-[#f7f8f8]">{storm.windGust} <span className="text-[12px] text-[#8a8f98]">km/h</span></span>
-                    </div>
-                    <div className="w-full bg-[#08090a] h-2 rounded-full overflow-hidden border border-[#23252a]">
-                       <div className={`h-full transition-all duration-300 ${storm.windGust > 80 ? 'bg-[#eb5757]' : 'bg-[#38a8ff]'}`} style={{width: `${(storm.windGust / 120) * 100}%`}}></div>
-                    </div>
-                 </div>
 
-                 <div>
-                    <div className="flex justify-between text-[12px] mb-2">
-                       <span className="text-[#8a8f98] flex items-center"><Droplets className="w-4 h-4 mr-2 text-[#4cb782]" /> Precipitation Rate</span>
-                       <span className="font-mono text-[16px] font-bold text-[#f7f8f8]">{storm.rainRate} <span className="text-[12px] text-[#8a8f98]">mm/hr</span></span>
-                    </div>
-                    <div className="w-full bg-[#08090a] h-2 rounded-full overflow-hidden border border-[#23252a]">
-                       <div className={`h-full transition-all duration-300 ${storm.rainRate > 80 ? 'bg-[#eb5757]' : 'bg-[#4cb782]'}`} style={{width: `${(storm.rainRate / 150) * 100}%`}}></div>
-                    </div>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400">VELOCITY SHEAR (ΔV)</span>
+                    <div className="text-lg font-bold text-rose-400">{storm.velocityShear} m/s</div>
+                    <div className="text-[9px] text-slate-400">ICAO Alert &gt;15 m/s</div>
                  </div>
-
-                 <div className="pt-4 border-t border-[#23252a] grid grid-cols-2 gap-4">
-                    <div>
-                       <div className="text-[11px] font-mono text-[#8a8f98] uppercase">Core Diameter</div>
-                       <div className="text-[18px] font-bold text-[#f7f8f8] mt-1">{(storm.coreRadius * 2 / 1000).toFixed(1)} km</div>
-                    </div>
-                    <div>
-                       <div className="text-[11px] font-mono text-[#8a8f98] uppercase">Storm Heading</div>
-                       <div className="text-[18px] font-bold text-[#f7f8f8] mt-1">NE (45°)</div>
-                    </div>
+                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400">PEAK OUTFLOW GUST</span>
+                    <div className="text-lg font-bold text-amber-400">{storm.windGust} km/h</div>
+                    <div className="text-[9px] text-slate-400">54 kt Squall</div>
                  </div>
-
+                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400">Z-R RAIN RATE</span>
+                    <div className="text-base font-bold text-sky-300">{storm.rainRate} mm/h</div>
+                    <div className="text-[9px] text-slate-400">Cloudburst Level</div>
+                 </div>
+                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
+                    <span className="text-[10px] text-slate-400">COLD POOL DROP</span>
+                    <div className="text-base font-bold text-purple-400">{storm.coldPoolDelta}°C</div>
+                    <div className="text-[9px] text-slate-400">Dense Outflow</div>
+                 </div>
               </div>
            </div>
 
-           <div className={`flex-1 p-5 border rounded-xl flex flex-col justify-center transition-colors ${storm.isPeak ? 'border-[#eb5757] bg-[#eb5757]/10' : 'border-[#23252a] bg-[#0f1011]'}`}>
-              <div className="text-center">
-                 <div className={`text-[13px] font-bold uppercase tracking-wider mb-2 ${storm.isPeak ? 'text-[#eb5757]' : 'text-[#8a8f98]'}`}>
-                    Aviation Status
-                 </div>
-                 <div className="text-[28px] font-black text-[#f7f8f8] tracking-tight">
-                    {storm.isPeak ? 'GROUNDED' : 'MONITORING'}
-                 </div>
-                 <div className="text-[12px] text-[#8a8f98] mt-3">
-                    {storm.isPeak 
-                      ? 'Microburst impact detected on runway approach. All takeoffs and landings suspended.' 
-                      : 'Storm cell approaching. Aviation operations proceeding under caution.'}
-                 </div>
+           {/* In-Situ AWS Ground Truth Matching */}
+           <div className="p-4 border border-[#23252a] bg-[#0f1011] rounded-xl space-y-2.5 font-mono text-xs">
+              <div className="text-[11px] font-bold text-amber-400 flex items-center justify-between">
+                <span className="flex items-center"><Radio className="w-3.5 h-3.5 mr-1" /> AWS-VEBS Confirmation</span>
+                <span className="text-[10px] text-slate-400">42971</span>
+              </div>
+              <div className="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Surface Pressure:</span>
+                  <span className="text-white font-bold">999.2 hPa (-4.8/3h)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Aerodrome Wind:</span>
+                  <span className="text-rose-400 font-bold">210° @ 28G54 kt</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Air Temperature:</span>
+                  <span className="text-amber-300 font-bold">22.8°C (Td 22.1°C)</span>
+                </div>
+              </div>
+           </div>
+
+           {/* Air Traffic Control Direct Order */}
+           <div className="flex-1 p-4 border border-red-500/30 bg-red-950/20 rounded-xl flex flex-col justify-between">
+              <div>
+                <h3 className="text-[12px] font-bold text-red-400 uppercase tracking-wider mb-2 font-mono flex items-center">
+                   <ShieldAlert className="w-4 h-4 mr-1.5" /> AAI / VEBS ATC Directive
+                </h3>
+                <div className="p-3 bg-slate-950/90 border border-red-500/40 rounded-lg text-xs space-y-1">
+                   <div className="font-bold text-white uppercase text-[11px]">RUNWAY 01 LLWS EMERGENCY</div>
+                   <div className="text-slate-300 text-[11px] leading-relaxed">
+                     {storm.isPeak ? (
+                       <span className="text-red-300 font-semibold">
+                         Microburst touchdown in progress over Runway 01 threshold. Headwind loss exceeds 30 knots on final approach. 
+                         All arriving aircraft ordered into holding pattern; Runway 01 departures suspended.
+                       </span>
+                     ) : (
+                       <span>
+                         Approaching convective cell. Wind shear sensor alert active. Standby for immediate Runway 01 closure upon core touchdown.
+                       </span>
+                     )}
+                   </div>
+                </div>
+              </div>
+
+              <div className="mt-3 text-[10px] font-mono text-slate-400 text-center">
+                Automated NDMA CAP / AAI NOTAM broadcast ready
               </div>
            </div>
 
@@ -223,3 +285,5 @@ export const MicroburstSimulationView: React.FC = () => {
     </div>
   );
 };
+
+export default MicroburstSimulationView;

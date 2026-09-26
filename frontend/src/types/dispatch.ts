@@ -955,8 +955,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
   },
   {
     cell_id: 'CELL-805',
-    centroid_lat: 22.58,
-    centroid_lon: 88.42,
+    centroid_lat: 20.22,
+    centroid_lon: 85.79,
     area_km2: 12.5,
     peak_dbz: 68.2,
     mean_dbz: 55.0,
@@ -979,8 +979,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'CCU Airport (Netaji Subhas)',
-        distance_km: 6.0,
+        target_name: "VEBS Airport (Biju Patnaik Int'l)",
+        distance_km: 2.8,
         eta_minutes: 8,
         eta_window_min: '6-10 min',
         threat_level: 'EMERGENCY',
@@ -990,13 +990,13 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     evolution: {
       state: 'MICROBURST',
       footprint_expansion_factor: 1.45,
-      trend_summary: 'Severe microburst collapsing directly over approach path.'
+      trend_summary: 'Severe microburst collapsing directly over Runway 01 approach path.'
     }
   },
   {
     cell_id: 'CELL-912',
-    centroid_lat: 22.40,
-    centroid_lon: 88.35,
+    centroid_lat: 20.46,
+    centroid_lon: 85.88,
     area_km2: 215.0,
     peak_dbz: 52.0,
     mean_dbz: 44.5,
@@ -1019,7 +1019,7 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Howrah Station',
+        target_name: 'Cuttack Badambadi Bus Terminal',
         distance_km: 11.2,
         eta_minutes: 45,
         eta_window_min: '40-55 min',
@@ -1030,13 +1030,13 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     evolution: {
       state: 'TRAINING',
       footprint_expansion_factor: 1.10,
-      trend_summary: 'Cells training over same area leading to urban flooding risk.'
+      trend_summary: 'Cells training over Mahanadi confluence leading to urban flooding risk.'
     }
   },
   {
     cell_id: 'CELL-401',
-    centroid_lat: 22.75,
-    centroid_lon: 88.20,
+    centroid_lat: 20.11,
+    centroid_lon: 85.83,
     area_km2: 8.0,
     peak_dbz: 42.0,
     mean_dbz: 35.0,
@@ -1059,8 +1059,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Chandannagar',
-        distance_km: 22.9,
+        target_name: 'Pipili Highway Junction',
+        distance_km: 18.5,
         eta_minutes: 25,
         eta_window_min: '22-28 min',
         threat_level: 'WATCH',
@@ -1070,7 +1070,7 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     evolution: {
       state: 'DISSIPATING',
       footprint_expansion_factor: 0.85,
-      trend_summary: 'Cell is moving into hostile environment and dissipating.'
+      trend_summary: 'Cell is moving into coastal marine layer and dissipating.'
     }
   },
 ];

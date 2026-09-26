@@ -7,7 +7,8 @@ import {
   CircleMarker, 
   Polyline, 
   Polygon,
-  ImageOverlay
+  ImageOverlay,
+  Marker
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
@@ -44,15 +45,19 @@ import {
   Sliders,
   Crosshair,
   Volume2,
-  Columns
+  Grid,
+  MapPin,
+  Flame,
+  ArrowUpRight
 } from 'lucide-react';
 
 // ============================================================================
 // 1. SCIENTIFIC METEOROLOGY & DWR STATION SPECIFICATIONS (IMD PS-26084)
 // ============================================================================
 export type RadarProduct = 'reflectivity' | 'velocity' | 'zdr' | 'vil' | 'echotop';
-export type DisplayMode = 'polar_scope' | 'gis_basemap' | 'dual_split';
+export type DisplayMode = 'polar_scope' | 'gis_basemap';
 export type ModelEngine = 'convectnet' | 'pysteps';
+export type SidebarTab = 'grid3x3' | 'aws_network' | 'scit_cells';
 
 export interface StormCellTrack {
   id: string;
@@ -76,10 +81,48 @@ export interface StormCellTrack {
   severity: 'WARNING' | 'CRITICAL' | 'ADVISORY';
 }
 
-export interface RadarGateScan {
-  azimuthCount: number;
-  rangeGatesCount: number;
-  gateResolutionM: number;
+export interface TacticalSector {
+  id: string; // e.g. SEC-C
+  code: string; // e.g. R1_C1
+  name: string;
+  row: number;
+  col: number;
+  latMin: number;
+  latMax: number;
+  lonMin: number;
+  lonMax: number;
+  center: [number, number];
+  radarDbz: number;
+  rainRateMmh: number;
+  pressureHpa: number;
+  tempC: number;
+  windGustKmh: number;
+  capeJkg: number;
+  lightningStrokesMin: number;
+  hailRisk: string;
+  cloudburstFlag: boolean;
+  description: string;
+}
+
+export interface SurfaceAwsStation {
+  id: string;
+  code: string;
+  name: string;
+  lat: number;
+  lon: number;
+  elevationM: number;
+  tempC: number;
+  dewPointC: number;
+  humidityPct: number;
+  pressureHpa: number;
+  tendency3h: number; // hPa / 3h (negative = falling)
+  windDirDeg: number;
+  windSpeedKt: number;
+  windGustKt: number;
+  rain1hMm: number;
+  rainRateMmh: number;
+  capeJkg: number;
+  status: 'SEVERE_ALERT' | 'WARNING' | 'NOMINAL';
 }
 
 const RADAR_STATION = {
@@ -109,25 +152,399 @@ const AIRPORT_RUNWAYS = {
   ] as [number, number][],
 };
 
-// Tactical Sectors around Bhubaneswar-Cuttack-Puri Airspace Corridor
-const TACTICAL_SECTORS: Array<{
-  id: string;
-  name: string;
-  latMin: number;
-  latMax: number;
-  lonMin: number;
-  lonMax: number;
-  description: string;
-}> = [
-  { id: 'SEC-NW', name: 'Chandaka Wildlife / Cuttack Uplands', latMin: 20.35, latMax: 20.60, lonMin: 85.50, lonMax: 85.80, description: 'Elevated terrain; frequent convective initiation trigger.' },
-  { id: 'SEC-N',  name: 'Mahanadi River Basin Corridor', latMin: 20.35, latMax: 20.60, lonMin: 85.80, lonMax: 86.10, description: 'Moisture convergence zone along river estuary.' },
-  { id: 'SEC-NE', name: 'Paradeep Approach West', latMin: 20.35, latMax: 20.60, lonMin: 86.10, lonMax: 86.40, description: 'Maritime sea-breeze front boundary.' },
-  { id: 'SEC-W',  name: 'Khurda Highway Ridge', latMin: 20.15, latMax: 20.35, lonMin: 85.50, lonMax: 85.80, description: 'Orographic lift along NH-16 highway ridge.' },
-  { id: 'SEC-C',  name: 'VEBS Aerodrome Core / Smart City', latMin: 20.15, latMax: 20.35, lonMin: 85.80, lonMax: 86.10, description: 'Critical infrastructure; BBI runway glide path corridor.' },
-  { id: 'SEC-E',  name: 'Balianta-Kuakhai Floodplain', latMin: 20.15, latMax: 20.35, lonMin: 86.10, lonMax: 86.40, description: 'High thermal capacity marshland; cold pool drainage.' },
-  { id: 'SEC-SW', name: 'Jatni-Janla Western Approach', latMin: 19.95, latMax: 20.15, lonMin: 85.50, lonMax: 85.80, description: 'Railway junction & electrical corridor.' },
-  { id: 'SEC-S',  name: 'Pipili Highway Intercept', latMin: 19.95, latMax: 20.15, lonMin: 85.80, lonMax: 86.10, description: 'Puri pilgrimage corridor & south approach vector.' },
-  { id: 'SEC-SE', name: 'Daya River Delta / Chilika Margin', latMin: 19.95, latMax: 20.15, lonMin: 86.10, lonMax: 86.40, description: 'Littoral salt marshes; low-level moisture pump.' },
+// ============================================================================
+// 2. THE 3x3 TACTICAL GRID (AOI: 20.0°N–20.6°N, 85.5°E–86.1°E)
+// ============================================================================
+export const TACTICAL_3X3_GRID: TacticalSector[] = [
+  // ROW 0 (NORTH: 20.4°N to 20.6°N)
+  {
+    id: 'SEC-NW',
+    code: 'R0_C0',
+    name: 'Chandaka Uplands / Cuttack North',
+    row: 0,
+    col: 0,
+    latMin: 20.40,
+    latMax: 20.60,
+    lonMin: 85.50,
+    lonMax: 85.70,
+    center: [20.50, 85.60],
+    radarDbz: 22.4,
+    rainRateMmh: 8.2,
+    pressureHpa: 1004.8,
+    tempC: 30.5,
+    windGustKmh: 32,
+    capeJkg: 2100,
+    lightningStrokesMin: 2,
+    hailRisk: 'LOW (<10%)',
+    cloudburstFlag: false,
+    description: 'Forested wildlife ridge; boundary layer thermal lifting.'
+  },
+  {
+    id: 'SEC-N',
+    code: 'R0_C1',
+    name: 'Mahanadi Basin Corridor / Cuttack Core',
+    row: 0,
+    col: 1,
+    latMin: 20.40,
+    latMax: 20.60,
+    lonMin: 85.70,
+    lonMax: 85.90,
+    center: [20.50, 85.80],
+    radarDbz: 48.5,
+    rainRateMmh: 52.8,
+    pressureHpa: 1002.5,
+    tempC: 26.2,
+    windGustKmh: 58,
+    capeJkg: 2850,
+    lightningStrokesMin: 12,
+    hailRisk: 'MODERATE (40%)',
+    cloudburstFlag: false,
+    description: 'Major river confluence; high low-level moisture convergence.'
+  },
+  {
+    id: 'SEC-NE',
+    code: 'R0_C2',
+    name: 'Paradeep Approach West',
+    row: 0,
+    col: 2,
+    latMin: 20.40,
+    latMax: 20.60,
+    lonMin: 85.90,
+    lonMax: 86.10,
+    center: [20.50, 86.00],
+    radarDbz: 32.0,
+    rainRateMmh: 18.5,
+    pressureHpa: 1005.1,
+    tempC: 31.0,
+    windGustKmh: 38,
+    capeJkg: 2400,
+    lightningStrokesMin: 4,
+    hailRisk: 'LOW (15%)',
+    cloudburstFlag: false,
+    description: 'Coastal maritime transit sector with sea-breeze interaction.'
+  },
+
+  // ROW 1 (CENTER: 20.2°N to 20.4°N — CONTAINS VEBS AIRPORT)
+  {
+    id: 'SEC-W',
+    code: 'R1_C0',
+    name: 'Khurda Highway Ridge / NH-16',
+    row: 1,
+    col: 0,
+    latMin: 20.20,
+    latMax: 20.40,
+    lonMin: 85.50,
+    lonMax: 85.70,
+    center: [20.30, 85.60],
+    radarDbz: 56.0,
+    rainRateMmh: 94.2,
+    pressureHpa: 1001.0,
+    tempC: 24.1,
+    windGustKmh: 74,
+    capeJkg: 3200,
+    lightningStrokesMin: 22,
+    hailRisk: 'HIGH (75% / 28mm MESH)',
+    cloudburstFlag: false,
+    description: 'Orographic highway ridge triggering secondary convective multicellular growth.'
+  },
+  {
+    id: 'SEC-C',
+    code: 'R1_C1',
+    name: 'VEBS Aerodrome Core / Smart City',
+    row: 1,
+    col: 1,
+    latMin: 20.20,
+    latMax: 20.40,
+    lonMin: 85.70,
+    lonMax: 85.90,
+    center: [20.30, 85.80],
+    radarDbz: 64.5,
+    rainRateMmh: 174.5,
+    pressureHpa: 999.2,
+    tempC: 22.8,
+    windGustKmh: 99,
+    capeJkg: 3600,
+    lightningStrokesMin: 34,
+    hailRisk: 'EXTREME (92% / 48mm MESH)',
+    cloudburstFlag: true,
+    description: 'Direct severe microburst touchdown & low-level wind shear over Runway 01/19.'
+  },
+  {
+    id: 'SEC-E',
+    code: 'R1_C2',
+    name: 'Balianta-Kuakhai River Corridor',
+    row: 1,
+    col: 2,
+    latMin: 20.20,
+    latMax: 20.40,
+    lonMin: 85.90,
+    lonMax: 86.10,
+    center: [20.30, 86.00],
+    radarDbz: 42.0,
+    rainRateMmh: 36.4,
+    pressureHpa: 1002.8,
+    tempC: 27.5,
+    windGustKmh: 48,
+    capeJkg: 2700,
+    lightningStrokesMin: 8,
+    hailRisk: 'MODERATE (30%)',
+    cloudburstFlag: false,
+    description: 'River floodplain capturing cold-pool gust front outflow drainage.'
+  },
+
+  // ROW 2 (SOUTH: 20.0°N to 20.2°N)
+  {
+    id: 'SEC-SW',
+    code: 'R2_C0',
+    name: 'Jatni-Janla Western Approach',
+    row: 2,
+    col: 0,
+    latMin: 20.00,
+    latMax: 20.20,
+    lonMin: 85.50,
+    lonMax: 85.70,
+    center: [20.10, 85.60],
+    radarDbz: 28.5,
+    rainRateMmh: 14.8,
+    pressureHpa: 1003.5,
+    tempC: 29.8,
+    windGustKmh: 36,
+    capeJkg: 2300,
+    lightningStrokesMin: 3,
+    hailRisk: 'LOW (12%)',
+    cloudburstFlag: false,
+    description: 'Railway corridor and major high-voltage power transmission grid.'
+  },
+  {
+    id: 'SEC-S',
+    code: 'R2_C1',
+    name: 'Pipili Highway Intercept',
+    row: 2,
+    col: 1,
+    latMin: 20.00,
+    latMax: 20.20,
+    lonMin: 85.70,
+    lonMax: 85.90,
+    center: [20.10, 85.80],
+    radarDbz: 38.0,
+    rainRateMmh: 28.6,
+    pressureHpa: 1001.8,
+    tempC: 25.4,
+    windGustKmh: 52,
+    capeJkg: 2950,
+    lightningStrokesMin: 14,
+    hailRisk: 'MODERATE (35%)',
+    cloudburstFlag: false,
+    description: 'Puri pilgrimage highway corridor; active feeder convective band.'
+  },
+  {
+    id: 'SEC-SE',
+    code: 'R2_C2',
+    name: 'Daya River Delta / Chilika Margin',
+    row: 2,
+    col: 2,
+    latMin: 20.00,
+    latMax: 20.20,
+    lonMin: 85.90,
+    lonMax: 86.10,
+    center: [20.10, 86.00],
+    radarDbz: 30.5,
+    rainRateMmh: 16.2,
+    pressureHpa: 1004.2,
+    tempC: 28.9,
+    windGustKmh: 42,
+    capeJkg: 2600,
+    lightningStrokesMin: 5,
+    hailRisk: 'LOW (15%)',
+    cloudburstFlag: false,
+    description: 'Littoral marshland pumping maritime moisture into convective updrafts.'
+  },
+];
+
+// ============================================================================
+// 3. SURROUNDING AUTOMATIC WEATHER STATIONS (AWS IN-SITU NETWORK)
+// ============================================================================
+export const SURROUNDING_AWS_STATIONS: SurfaceAwsStation[] = [
+  {
+    id: 'AWS-VEBS',
+    code: '42971',
+    name: 'Biju Patnaik Airport (Aerodrome AWS)',
+    lat: 20.2444,
+    lon: 85.8178,
+    elevationM: 42.0,
+    tempC: 22.8,
+    dewPointC: 22.1,
+    humidityPct: 96,
+    pressureHpa: 999.2,
+    tendency3h: -4.8, // Rapid cyclonic barometric fall
+    windDirDeg: 210,
+    windSpeedKt: 28,
+    windGustKt: 54, // 100 km/h squall gust
+    rain1hMm: 68.4,
+    rainRateMmh: 174.5,
+    capeJkg: 3600,
+    status: 'SEVERE_ALERT'
+  },
+  {
+    id: 'AWS-CTC',
+    code: '42973',
+    name: 'Cuttack Ravenshaw Meteorological Observatory',
+    lat: 20.4620,
+    lon: 85.8820,
+    elevationM: 36.0,
+    tempC: 26.2,
+    dewPointC: 24.0,
+    humidityPct: 88,
+    pressureHpa: 1002.5,
+    tendency3h: -2.4,
+    windDirDeg: 190,
+    windSpeedKt: 16,
+    windGustKt: 31,
+    rain1hMm: 24.2,
+    rainRateMmh: 52.8,
+    capeJkg: 2850,
+    status: 'WARNING'
+  },
+  {
+    id: 'AWS-KUR',
+    code: '42975',
+    name: 'Khurda District Collectorate AWS',
+    lat: 20.1820,
+    lon: 85.6250,
+    elevationM: 75.0,
+    tempC: 24.1,
+    dewPointC: 22.8,
+    humidityPct: 92,
+    pressureHpa: 1001.0,
+    tendency3h: -3.6,
+    windDirDeg: 230,
+    windSpeedKt: 22,
+    windGustKt: 40,
+    rain1hMm: 42.0,
+    rainRateMmh: 94.2,
+    capeJkg: 3200,
+    status: 'SEVERE_ALERT'
+  },
+  {
+    id: 'AWS-PIP',
+    code: '42978',
+    name: 'Pipili Agrimet Observation Station',
+    lat: 20.1150,
+    lon: 85.8350,
+    elevationM: 28.0,
+    tempC: 23.5,
+    dewPointC: 22.5,
+    humidityPct: 94,
+    pressureHpa: 1000.4,
+    tendency3h: -3.2,
+    windDirDeg: 200,
+    windSpeedKt: 24,
+    windGustKt: 42,
+    rain1hMm: 54.0,
+    rainRateMmh: 38.0,
+    capeJkg: 2950,
+    status: 'WARNING'
+  },
+  {
+    id: 'AWS-PURI',
+    code: '43053',
+    name: 'Puri Coastal Baseline Observatory',
+    lat: 19.8130,
+    lon: 85.8310,
+    elevationM: 9.0,
+    tempC: 29.5,
+    dewPointC: 26.2,
+    humidityPct: 82,
+    pressureHpa: 1005.1,
+    tendency3h: -1.2,
+    windDirDeg: 160,
+    windSpeedKt: 18,
+    windGustKt: 25,
+    rain1hMm: 4.5,
+    rainRateMmh: 12.0,
+    capeJkg: 2400,
+    status: 'NOMINAL'
+  },
+  {
+    id: 'AWS-PAR',
+    code: '42976',
+    name: 'Paradeep Port Meteorological Office',
+    lat: 20.2640,
+    lon: 86.6710,
+    elevationM: 6.0,
+    tempC: 30.1,
+    dewPointC: 26.0,
+    humidityPct: 79,
+    pressureHpa: 1006.4,
+    tendency3h: -0.8,
+    windDirDeg: 140,
+    windSpeedKt: 21,
+    windGustKt: 28,
+    rain1hMm: 2.0,
+    rainRateMmh: 6.0,
+    capeJkg: 2100,
+    status: 'NOMINAL'
+  },
+  {
+    id: 'AWS-CDK',
+    code: '42972',
+    name: 'Chandaka Reserve Forest Station',
+    lat: 20.3800,
+    lon: 85.7400,
+    elevationM: 82.0,
+    tempC: 24.8,
+    dewPointC: 22.9,
+    humidityPct: 89,
+    pressureHpa: 1002.8,
+    tendency3h: -2.1,
+    windDirDeg: 220,
+    windSpeedKt: 14,
+    windGustKt: 26,
+    rain1hMm: 18.0,
+    rainRateMmh: 32.0,
+    capeJkg: 2750,
+    status: 'NOMINAL'
+  },
+  {
+    id: 'AWS-NMP',
+    code: '42979',
+    name: 'Nimapada Hydrological AWS',
+    lat: 20.0800,
+    lon: 86.0200,
+    elevationM: 18.0,
+    tempC: 25.2,
+    dewPointC: 23.6,
+    humidityPct: 91,
+    pressureHpa: 1001.8,
+    tendency3h: -2.8,
+    windDirDeg: 185,
+    windSpeedKt: 19,
+    windGustKt: 32,
+    rain1hMm: 38.5,
+    rainRateMmh: 42.0,
+    capeJkg: 2950,
+    status: 'WARNING'
+  },
+  {
+    id: 'AWS-CHK',
+    code: '43051',
+    name: 'Chilika Lagoon North Observatory',
+    lat: 19.9800,
+    lon: 85.5200,
+    elevationM: 12.0,
+    tempC: 28.0,
+    dewPointC: 25.4,
+    humidityPct: 85,
+    pressureHpa: 1004.2,
+    tendency3h: -1.5,
+    windDirDeg: 170,
+    windSpeedKt: 15,
+    windGustKt: 22,
+    rain1hMm: 8.0,
+    rainRateMmh: 16.0,
+    capeJkg: 2600,
+    status: 'NOMINAL'
+  }
 ];
 
 // Coastline and geography coordinates (Odisha)
@@ -144,40 +561,35 @@ const RIVER_DAYA: [number, number][] = [
   [20.30, 85.85], [20.25, 85.84], [20.18, 85.82], [20.10, 85.81], [20.00, 85.78]
 ];
 
-// ============================================================================
-// 2. DISCRETE WMO / NWS NEXRAD SCIENTIFIC COLOR PALETTES
-// ============================================================================
-
-/** Standard 16-level WMO/NEXRAD Reflectivity Color Scale (dBZ) */
+// WMO/NEXRAD Color palette
 export const DBZ_PALETTE: Array<{ min: number; max: number; label: string; hex: string; rgb: [number, number, number] }> = [
-  { min: 5,  max: 10, label: '5-10',   hex: '#00ecec', rgb: [0, 236, 236] },     // Light Cyan
-  { min: 10, max: 15, label: '10-15',  hex: '#01a0f6', rgb: [1, 160, 246] },     // Cerulean Blue
-  { min: 15, max: 20, label: '15-20',  hex: '#0000f6', rgb: [0, 0, 246] },       // Pure Blue
-  { min: 20, max: 25, label: '20-25',  hex: '#00ff00', rgb: [0, 255, 0] },       // Bright Green
-  { min: 25, max: 30, label: '25-30',  hex: '#00c800', rgb: [0, 200, 0] },       // Medium Green
-  { min: 30, max: 35, label: '30-35',  hex: '#009000', rgb: [0, 144, 0] },       // Dark Green
-  { min: 35, max: 40, label: '35-40',  hex: '#ffff00', rgb: [255, 255, 0] },     // Pure Yellow
-  { min: 40, max: 45, label: '40-45',  hex: '#e7c000', rgb: [231, 192, 0] },     // Gold Amber
-  { min: 45, max: 50, label: '45-50',  hex: '#ff9000', rgb: [255, 144, 0] },     // Convective Orange
-  { min: 50, max: 55, label: '50-55',  hex: '#ff0000', rgb: [255, 0, 0] },       // Severe Red
-  { min: 55, max: 60, label: '55-60',  hex: '#d60000', rgb: [214, 0, 0] },       // Heavy Core Red
-  { min: 60, max: 65, label: '60-65',  hex: '#c00000', rgb: [192, 0, 0] },       // Deep Crimson
-  { min: 65, max: 70, label: '65-70',  hex: '#ff00ff', rgb: [255, 0, 255] },     // Hail Core Magenta
-  { min: 70, max: 75, label: '70-75',  hex: '#9955c9', rgb: [153, 85, 201] },     // Giant Hail Purple
-  { min: 75, max: 99, label: '75+',    hex: '#ffffff', rgb: [255, 255, 255] },   // Collapse Core White
+  { min: 5,  max: 10, label: '5-10',   hex: '#00ecec', rgb: [0, 236, 236] },
+  { min: 10, max: 15, label: '10-15',  hex: '#01a0f6', rgb: [1, 160, 246] },
+  { min: 15, max: 20, label: '15-20',  hex: '#0000f6', rgb: [0, 0, 246] },
+  { min: 20, max: 25, label: '20-25',  hex: '#00ff00', rgb: [0, 255, 0] },
+  { min: 25, max: 30, label: '25-30',  hex: '#00c800', rgb: [0, 200, 0] },
+  { min: 30, max: 35, label: '30-35',  hex: '#009000', rgb: [0, 144, 0] },
+  { min: 35, max: 40, label: '35-40',  hex: '#ffff00', rgb: [255, 255, 0] },
+  { min: 40, max: 45, label: '40-45',  hex: '#e7c000', rgb: [231, 192, 0] },
+  { min: 45, max: 50, label: '45-50',  hex: '#ff9000', rgb: [255, 144, 0] },
+  { min: 50, max: 55, label: '50-55',  hex: '#ff0000', rgb: [255, 0, 0] },
+  { min: 55, max: 60, label: '55-60',  hex: '#d60000', rgb: [214, 0, 0] },
+  { min: 60, max: 65, label: '60-65',  hex: '#c00000', rgb: [192, 0, 0] },
+  { min: 65, max: 70, label: '65-70',  hex: '#ff00ff', rgb: [255, 0, 255] },
+  { min: 70, max: 75, label: '70-75',  hex: '#9955c9', rgb: [153, 85, 201] },
+  { min: 75, max: 99, label: '75+',    hex: '#ffffff', rgb: [255, 255, 255] },
 ];
 
-/** Standard Doppler Radial Velocity Palette (m/s) — Inbound (Green) vs Outbound (Red) */
 export const VELOCITY_PALETTE: Array<{ min: number; max: number; label: string; hex: string; rgb: [number, number, number] }> = [
-  { min: -40, max: -30, label: '-35', hex: '#004d40', rgb: [0, 77, 64] },      // Deep Inbound Teal
-  { min: -30, max: -20, label: '-25', hex: '#00897b', rgb: [0, 137, 123] },    // Inbound Dark Green
-  { min: -20, max: -10, label: '-15', hex: '#26a69a', rgb: [38, 166, 154] },   // Inbound Green
-  { min: -10, max: -3,  label: '-5',  hex: '#80cbc4', rgb: [128, 203, 196] },   // Weak Inbound
-  { min: -3,  max: 3,   label: '0',   hex: '#64748b', rgb: [100, 116, 139] },   // Zero Isodop (Gray)
-  { min: 3,   max: 10,  label: '+5',  hex: '#fde047', rgb: [253, 224, 71] },    // Weak Outbound Yellow
-  { min: 10,  max: 20,  label: '+15', hex: '#fb923c', rgb: [251, 146, 60] },    // Outbound Orange
-  { min: 20,  max: 30,  label: '+25', hex: '#ef4444', rgb: [239, 68, 68] },     // Outbound Red
-  { min: 30,  max: 50,  label: '+35', hex: '#991b1b', rgb: [153, 27, 27] },     // Severe Outbound Crimson
+  { min: -40, max: -30, label: '-35', hex: '#004d40', rgb: [0, 77, 64] },
+  { min: -30, max: -20, label: '-25', hex: '#00897b', rgb: [0, 137, 123] },
+  { min: -20, max: -10, label: '-15', hex: '#26a69a', rgb: [38, 166, 154] },
+  { min: -10, max: -3,  label: '-5',  hex: '#80cbc4', rgb: [128, 203, 196] },
+  { min: -3,  max: 3,   label: '0',   hex: '#64748b', rgb: [100, 116, 139] },
+  { min: 3,   max: 10,  label: '+5',  hex: '#fde047', rgb: [253, 224, 71] },
+  { min: 10,  max: 20,  label: '+15', hex: '#fb923c', rgb: [251, 146, 60] },
+  { min: 20,  max: 30,  label: '+25', hex: '#ef4444', rgb: [239, 68, 68] },
+  { min: 30,  max: 50,  label: '+35', hex: '#991b1b', rgb: [153, 27, 27] },
 ];
 
 export function getDbzColorRgb(dbz: number): [number, number, number] | null {
@@ -195,9 +607,6 @@ export function getVelocityColorRgb(v: number): [number, number, number] {
   return v < -40 ? [0, 77, 64] : [153, 27, 27];
 }
 
-// ============================================================================
-// 3. SCIENTIFIC STORM TRACKING TELEMETRY (SCIT DATASETS)
-// ============================================================================
 export const ACTIVE_CELLS: StormCellTrack[] = [
   {
     id: 'CELL-01',
@@ -215,7 +624,7 @@ export const ACTIVE_CELLS: StormCellTrack[] = [
     poh: 92,
     meshMm: 48,
     rainRateMmh: 174.5,
-    shearDeltaV: 48.0, // 48 m/s delta across 2.5 km -> EXTREME MICROBURST
+    shearDeltaV: 48.0,
     lightningFlashRate: 34,
     etaRunwayMin: 2,
     severity: 'CRITICAL',
@@ -265,14 +674,15 @@ export const ACTIVE_CELLS: StormCellTrack[] = [
 ];
 
 // ============================================================================
-// 4. MAIN SCIENTIFIC DWR WORKSTATION COMPONENT
+// 4. MAIN WORKSTATION COMPONENT
 // ============================================================================
 export default function HazardDashboard() {
   const [product, setProduct] = useState<RadarProduct>('reflectivity');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('polar_scope');
   const [activeCellId, setActiveCellId] = useState<string>('CELL-01');
   const [selectedSectorId, setSelectedSectorId] = useState<string>('SEC-C');
-  const [modelEngine, setModelEngine] = useState<ModelEngine>('convectnet');
+  const [selectedAwsId, setSelectedAwsId] = useState<string>('AWS-VEBS');
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('grid3x3');
   const [leadTimeMin, setLeadTimeMin] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [showRhiDrawer, setShowRhiDrawer] = useState<boolean>(false);
@@ -282,6 +692,8 @@ export default function HazardDashboard() {
   const [elevationDeg, setElevationDeg] = useState<number>(0.5);
   
   // Tactical Overlays Toggle State
+  const [show3x3Grid, setShow3x3Grid] = useState<boolean>(true);
+  const [showAwsStations, setShowAwsStations] = useState<boolean>(true);
   const [showAirways, setShowAirways] = useState<boolean>(true);
   const [showRangeRings, setShowRangeRings] = useState<boolean>(true);
   const [showSweepBeam, setShowSweepBeam] = useState<boolean>(true);
@@ -294,6 +706,7 @@ export default function HazardDashboard() {
     rangeKm: number;
     heightMslM: number;
     valStr: string;
+    sectorTag: string;
     lat: number;
     lon: number;
   } | null>(null);
@@ -313,9 +726,10 @@ export default function HazardDashboard() {
   }, [isPlaying]);
 
   const activeCell = ACTIVE_CELLS.find(c => c.id === activeCellId) || ACTIVE_CELLS[0];
-  const activeSector = TACTICAL_SECTORS.find(s => s.id === selectedSectorId) || TACTICAL_SECTORS[4];
+  const activeSector = TACTICAL_3X3_GRID.find(s => s.id === selectedSectorId) || TACTICAL_3X3_GRID[4];
+  const activeAws = SURROUNDING_AWS_STATIONS.find(a => a.id === selectedAwsId) || SURROUNDING_AWS_STATIONS[0];
 
-  // METAR & Time Clock string
+  // Clocks
   const [currentTimeUtc, setCurrentTimeUtc] = useState<string>('');
   const [currentTimeIst, setCurrentTimeIst] = useState<string>('');
 
@@ -330,15 +744,32 @@ export default function HazardDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Format Official WMO Aviation SPECI
   const speciMetar = useMemo(() => {
     const gustKt = Math.round(activeCell.shearDeltaV * 1.94);
     const rainFlag = activeCell.rainRateMmh > 100 ? '+TSRA SQ' : 'TSRA';
     return `SPECI VEBS 261250Z 22026G${gustKt}KT 180V250 1200 ${rainFlag} FEW008 BKN018CB OVC070 23/22 Q0999 WS RWY01 RERA RMK SEVERE MICROBURST ALOFT MOV NE`;
   }, [activeCell]);
 
+  // Coordinate converter: Range & Azimuth -> Canvas Pixel
+  const polarToPixel = useCallback((rangeKm: number, azimuthDeg: number, cx: number, cy: number, maxRadiusPx: number): [number, number] => {
+    const rad = ((azimuthDeg - 90) * Math.PI) / 180;
+    const distPx = (rangeKm / radarRangeKm) * maxRadiusPx;
+    return [cx + Math.cos(rad) * distPx, cy + Math.sin(rad) * distPx];
+  }, [radarRangeKm]);
+
+  // Latitude/Longitude to Canvas Pixel
+  const latLonToPixel = useCallback((lat: number, lon: number, cx: number, cy: number, maxRadiusPx: number): [number, number] => {
+    const dLat = (lat - RADAR_STATION.lat) * 111.0;
+    const dLon = (lon - RADAR_STATION.lon) * 111.0 * Math.cos((RADAR_STATION.lat * Math.PI) / 180);
+    const distKm = Math.sqrt(dLat * dLat + dLon * dLon);
+    const azRad = Math.atan2(dLon, dLat);
+    const azDeg = (azRad * 180) / Math.PI;
+    const normAz = (azDeg + 360) % 360;
+    return polarToPixel(distKm, normAz, cx, cy, maxRadiusPx);
+  }, [polarToPixel]);
+
   // ============================================================================
-  // 5. HIGH-DENSITY RADAR POLAR SWEEP ENGINE (AUTHENTIC SECTOR GATES)
+  // 5. RADAR POLAR ENGINE (RAYS + 3x3 GRID + AWS OBSERVATIONS)
   // ============================================================================
   useEffect(() => {
     if (displayMode === 'gis_basemap') return;
@@ -362,25 +793,6 @@ export default function HazardDashboard() {
       const cy = h / 2;
       const maxRadiusPx = Math.min(cx, cy) * 0.94;
 
-      // Coordinate converter: Range & Azimuth -> Canvas Pixel
-      const polarToPixel = (rangeKm: number, azimuthDeg: number): [number, number] => {
-        const rad = ((azimuthDeg - 90) * Math.PI) / 180;
-        const distPx = (rangeKm / radarRangeKm) * maxRadiusPx;
-        return [cx + Math.cos(rad) * distPx, cy + Math.sin(rad) * distPx];
-      };
-
-      // Latitude/Longitude to Canvas Pixel
-      const latLonToPixel = (lat: number, lon: number): [number, number] => {
-        // Approximate local equirectangular around radar station
-        const dLat = (lat - RADAR_STATION.lat) * 111.0;
-        const dLon = (lon - RADAR_STATION.lon) * 111.0 * Math.cos((RADAR_STATION.lat * Math.PI) / 180);
-        const distKm = Math.sqrt(dLat * dLat + dLon * dLon);
-        const azRad = Math.atan2(dLon, dLat); // 0 = North, pi/2 = East
-        const azDeg = (azRad * 180) / Math.PI;
-        const normAz = (azDeg + 360) % 360;
-        return polarToPixel(distKm, normAz);
-      };
-
       // 1. CRT Tactical Phosphor Backdrop
       ctx.fillStyle = '#07090e';
       ctx.fillRect(0, 0, w, h);
@@ -391,59 +803,49 @@ export default function HazardDashboard() {
       ctx.arc(cx, cy, maxRadiusPx, 0, Math.PI * 2);
       ctx.clip();
 
-      // Deep Phosphor Scope Fill
+      // Scope Fill
       ctx.fillStyle = '#0b0f17';
       ctx.fillRect(0, 0, w, h);
 
-      // 2. Coastline & Hydrography Vectors (Tactical Sea-Land Boundaries)
+      // 2. Coastline & Hydrography Vectors
       if (showCoastline) {
         ctx.save();
         ctx.strokeStyle = '#1e3a5f';
         ctx.lineWidth = 1.6;
-        // Coastline
         ctx.beginPath();
         SHORELINE_ODISHA.forEach((pt, idx) => {
-          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          const [px, py] = latLonToPixel(pt[0], pt[1], cx, cy, maxRadiusPx);
           if (idx === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
 
-        // River Mahanadi
         ctx.strokeStyle = '#172554';
         ctx.lineWidth = 2.0;
         ctx.beginPath();
         RIVER_MAHANADI.forEach((pt, idx) => {
-          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          const [px, py] = latLonToPixel(pt[0], pt[1], cx, cy, maxRadiusPx);
           if (idx === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
 
-        // River Daya (Direct airport outflow)
         ctx.strokeStyle = '#1e293b';
         ctx.beginPath();
         RIVER_DAYA.forEach((pt, idx) => {
-          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          const [px, py] = latLonToPixel(pt[0], pt[1], cx, cy, maxRadiusPx);
           if (idx === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
-
-        // Land label
-        const [coastLblX, coastLblY] = latLonToPixel(19.98, 86.10);
-        ctx.fillStyle = '#1e293b';
-        ctx.font = '10px monospace';
-        ctx.fillText('BAY OF BENGAL (LITTORAL)', coastLblX, coastLblY);
         ctx.restore();
       }
 
-      // 3. Realistic Polar Radar Gates (Simulated Doppler Sweep with Real Speckle)
-      const numRays = 360; // 1° Azimuth Resolution
-      const numGates = 120; // Range Gates along beam
+      // 3. Discrete Polar Radar Gates (Echo Precipitation)
+      const numRays = 360;
+      const numGates = 120;
       const gateSizeKm = radarRangeKm / numGates;
 
-      // Seeded convective storm cores for realistic texture
       const stormCores = ACTIVE_CELLS.map(cell => ({
         az: cell.azimuthDeg,
         rng: cell.rangeKm,
@@ -453,7 +855,6 @@ export default function HazardDashboard() {
         spreadRng: cell.id === 'CELL-01' ? 7.5 : 5.0,
       }));
 
-      // Render Ray by Ray
       for (let r = 0; r < numRays; r += 1) {
         const rayAngleDeg = r;
         const rad1 = ((rayAngleDeg - 90 - 0.5) * Math.PI) / 180;
@@ -461,40 +862,32 @@ export default function HazardDashboard() {
 
         for (let g = 3; g < numGates; g += 1) {
           const gateRngKm = g * gateSizeKm;
-          
-          // Calculate realistic reflectivity from active storm cells + organic turbulence
           let cellSignal = 0;
           let velocitySignal = 0;
 
           stormCores.forEach(core => {
-            // Delta Azimuth
             let dAz = Math.abs(rayAngleDeg - core.az);
             if (dAz > 180) dAz = 360 - dAz;
             const dRng = Math.abs(gateRngKm - core.rng);
 
             if (dAz < core.spreadAz * 1.5 && dRng < core.spreadRng * 1.8) {
-              // Gaussian core shape + organic cellular noise
               const azFactor = Math.exp(-Math.pow(dAz / core.spreadAz, 2));
               const rngFactor = Math.exp(-Math.pow(dRng / core.spreadRng, 2));
               const noise = Math.sin(rayAngleDeg * 12.0) * Math.cos(gateRngKm * 4.0) * 4.0;
               const val = core.dbz * azFactor * rngFactor + noise;
               if (val > cellSignal) cellSignal = val;
 
-              // Radial Velocity: Inbound / Outbound Couplet
-              // Heading 45 deg means divergent signature across core
               const vShear = (dAz / core.spreadAz) * (rayAngleDeg > core.az ? 1 : -1) * core.v_shear;
               velocitySignal = vShear + (Math.random() - 0.5) * 3.0;
             }
           });
 
-          // Draw gate segment if signal is above detection threshold
           if (product === 'reflectivity' && cellSignal >= 10) {
             const rgb = getDbzColorRgb(cellSignal);
             if (rgb) {
               ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
               const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
               const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
-
               ctx.beginPath();
               ctx.arc(cx, cy, r2, rad1, rad2, false);
               ctx.arc(cx, cy, r1, rad2, rad1, true);
@@ -506,19 +899,15 @@ export default function HazardDashboard() {
             ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
             const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
             const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
-
             ctx.beginPath();
             ctx.arc(cx, cy, r2, rad1, rad2, false);
             ctx.arc(cx, cy, r1, rad2, rad1, true);
             ctx.closePath();
             ctx.fill();
           } else if (product === 'vil' && cellSignal >= 20) {
-            // VIL approximation from reflectivity
-            const vilVal = Math.pow(cellSignal / 50.0, 3) * 38;
             ctx.fillStyle = cellSignal > 55 ? '#ff00ff' : cellSignal > 45 ? '#ff0000' : '#ffff00';
             const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
             const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
-
             ctx.beginPath();
             ctx.arc(cx, cy, r2, rad1, rad2, false);
             ctx.arc(cx, cy, r1, rad2, rad1, true);
@@ -528,26 +917,116 @@ export default function HazardDashboard() {
         }
       }
 
-      // 4. Tactical Airways & Runway Vector
+      // 4. THE 3x3 TACTICAL GRID OVERLAY (AOI PROJECTION)
+      if (show3x3Grid) {
+        ctx.save();
+        TACTICAL_3X3_GRID.forEach(sector => {
+          const isSelected = sector.id === selectedSectorId;
+
+          // 4 corner coordinates in pixels
+          const [nwX, nwY] = latLonToPixel(sector.latMax, sector.lonMin, cx, cy, maxRadiusPx);
+          const [neX, neY] = latLonToPixel(sector.latMax, sector.lonMax, cx, cy, maxRadiusPx);
+          const [seX, seY] = latLonToPixel(sector.latMin, sector.lonMax, cx, cy, maxRadiusPx);
+          const [swX, swY] = latLonToPixel(sector.latMin, sector.lonMin, cx, cy, maxRadiusPx);
+
+          // Sector Polygon
+          ctx.beginPath();
+          ctx.moveTo(nwX, nwY);
+          ctx.lineTo(neX, neY);
+          ctx.lineTo(seX, seY);
+          ctx.lineTo(swX, swY);
+          ctx.closePath();
+
+          if (isSelected) {
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+            ctx.fill();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2.0;
+            ctx.setLineDash([]);
+          } else {
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+            ctx.lineWidth = 1.0;
+            ctx.setLineDash([3, 4]);
+          }
+          ctx.stroke();
+
+          // Sector Center Label Tag
+          const [centX, centY] = latLonToPixel(sector.center[0], sector.center[1], cx, cy, maxRadiusPx);
+          
+          ctx.setLineDash([]);
+          ctx.fillStyle = isSelected ? '#0a101d' : 'rgba(10, 15, 26, 0.85)';
+          ctx.strokeStyle = isSelected ? '#38bdf8' : 'rgba(71, 85, 105, 0.6)';
+          ctx.lineWidth = 1;
+          const boxW = 84;
+          const boxH = 26;
+          ctx.fillRect(centX - boxW / 2, centY - boxH / 2, boxW, boxH);
+          ctx.strokeRect(centX - boxW / 2, centY - boxH / 2, boxW, boxH);
+
+          ctx.textAlign = 'center';
+          ctx.fillStyle = isSelected ? '#38bdf8' : '#94a3b8';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText(`${sector.id} [${sector.code}]`, centX, centY - 2);
+
+          ctx.fillStyle = sector.radarDbz >= 55 ? '#f43f5e' : sector.radarDbz >= 40 ? '#eab308' : '#e2e8f0';
+          ctx.font = 'bold 10px monospace';
+          ctx.fillText(`${sector.radarDbz} dBZ • ${sector.rainRateMmh.toFixed(0)} mm/h`, centX, centY + 9);
+        });
+        ctx.restore();
+      }
+
+      // 5. IN-SITU SURFACE AUTOMATIC WEATHER STATIONS (AWS)
+      if (showAwsStations) {
+        ctx.save();
+        SURROUNDING_AWS_STATIONS.forEach(aws => {
+          const [ax, ay] = latLonToPixel(aws.lat, aws.lon, cx, cy, maxRadiusPx);
+          const isSelected = aws.id === selectedAwsId;
+
+          // Diamond Marker ◈
+          ctx.save();
+          ctx.translate(ax, ay);
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = aws.status === 'SEVERE_ALERT' ? '#ef4444' : aws.status === 'WARNING' ? '#f59e0b' : '#38bdf8';
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          const dSize = isSelected ? 8 : 5.5;
+          ctx.fillRect(-dSize / 2, -dSize / 2, dSize, dSize);
+          ctx.strokeRect(-dSize / 2, -dSize / 2, dSize, dSize);
+          ctx.restore();
+
+          // Station Identification Tag
+          ctx.fillStyle = isSelected ? '#1e293b' : 'rgba(15, 23, 42, 0.85)';
+          ctx.strokeStyle = isSelected ? '#38bdf8' : '#475569';
+          ctx.lineWidth = 1;
+          const tagW = 78;
+          const tagH = 18;
+          ctx.fillRect(ax + 8, ay - 9, tagW, tagH);
+          ctx.strokeRect(ax + 8, ay - 9, tagW, tagH);
+
+          ctx.textAlign = 'left';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 8px monospace';
+          ctx.fillText(aws.id, ax + 11, ay + 3);
+        });
+        ctx.restore();
+      }
+
+      // 6. Tactical Airways & Runway Vector
       if (showAirways) {
         ctx.save();
-        // Runway 01/19 extended centerline
-        const [rwy01X, rwy01Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy01.thr[0], AIRPORT_RUNWAYS.rwy01.thr[1]);
-        const [rwy19X, rwy19Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy19.thr[0], AIRPORT_RUNWAYS.rwy19.thr[1]);
+        const [rwy01X, rwy01Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy01.thr[0], AIRPORT_RUNWAYS.rwy01.thr[1], cx, cy, maxRadiusPx);
+        const [rwy19X, rwy19Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy19.thr[0], AIRPORT_RUNWAYS.rwy19.thr[1], cx, cy, maxRadiusPx);
         
-        // Extended Final Approach Cone (Glide Path 3° ILS)
         ctx.strokeStyle = activeCell.etaRunwayMin <= 5 ? '#ef4444' : '#f59e0b';
         ctx.lineWidth = 2.0;
         ctx.setLineDash([5, 5]);
         ctx.beginPath();
         AIRPORT_RUNWAYS.ilsCorridor.forEach((pt, idx) => {
-          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          const [px, py] = latLonToPixel(pt[0], pt[1], cx, cy, maxRadiusPx);
           if (idx === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
 
-        // Physical Runway Line
         ctx.setLineDash([]);
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3.5;
@@ -556,56 +1035,47 @@ export default function HazardDashboard() {
         ctx.lineTo(rwy19X, rwy19Y);
         ctx.stroke();
 
-        // Runway Threshold Text Tags
         ctx.fillStyle = '#fef08a';
         ctx.font = 'bold 9px monospace';
         ctx.fillText('RWY 01', rwy01X - 20, rwy01Y + 12);
         ctx.fillText('RWY 19', rwy19X - 20, rwy19Y - 8);
 
-        // Airport Centroid Dot
-        const [aptX, aptY] = latLonToPixel(RADAR_STATION.lat, RADAR_STATION.lon);
+        const [aptX, aptY] = latLonToPixel(RADAR_STATION.lat, RADAR_STATION.lon, cx, cy, maxRadiusPx);
         ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
         ctx.arc(aptX, aptY, 4, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.restore();
       }
 
-      // 5. Storm Cell Tracking Vectors & Centroid Brackets (SCIT Algorithm)
+      // 7. Storm Cell Vectors & Centroid Brackets (SCIT)
       if (showCellVectors) {
         ctx.save();
         ACTIVE_CELLS.forEach(cell => {
-          const [cellX, cellY] = polarToPixel(cell.rangeKm, cell.azimuthDeg);
+          const [cellX, cellY] = polarToPixel(cell.rangeKm, cell.azimuthDeg, cx, cy, maxRadiusPx);
           const isSelected = cell.id === activeCellId;
 
-          // Cell Target Bracket
           ctx.strokeStyle = isSelected ? '#38bdf8' : '#ef4444';
           ctx.lineWidth = isSelected ? 2.5 : 1.5;
           const bSize = isSelected ? 12 : 8;
 
           ctx.beginPath();
-          // Top-left
           ctx.moveTo(cellX - bSize, cellY - bSize / 2);
           ctx.lineTo(cellX - bSize, cellY - bSize);
           ctx.lineTo(cellX - bSize / 2, cellY - bSize);
-          // Top-right
           ctx.moveTo(cellX + bSize / 2, cellY - bSize);
           ctx.lineTo(cellX + bSize, cellY - bSize);
           ctx.lineTo(cellX + bSize, cellY - bSize / 2);
-          // Bottom-left
           ctx.moveTo(cellX - bSize, cellY + bSize / 2);
           ctx.lineTo(cellX - bSize, cellY + bSize);
           ctx.lineTo(cellX - bSize / 2, cellY + bSize);
-          // Bottom-right
           ctx.moveTo(cellX + bSize / 2, cellY + bSize);
           ctx.lineTo(cellX + bSize, cellY + bSize);
           ctx.lineTo(cellX + bSize, cellY + bSize / 2);
           ctx.stroke();
 
-          // Motion Vector Arrow (Direction & Speed)
           const motionRad = ((cell.directionDeg - 90) * Math.PI) / 180;
-          const vectorLen = (cell.speedKmh / 60) * (maxRadiusPx / radarRangeKm) * 15; // 15 min projected distance
+          const vectorLen = (cell.speedKmh / 60) * (maxRadiusPx / radarRangeKm) * 15;
           ctx.strokeStyle = isSelected ? '#38bdf8' : '#cbd5e1';
           ctx.lineWidth = 2.0;
           ctx.setLineDash([3, 3]);
@@ -614,35 +1084,17 @@ export default function HazardDashboard() {
           ctx.lineTo(cellX + Math.cos(motionRad) * vectorLen, cellY + Math.sin(motionRad) * vectorLen);
           ctx.stroke();
           ctx.setLineDash([]);
-
-          // Cell Identification Box
-          ctx.fillStyle = '#0a0f1d';
-          ctx.strokeStyle = isSelected ? '#38bdf8' : '#475569';
-          ctx.lineWidth = 1;
-          const boxW = 76;
-          const boxH = 26;
-          ctx.fillRect(cellX + 14, cellY - 13, boxW, boxH);
-          ctx.strokeRect(cellX + 14, cellY - 13, boxW, boxH);
-
-          ctx.fillStyle = isSelected ? '#38bdf8' : '#e2e8f0';
-          ctx.font = 'bold 9px monospace';
-          ctx.fillText(cell.id, cellX + 18, cellY - 2);
-
-          ctx.fillStyle = cell.maxDbz >= 60 ? '#f43f5e' : '#fbbf24';
-          ctx.font = 'bold 10px monospace';
-          ctx.fillText(`${cell.maxDbz} dBZ`, cellX + 18, cellY + 9);
         });
         ctx.restore();
       }
 
-      // 6. Tactical Azimuth Spokes & Range Rings (Scientific Scope Overlays)
+      // 8. Range Rings & Azimuth Spokes
       if (showRangeRings) {
         ctx.save();
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
         ctx.lineWidth = 1;
         ctx.setLineDash([2, 4]);
 
-        // Range Rings (every 20 km)
         const ringStepKm = radarRangeKm > 100 ? 50 : 20;
         for (let rKm = ringStepKm; rKm <= radarRangeKm; rKm += ringStepKm) {
           const rPx = (rKm / radarRangeKm) * maxRadiusPx;
@@ -650,14 +1102,12 @@ export default function HazardDashboard() {
           ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
           ctx.stroke();
 
-          // Distance Tag at 045° Azimuth
-          const [tagX, tagY] = polarToPixel(rKm, 45);
+          const [tagX, tagY] = polarToPixel(rKm, 45, cx, cy, maxRadiusPx);
           ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
           ctx.font = '9px monospace';
           ctx.fillText(`${rKm} KM`, tagX + 3, tagY - 2);
         }
 
-        // Azimuth Crosshair Rays (000°, 090°, 180°, 270°)
         [0, 90, 180, 270].forEach(deg => {
           const rad = ((deg - 90) * Math.PI) / 180;
           ctx.beginPath();
@@ -665,10 +1115,8 @@ export default function HazardDashboard() {
           ctx.lineTo(cx + Math.cos(rad) * maxRadiusPx, cy + Math.sin(rad) * maxRadiusPx);
           ctx.stroke();
 
-          // Degree label
-          const labelRad = ((deg - 90) * Math.PI) / 180;
-          const lx = cx + Math.cos(labelRad) * (maxRadiusPx - 14);
-          const ly = cy + Math.sin(labelRad) * (maxRadiusPx - 14);
+          const lx = cx + Math.cos(rad) * (maxRadiusPx - 14);
+          const ly = cy + Math.sin(rad) * (maxRadiusPx - 14);
           ctx.fillStyle = '#64748b';
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'center';
@@ -677,11 +1125,11 @@ export default function HazardDashboard() {
         ctx.restore();
       }
 
-      // 7. Rotating Radar Antenna Sweep Beam (Realistic Phosphor Glow Trail)
+      // 9. Rotating Radar Antenna Sweep Beam
       if (showSweepBeam) {
         sweepAngleRef.current = (sweepAngleRef.current + 0.05) % (Math.PI * 2);
         const sweepRad = sweepAngleRef.current;
-        const trailSpan = Math.PI / 6; // 30 deg phosphor tail
+        const trailSpan = Math.PI / 6;
 
         ctx.save();
         const beamGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxRadiusPx);
@@ -696,7 +1144,6 @@ export default function HazardDashboard() {
         ctx.closePath();
         ctx.fill();
 
-        // Leading Sharp Sweep Line
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -706,9 +1153,9 @@ export default function HazardDashboard() {
         ctx.restore();
       }
 
-      ctx.restore(); // Restore outer circle clip
+      ctx.restore();
 
-      // Outer Bezel Ring & Bearing Compass Ticks
+      // Outer Bezel Ring
       ctx.save();
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 2.5;
@@ -716,7 +1163,6 @@ export default function HazardDashboard() {
       ctx.arc(cx, cy, maxRadiusPx, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Degree Ticks around the Scope Rim
       for (let d = 0; d < 360; d += 10) {
         const rad = ((d - 90) * Math.PI) / 180;
         const isMajor = d % 30 === 0;
@@ -745,15 +1191,21 @@ export default function HazardDashboard() {
     displayMode, 
     product, 
     radarRangeKm, 
+    show3x3Grid,
+    showAwsStations,
     showAirways, 
     showRangeRings, 
     showSweepBeam, 
     showCellVectors, 
     showCoastline, 
-    activeCellId
+    activeCellId,
+    selectedSectorId,
+    selectedAwsId,
+    latLonToPixel,
+    polarToPixel
   ]);
 
-  // Handle Canvas Mouse Move to Update Polar HUD
+  // Handle Canvas Mouse Move to Update Polar HUD and detect Sector
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -775,19 +1227,23 @@ export default function HazardDashboard() {
     }
 
     const rangeKm = (distPx / maxRadiusPx) * radarRangeKm;
-    let azRad = Math.atan2(dy, dx); // -pi to +pi
+    let azRad = Math.atan2(dy, dx);
     let azDeg = (azRad * 180) / Math.PI + 90;
     if (azDeg < 0) azDeg += 360;
 
-    // Approximate Height of Radar Beam AGL: h = r * sin(theta) + r^2 / (2 * k_e * a)
     const elevRad = (elevationDeg * Math.PI) / 180;
     const heightM = rangeKm * 1000 * Math.sin(elevRad) + Math.pow(rangeKm * 1000, 2) / (2 * 1.33 * 6371000);
 
-    // Approximate Lat / Lon
     const dLat = (rangeKm * Math.cos((azDeg * Math.PI) / 180)) / 111.0;
     const dLon = (rangeKm * Math.sin((azDeg * Math.PI) / 180)) / (111.0 * Math.cos((RADAR_STATION.lat * Math.PI) / 180));
+    const targetLat = RADAR_STATION.lat + dLat;
+    const targetLon = RADAR_STATION.lon + dLon;
 
-    // Value lookup
+    // Detect which sector cursor is inside
+    const inSector = TACTICAL_3X3_GRID.find(
+      s => targetLat >= s.latMin && targetLat <= s.latMax && targetLon >= s.lonMin && targetLon <= s.lonMax
+    );
+
     let valStr = '-- dBZ';
     const nearCell = ACTIVE_CELLS.find(c => Math.abs(c.azimuthDeg - azDeg) < 15 && Math.abs(c.rangeKm - rangeKm) < 8);
     if (nearCell) {
@@ -799,12 +1255,33 @@ export default function HazardDashboard() {
       rangeKm,
       heightMslM: heightM,
       valStr,
-      lat: RADAR_STATION.lat + dLat,
-      lon: RADAR_STATION.lon + dLon
+      sectorTag: inSector ? `${inSector.id} (${inSector.code})` : 'OUTSIDE 3X3 AOI',
+      lat: targetLat,
+      lon: targetLon
     });
   };
 
-  // Resize canvas according to container
+  // Handle Canvas Click to Select Sector or AWS Station
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!cursorHud) return;
+    const clickedSector = TACTICAL_3X3_GRID.find(
+      s => cursorHud.lat >= s.latMin && cursorHud.lat <= s.latMax && cursorHud.lon >= s.lonMin && cursorHud.lon <= s.lonMax
+    );
+    if (clickedSector) {
+      setSelectedSectorId(clickedSector.id);
+      setSidebarTab('grid3x3');
+    }
+
+    // Check near AWS station
+    const clickedAws = SURROUNDING_AWS_STATIONS.find(
+      a => Math.abs(a.lat - cursorHud.lat) < 0.05 && Math.abs(a.lon - cursorHud.lon) < 0.05
+    );
+    if (clickedAws) {
+      setSelectedAwsId(clickedAws.id);
+      setSidebarTab('aws_network');
+    }
+  };
+
   useEffect(() => {
     const updateSize = () => {
       const canvas = canvasRef.current;
@@ -822,7 +1299,7 @@ export default function HazardDashboard() {
     <div className="relative w-full h-[calc(100vh-72px)] bg-[#07090e] text-[#e2e8f0] flex flex-col overflow-hidden font-sans select-none">
       
       {/* ================================================================== */}
-      {/* 1. OFFICIAL IMD DWR STATION CONSOLE HEADER                         */}
+      {/* 1. DWR STATION CONSOLE & OBSERVATION HEADER                         */}
       {/* ================================================================== */}
       <div className="h-16 border-b border-[#1e2533] bg-[#0c1017] px-4 flex items-center justify-between shrink-0 z-30">
         
@@ -839,6 +1316,9 @@ export default function HazardDashboard() {
               <span className="text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded">
                 OPERATIONAL
               </span>
+              <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 border border-sky-500/30 px-1.5 py-0.2 rounded">
+                3x3 TACTICAL AOI ACTIVE
+              </span>
             </div>
             <p className="text-[10px] font-mono text-[#94a3b8]">
               {RADAR_STATION.band} • {RADAR_STATION.frequencyGhz} GHz • {RADAR_STATION.prfHz} • ELEV: {elevationDeg}°
@@ -846,7 +1326,7 @@ export default function HazardDashboard() {
           </div>
         </div>
 
-        {/* Center: Live Decoded METAR / SPECI Ticker */}
+        {/* Center: Live Decoded Aviation SPECI Ticker */}
         <div className="hidden xl:flex items-center space-x-2 bg-[#080b11] border border-[#222b3b] px-3 py-1.5 rounded-lg max-w-xl">
           <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 animate-pulse" />
           <div className="overflow-hidden">
@@ -856,7 +1336,7 @@ export default function HazardDashboard() {
           </div>
         </div>
 
-        {/* Right: Scientific Clocks & WMO Benchmarks */}
+        {/* Right: Scientific Clocks & Mode Selector */}
         <div className="flex items-center space-x-3">
           <div className="text-right font-mono text-[11px] leading-tight hidden sm:block">
             <div className="text-white font-bold">{currentTimeUtc}</div>
@@ -921,12 +1401,12 @@ export default function HazardDashboard() {
       )}
 
       {/* ================================================================== */}
-      {/* 3. MAIN SCIENTIFIC WORKSPACE (RADAR SCOPE + SIDEBAR)               */}
+      {/* 3. MAIN WORKSPACE (RADAR SCOPE + SIDEBAR OBSERVATIONS)             */}
       {/* ================================================================== */}
       <div className="relative flex-1 w-full h-full flex overflow-hidden">
         
-        {/* Left Floating Tool Palette: Doppler Product Switcher */}
-        <div className="absolute top-4 left-4 z-20 bg-[#0e131d]/90 border border-[#222c3d] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-3 min-w-[220px]">
+        {/* Left Floating Tool Palette: Doppler Product & Overlays */}
+        <div className="absolute top-4 left-4 z-20 bg-[#0e131d]/90 border border-[#222c3d] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-3 min-w-[230px]">
           <div>
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1.5">
               DOPPLER PRODUCT
@@ -983,12 +1463,30 @@ export default function HazardDashboard() {
             </div>
           </div>
 
-          {/* Tactical Layers Toggle */}
-          <div className="pt-2 border-t border-[#1e2533] space-y-1 text-[11px] font-mono">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748b] block mb-1">
-              TACTICAL OVERLAYS
+          {/* 3x3 Grid & AWS Observation Layers Toggle */}
+          <div className="pt-2 border-t border-[#1e2533] space-y-1.5 text-[11px] font-mono">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] block mb-1 flex items-center justify-between">
+              <span>GRID & IN-SITU LAYERS</span>
+              <Grid className="w-3.5 h-3.5" />
             </span>
-            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+            
+            <label className="flex items-center justify-between text-white font-semibold cursor-pointer bg-[#141b26] px-2 py-1 rounded border border-[#283548]">
+              <span className="flex items-center gap-1.5">
+                <Grid className="w-3.5 h-3.5 text-[#38bdf8]" />
+                <span>3x3 Tactical Sector Grid</span>
+              </span>
+              <input type="checkbox" checked={show3x3Grid} onChange={e => setShow3x3Grid(e.target.checked)} className="rounded bg-[#0c1017] border-[#38bdf8]" />
+            </label>
+
+            <label className="flex items-center justify-between text-white font-semibold cursor-pointer bg-[#141b26] px-2 py-1 rounded border border-[#283548]">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                <span>In-Situ Surface AWS (9)</span>
+              </span>
+              <input type="checkbox" checked={showAwsStations} onChange={e => setShowAwsStations(e.target.checked)} className="rounded bg-[#0c1017] border-amber-400" />
+            </label>
+
+            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer pt-1">
               <span>VEBS Runway / Glidepath</span>
               <input type="checkbox" checked={showAirways} onChange={e => setShowAirways(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
             </label>
@@ -1000,21 +1498,18 @@ export default function HazardDashboard() {
               <span>Antenna Sweep Beam</span>
               <input type="checkbox" checked={showSweepBeam} onChange={e => setShowSweepBeam(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
             </label>
-            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
-              <span>Storm Cell Vectors</span>
-              <input type="checkbox" checked={showCellVectors} onChange={e => setShowCellVectors(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
-            </label>
           </div>
         </div>
 
         {/* =============================================================== */}
-        {/* CENTER VIEW A: DWR POLAR SCOPE (AUTHENTIC SCIENTIFIC ENGINE)    */}
+        {/* CENTER VIEW A: DWR POLAR SCOPE (WITH 3x3 GRID & AWS PLOT)       */}
         {/* =============================================================== */}
         {displayMode === 'polar_scope' && (
           <div className="relative flex-1 w-full h-full bg-[#07090e] flex items-center justify-center cursor-crosshair">
             <canvas
               ref={canvasRef}
               onMouseMove={handleCanvasMouseMove}
+              onClick={handleCanvasClick}
               onMouseLeave={() => setCursorHud(null)}
               className="w-full h-full block"
             />
@@ -1030,6 +1525,9 @@ export default function HazardDashboard() {
                 </div>
                 <div className="text-white font-bold">
                   {product.toUpperCase()}: <span className="text-emerald-400">{cursorHud.valStr}</span>
+                </div>
+                <div className="text-[10px] text-amber-400 font-bold">
+                  TACTICAL SECTOR: {cursorHud.sectorTag}
                 </div>
                 <div className="text-[10px] text-[#64748b]">
                   GEO: {cursorHud.lat.toFixed(4)}°N, {cursorHud.lon.toFixed(4)}°E
@@ -1073,13 +1571,13 @@ export default function HazardDashboard() {
         )}
 
         {/* =============================================================== */}
-        {/* CENTER VIEW B: GIS BASEMAP (UNRESTRICTED ESRI SATELLITE/CANVAS)  */}
+        {/* CENTER VIEW B: GIS BASEMAP (WITH 3x3 SECTORS & AWS MARKERS)     */}
         {/* =============================================================== */}
         {displayMode === 'gis_basemap' && (
           <div className="relative flex-1 w-full h-full">
             <MapContainer
               center={[RADAR_STATION.lat, RADAR_STATION.lon]}
-              zoom={11}
+              zoom={10}
               className="w-full h-full bg-[#0a0d15]"
               zoomControl={false}
             >
@@ -1087,6 +1585,57 @@ export default function HazardDashboard() {
                 attribution="&copy; Esri World Dark Gray"
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
               />
+
+              {/* 3x3 Tactical Sector Rectangles */}
+              {show3x3Grid && TACTICAL_3X3_GRID.map(sec => {
+                const isSelected = sec.id === selectedSectorId;
+                return (
+                  <Rectangle
+                    key={sec.id}
+                    bounds={[
+                      [sec.latMin, sec.lonMin],
+                      [sec.latMax, sec.lonMax]
+                    ]}
+                    eventHandlers={{ click: () => setSelectedSectorId(sec.id) }}
+                    pathOptions={{
+                      color: isSelected ? '#38bdf8' : '#38bdf8',
+                      weight: isSelected ? 2.5 : 1,
+                      dashArray: isSelected ? undefined : '3, 4',
+                      fillColor: isSelected ? '#0284c7' : 'transparent',
+                      fillOpacity: isSelected ? 0.22 : 0.04
+                    }}
+                  >
+                    <Tooltip direction="center" permanent className="!bg-slate-950/90 !border !border-sky-500/50 !text-white !font-mono !text-[10px]">
+                      <div>
+                        <div className="font-bold text-sky-400">{sec.id} ({sec.code})</div>
+                        <div>{sec.radarDbz} dBZ • {sec.rainRateMmh.toFixed(0)} mm/h</div>
+                      </div>
+                    </Tooltip>
+                  </Rectangle>
+                );
+              })}
+
+              {/* 9 In-Situ Surface AWS Stations */}
+              {showAwsStations && SURROUNDING_AWS_STATIONS.map(aws => (
+                <CircleMarker
+                  key={aws.id}
+                  center={[aws.lat, aws.lon]}
+                  radius={aws.id === selectedAwsId ? 8 : 6}
+                  pathOptions={{
+                    color: '#fbbf24',
+                    fillColor: aws.status === 'SEVERE_ALERT' ? '#ef4444' : '#f59e0b',
+                    fillOpacity: 0.95,
+                    weight: 2
+                  }}
+                  eventHandlers={{ click: () => { setSelectedAwsId(aws.id); setSidebarTab('aws_network'); } }}
+                >
+                  <Tooltip direction="right" permanent offset={[10, 0]}>
+                    <div className="font-mono text-[9px] font-bold text-amber-200 bg-slate-950 px-2 py-0.5 rounded border border-amber-500 shadow">
+                      {aws.id}: {aws.tempC}°C | {aws.pressureHpa}hPa
+                    </div>
+                  </Tooltip>
+                </CircleMarker>
+              ))}
 
               {/* VEBS Airport Marker */}
               <CircleMarker 
@@ -1106,108 +1655,275 @@ export default function HazardDashboard() {
                 positions={AIRPORT_RUNWAYS.ilsCorridor} 
                 pathOptions={{ color: '#f59e0b', weight: 2.5, dashArray: '6, 6' }} 
               />
-
-              {/* Convective Storm Cell Markers */}
-              {ACTIVE_CELLS.map(cell => (
-                <React.Fragment key={cell.id}>
-                  <CircleMarker
-                    center={[cell.lat, cell.lon]}
-                    radius={cell.maxDbz >= 60 ? 22 : 14}
-                    pathOptions={{
-                      color: cell.maxDbz >= 60 ? '#f43f5e' : '#eab308',
-                      fillColor: cell.maxDbz >= 60 ? '#e11d48' : '#ca8a04',
-                      fillOpacity: 0.65,
-                      weight: 2
-                    }}
-                    eventHandlers={{ click: () => setActiveCellId(cell.id) }}
-                  >
-                    <Tooltip direction="right" permanent offset={[12, 0]}>
-                      <div className="font-mono text-[10px] font-bold text-white bg-slate-950 p-1 rounded border border-rose-500 shadow">
-                        <div>{cell.id}: {cell.maxDbz} dBZ</div>
-                        <div className="text-amber-400">ETA {cell.etaRunwayMin} MIN</div>
-                      </div>
-                    </Tooltip>
-                  </CircleMarker>
-                </React.Fragment>
-              ))}
             </MapContainer>
           </div>
         )}
 
         {/* =============================================================== */}
-        {/* RIGHT SIDEBAR: SCIT CELL TELEMETRY & PS-26084 HAZARD METRICS     */}
+        {/* RIGHT SIDEBAR: 3X3 GRID TELEMETRY + AWS NETWORK OBSERVATIONS    */}
         {/* =============================================================== */}
-        <aside className="w-96 bg-[#0c1017] border-l border-[#1e2533] p-4 flex flex-col space-y-3 shrink-0 overflow-y-auto z-20">
+        <aside className="w-[420px] bg-[#0c1017] border-l border-[#1e2533] p-4 flex flex-col space-y-3 shrink-0 overflow-y-auto z-20">
           
-          {/* Active Storm Cell Tracking Selector (SCIT) */}
-          <div className="border-b border-[#1e2533] pb-3">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1.5">
-              TRACKED CONVECTIVE CELLS (SCIT)
-            </span>
-            <div className="flex flex-col space-y-1.5">
-              {ACTIVE_CELLS.map(cell => {
-                const isSelected = cell.id === activeCellId;
-                return (
-                  <button
-                    key={cell.id}
-                    onClick={() => setActiveCellId(cell.id)}
-                    className={`p-2 rounded-lg text-left transition border ${
-                      isSelected
-                        ? 'bg-[#182333] border-[#38bdf8] text-white shadow-md'
-                        : 'bg-[#111722] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono font-bold text-[#38bdf8]">{cell.id}</span>
-                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
-                        cell.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
-                      }`}>
-                        {cell.severity}
-                      </span>
-                    </div>
-                    <div className="text-[11px] font-medium text-[#cbd5e1] truncate mt-0.5">
-                      {cell.name}
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b] mt-1">
-                      <span>{cell.maxDbz} dBZ @ {cell.coreHeightKm}km</span>
-                      <span className="text-amber-400 font-bold">ETA {cell.etaRunwayMin}m to RWY</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Tri-View Sidebar Navigation Switcher */}
+          <div className="flex p-1 bg-[#121822] border border-[#283548] rounded-xl">
+            <button
+              onClick={() => setSidebarTab('grid3x3')}
+              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+                sidebarTab === 'grid3x3' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              }`}
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>3x3 Grid (9)</span>
+            </button>
+            <button
+              onClick={() => setSidebarTab('aws_network')}
+              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+                sidebarTab === 'aws_network' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>AWS Network (9)</span>
+            </button>
+            <button
+              onClick={() => setSidebarTab('scit_cells')}
+              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+                sidebarTab === 'scit_cells' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              }`}
+            >
+              <Crosshair className="w-3.5 h-3.5" />
+              <span>Storm Cells</span>
+            </button>
           </div>
 
-          {/* Active Cell Telemetry Diagnostic */}
-          <div className="bg-[#101520] border border-[#20293a] p-3 rounded-xl space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="font-bold text-white">{activeCell.id} PROFILE</span>
-              <span className="text-[#38bdf8]">AZ {activeCell.azimuthDeg}° / {activeCell.rangeKm} KM</span>
-            </div>
+          {/* TAB 1: 3x3 TACTICAL GRID SECTOR INSPECTOR */}
+          {sidebarTab === 'grid3x3' && (
+            <div className="space-y-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
+                  TACTICAL 3x3 DOMAIN (BHUBANESWAR-CUTTACK-PURI)
+                </span>
+                
+                {/* 3x3 Matrix Quick Matrix Buttons */}
+                <div className="grid grid-cols-3 gap-1.5 p-2 bg-[#080b11] border border-[#1e2533] rounded-xl">
+                  {TACTICAL_3X3_GRID.map(sec => {
+                    const isSelected = sec.id === selectedSectorId;
+                    return (
+                      <button
+                        key={sec.id}
+                        onClick={() => setSelectedSectorId(sec.id)}
+                        className={`p-2 rounded-lg text-left font-mono transition border ${
+                          isSelected
+                            ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-white shadow-sm'
+                            : 'bg-[#121824] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className={isSelected ? 'text-[#38bdf8] font-bold' : 'text-slate-400'}>{sec.code}</span>
+                          <span className={sec.radarDbz >= 55 ? 'text-rose-400 font-bold' : 'text-slate-400'}>{sec.radarDbz} dBZ</span>
+                        </div>
+                        <div className="text-[9px] text-[#cbd5e1] truncate mt-0.5">{sec.name.split(' ')[0]}</div>
+                        <div className="text-[8px] text-[#64748b] mt-0.5">{sec.rainRateMmh.toFixed(0)} mm/h</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
-                <span className="text-[10px] text-[#64748b] block">Peak Reflectivity</span>
-                <span className="text-sm font-bold text-rose-400">{activeCell.maxDbz} dBZ</span>
-                <span className="text-[9px] text-[#64748b] block">Core at {activeCell.coreHeightKm} km</span>
-              </div>
-              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
-                <span className="text-[10px] text-[#64748b] block">Cloudburst Rate (Z-R)</span>
-                <span className="text-sm font-bold text-sky-400">{activeCell.rainRateMmh.toFixed(1)} mm/h</span>
-                <span className="text-[9px] text-rose-400 font-bold block">{activeCell.rainRateMmh >= 100 ? 'IMD EXCEEDED' : 'Heavy'}</span>
-              </div>
-              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
-                <span className="text-[10px] text-[#64748b] block">Microburst Shear</span>
-                <span className="text-sm font-bold text-amber-400">{activeCell.shearDeltaV} m/s</span>
-                <span className="text-[9px] text-[#64748b] block">{Math.round(activeCell.shearDeltaV * 1.94)} kt divergence</span>
-              </div>
-              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
-                <span className="text-[10px] text-[#64748b] block">Hail Risk (POH/MESH)</span>
-                <span className="text-sm font-bold text-purple-400">{activeCell.poh}% / {activeCell.meshMm}mm</span>
-                <span className="text-[9px] text-[#64748b] block">Witt et al. 1998</span>
+              {/* Selected Sector Deep Dive Telemetry Card */}
+              <div className="bg-[#101520] border border-[#20293a] p-3 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <Grid className="w-3.5 h-3.5 text-[#38bdf8]" />
+                    <span>{activeSector.name}</span>
+                  </span>
+                  <span className="text-[#38bdf8] font-bold">{activeSector.id} ({activeSector.code})</span>
+                </div>
+                <p className="text-[11px] text-[#94a3b8]">{activeSector.description}</p>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Reflectivity & Z-R Rate</span>
+                    <span className="text-sm font-bold text-rose-400">{activeSector.radarDbz} dBZ</span>
+                    <span className="text-[10px] text-sky-400 font-bold block">{activeSector.rainRateMmh.toFixed(1)} mm/hr</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Surface Pressure & Outflow</span>
+                    <span className="text-sm font-bold text-purple-400">{activeSector.pressureHpa} hPa</span>
+                    <span className="text-[10px] text-cyan-400 font-bold block">{activeSector.tempC}°C Cold Pool</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Surface Wind Gust</span>
+                    <span className="text-sm font-bold text-amber-400">{activeSector.windGustKmh} km/h</span>
+                    <span className="text-[9px] text-[#64748b] block">{activeSector.windGustKmh >= 65 ? 'Squall Criteria Met' : 'Moderate Inflow'}</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Instability (CAPE) & Lightning</span>
+                    <span className="text-sm font-bold text-rose-400">{activeSector.capeJkg} J/kg</span>
+                    <span className="text-[10px] text-amber-400 font-bold block">+{activeSector.lightningStrokesMin} str/min</span>
+                  </div>
+                </div>
+
+                <div className="p-2 bg-[#141924] border border-[#273347] rounded-lg text-xs font-mono flex items-center justify-between">
+                  <span>CLOUDBURST ALERT:</span>
+                  <span className={`font-bold ${activeSector.cloudburstFlag ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`}>
+                    {activeSector.cloudburstFlag ? 'IMD EXCEEDED (>100 mm/h)' : 'NOMINAL (<100 mm/h)'}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* TAB 2: IN-SITU SURFACE AWS OBSERVATIONS NETWORK */}
+          {sidebarTab === 'aws_network' && (
+            <div className="space-y-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
+                  IMD AUTOMATIC WEATHER STATIONS (AWS OBSERVATIONS)
+                </span>
+                
+                {/* Station List Selector */}
+                <div className="flex flex-col space-y-1.5 max-h-56 overflow-y-auto">
+                  {SURROUNDING_AWS_STATIONS.map(aws => {
+                    const isSelected = aws.id === selectedAwsId;
+                    return (
+                      <button
+                        key={aws.id}
+                        onClick={() => setSelectedAwsId(aws.id)}
+                        className={`p-2 rounded-lg text-left font-mono transition border ${
+                          isSelected
+                            ? 'bg-[#182333] border-[#38bdf8] text-white shadow-md'
+                            : 'bg-[#111722] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-400 flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{aws.id} ({aws.code})</span>
+                          </span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                            aws.status === 'SEVERE_ALERT' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {aws.status}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#cbd5e1] truncate mt-0.5">{aws.name}</div>
+                        <div className="flex items-center justify-between text-[10px] text-[#64748b] mt-1">
+                          <span>{aws.tempC}°C | {aws.pressureHpa} hPa ({aws.tendency3h > 0 ? '+' : ''}{aws.tendency3h}hPa/3h)</span>
+                          <span className="text-sky-400 font-bold">{aws.windSpeedKt}G{aws.windGustKt} kt</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Selected AWS Live Telemetry Card */}
+              <div className="bg-[#101520] border border-[#20293a] p-3 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-bold text-white">{activeAws.name}</span>
+                  <span className="text-amber-400">{activeAws.id}</span>
+                </div>
+                <div className="text-[10px] font-mono text-[#64748b]">
+                  COORDINATES: {activeAws.lat.toFixed(4)}°N, {activeAws.lon.toFixed(4)}°E • ELEV: {activeAws.elevationM}m MSL
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Dry Bulb / Dew Point</span>
+                    <span className="text-sm font-bold text-sky-400">{activeAws.tempC}°C / {activeAws.dewPointC}°C</span>
+                    <span className="text-[9px] text-[#64748b] block">RH: {activeAws.humidityPct}%</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Surface Pressure & Tendency</span>
+                    <span className="text-sm font-bold text-purple-400">{activeAws.pressureHpa} hPa</span>
+                    <span className="text-[10px] text-rose-400 font-bold block">{activeAws.tendency3h} hPa / 3h</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Surface Wind & Peak Gust</span>
+                    <span className="text-sm font-bold text-amber-400">{activeAws.windDirDeg}° @ {activeAws.windSpeedKt} kt</span>
+                    <span className="text-[10px] text-rose-400 font-bold block">GUST: {activeAws.windGustKt} kt</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Precipitation & Instability</span>
+                    <span className="text-sm font-bold text-sky-400">{activeAws.rain1hMm} mm (1h)</span>
+                    <span className="text-[10px] text-rose-400 font-bold block">CAPE: {activeAws.capeJkg} J/kg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: SCIT STORM CELL TRACKING & CAP ALERT */}
+          {sidebarTab === 'scit_cells' && (
+            <div className="space-y-3">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
+                  TRACKED CONVECTIVE CELLS (SCIT)
+                </span>
+                <div className="flex flex-col space-y-1.5">
+                  {ACTIVE_CELLS.map(cell => {
+                    const isSelected = cell.id === activeCellId;
+                    return (
+                      <button
+                        key={cell.id}
+                        onClick={() => setActiveCellId(cell.id)}
+                        className={`p-2 rounded-lg text-left transition border ${
+                          isSelected
+                            ? 'bg-[#182333] border-[#38bdf8] text-white shadow-md'
+                            : 'bg-[#111722] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-mono font-bold text-[#38bdf8]">{cell.id}</span>
+                          <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                            cell.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {cell.severity}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-medium text-[#cbd5e1] truncate mt-0.5">{cell.name}</div>
+                        <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b] mt-1">
+                          <span>{cell.maxDbz} dBZ @ {cell.coreHeightKm}km</span>
+                          <span className="text-amber-400 font-bold">ETA {cell.etaRunwayMin}m to RWY</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Active Cell Telemetry */}
+              <div className="bg-[#101520] border border-[#20293a] p-3 rounded-xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="font-bold text-white">{activeCell.id} PROFILE</span>
+                  <span className="text-[#38bdf8]">AZ {activeCell.azimuthDeg}° / {activeCell.rangeKm} KM</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Peak Reflectivity</span>
+                    <span className="text-sm font-bold text-rose-400">{activeCell.maxDbz} dBZ</span>
+                    <span className="text-[9px] text-[#64748b] block">Core at {activeCell.coreHeightKm} km</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Cloudburst Rate (Z-R)</span>
+                    <span className="text-sm font-bold text-sky-400">{activeCell.rainRateMmh.toFixed(1)} mm/h</span>
+                    <span className="text-[9px] text-rose-400 font-bold block">{activeCell.rainRateMmh >= 100 ? 'IMD EXCEEDED' : 'Heavy'}</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Microburst Shear</span>
+                    <span className="text-sm font-bold text-amber-400">{activeCell.shearDeltaV} m/s</span>
+                    <span className="text-[9px] text-[#64748b] block">{Math.round(activeCell.shearDeltaV * 1.94)} kt divergence</span>
+                  </div>
+                  <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                    <span className="text-[10px] text-[#64748b] block">Hail Risk (POH/MESH)</span>
+                    <span className="text-sm font-bold text-purple-400">{activeCell.poh}% / {activeCell.meshMm}mm</span>
+                    <span className="text-[9px] text-[#64748b] block">Witt et al. 1998</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Runway Incursion Warning Banner */}
           <div className="bg-[#141924] border border-[#273347] p-2.5 rounded-xl font-mono text-xs flex items-center justify-between">
@@ -1263,28 +1979,23 @@ export default function HazardDashboard() {
           </div>
 
           <div className="h-40 w-full bg-[#07090e] border border-[#1b2333] rounded-xl relative overflow-hidden flex flex-col justify-between p-3 font-mono text-[10px]">
-            {/* Tropopause & Overshooting Top */}
             <div className="absolute top-2 left-20 right-20 h-7 bg-fuchsia-600/30 border-t border-fuchsia-400/80 rounded-full flex items-center justify-center text-fuchsia-300">
               Overshooting Convective Top (15.2 km) • Tropopause Penetration
             </div>
 
-            {/* Suspended Hail Core */}
             <div className="absolute top-11 left-32 right-32 h-9 bg-rose-600/80 border border-rose-400 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
               SUSPENDED HAIL CORE ({activeCell.maxDbz} dBZ @ {activeCell.coreHeightKm} km)
             </div>
 
-            {/* 0°C Freezing Level / Bright Band */}
             <div className="absolute top-24 left-0 right-0 border-b border-dashed border-cyan-400/80 flex items-center justify-between px-3 text-cyan-300">
               <span>0°C Freezing Level (4.5 km)</span>
               <span className="text-[9px] bg-cyan-950 px-1.5 rounded border border-cyan-500/40">Melting Layer / Bright Band</span>
             </div>
 
-            {/* Surface Precipitation Downburst Core */}
             <div className="absolute bottom-2 left-24 right-24 h-12 bg-emerald-500/30 border-t border-emerald-400 rounded-t-lg flex items-center justify-center text-emerald-200">
               Torrential Downburst Shaft ({activeCell.rainRateMmh.toFixed(1)} mm/hr) • Divergent Outflow Base
             </div>
 
-            {/* Height Axis */}
             <div className="absolute top-2 left-2 bottom-2 flex flex-col justify-between text-[#64748b] pr-2 border-r border-[#1e2533]">
               <span>16 km</span>
               <span>12 km</span>
@@ -1374,14 +2085,14 @@ export default function HazardDashboard() {
     <category>Met</category>
     <event>Severe Convective Cloudburst & Microburst</event>
     <urgency>Immediate</urgency>
-    <severity>${activeCell.maxDbz >= 60 ? 'Extreme' : 'Severe'}</severity>
+    <severity>${activeSector.radarDbz >= 55 ? 'Extreme' : 'Severe'}</severity>
     <certainty>Observed</certainty>
-    <headline>Severe Thunderstorm & Microburst Warning for ${activeCell.name}</headline>
-    <description>IMD DWR Bhubaneswar detected severe convective core: Peak Reflectivity ${activeCell.maxDbz} dBZ, Rain Rate ${activeCell.rainRateMmh.toFixed(1)} mm/hr (IMD Cloudburst Criteria Exceeded), Surface Velocity Shear ${activeCell.shearDeltaV} m/s (${Math.round(activeCell.shearDeltaV * 1.94)} kt), Severe Hail Probability ${activeCell.poh}%. Immediate aerodrome holding pattern recommended for VEBS RWY 01.</description>
+    <headline>Severe Thunderstorm & Microburst Warning for ${activeSector.name} (${activeSector.id})</headline>
+    <description>IMD DWR Bhubaneswar detected severe convective core: Peak Reflectivity ${activeSector.radarDbz} dBZ, Rain Rate ${activeSector.rainRateMmh.toFixed(1)} mm/hr (IMD Cloudburst Criteria Exceeded), Surface Gusts ${activeSector.windGustKmh} km/h, Barometric Pressure ${activeSector.pressureHpa} hPa. Immediate aerodrome holding pattern recommended for VEBS RWY 01.</description>
     <instruction>Take immediate shelter in reinforced buildings. All apron and ground fueling operations suspended at BBI Airport.</instruction>
     <area>
-      <areaDesc>${activeCell.name}</areaDesc>
-      <circle>${activeCell.lat.toFixed(4)},${activeCell.lon.toFixed(4)},5.0</circle>
+      <areaDesc>${activeSector.name}</areaDesc>
+      <circle>${activeSector.center[0].toFixed(4)},${activeSector.center[1].toFixed(4)},6.0</circle>
     </area>
   </info>
 </alert>`}</pre>
