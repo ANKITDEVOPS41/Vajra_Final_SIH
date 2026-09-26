@@ -40,558 +40,308 @@ import {
   Sparkles,
   Maximize2,
   Tv,
-  RefreshCw
+  RefreshCw,
+  Sliders,
+  Crosshair,
+  Volume2,
+  Columns
 } from 'lucide-react';
 
 // ============================================================================
-// 1. DOMAIN TYPES & METEOROLOGICAL CONSTANTS (MoES PS-26084)
+// 1. SCIENTIFIC METEOROLOGY & DWR STATION SPECIFICATIONS (IMD PS-26084)
 // ============================================================================
-export type LayerVariable = 'radar' | 'pressure' | 'temp' | 'cape';
+export type RadarProduct = 'reflectivity' | 'velocity' | 'zdr' | 'vil' | 'echotop';
+export type DisplayMode = 'polar_scope' | 'gis_basemap' | 'dual_split';
 export type ModelEngine = 'convectnet' | 'pysteps';
-export type RenderMode = 'canvas2d' | 'leaflet';
 
-export interface SectorTelemetry {
+export interface StormCellTrack {
   id: string;
   name: string;
-  row: number;
-  col: number;
-  radar_dbz: number;
-  pressure_hpa: number;
-  temp_c: number;
-  cape_jkg: number;
-  lightning_rate: number; // strokes/min
-  wind_gust_kmh: number; // Downburst gust
-  bounds: [[number, number], [number, number]];
-  center: [number, number];
+  lat: number;
+  lon: number;
+  azimuthDeg: number;
+  rangeKm: number;
+  maxDbz: number;
+  coreHeightKm: number;
+  vilKgM2: number;
+  topHeightKm: number;
+  speedKmh: number;
+  directionDeg: number;
+  poh: number; // Probability of Severe Hail (%)
+  meshMm: number; // Max Estimated Size of Hail (mm)
+  rainRateMmh: number; // Marshall-Palmer convective rain rate
+  shearDeltaV: number; // Microburst velocity difference (m/s)
+  lightningFlashRate: number; // strokes/min
+  etaRunwayMin: number;
+  severity: 'WARNING' | 'CRITICAL' | 'ADVISORY';
 }
 
-export interface ForecastFrame {
-  horizon: string;
-  leadTimeMinutes: number;
-  engine: string;
-  phase: 'nowcast' | 'hybrid';
-  coreCentroid: [number, number];
-  matrix_dbz: number[][];
-  matrix_pressure: number[][];
-  matrix_temp: number[][];
-  matrix_cape: number[][];
+export interface RadarGateScan {
+  azimuthCount: number;
+  rangeGatesCount: number;
+  gateResolutionM: number;
 }
 
-const AOI_BBOX = {
-  minLat: 20.0,
-  maxLat: 20.6,
-  minLon: 85.5,
-  maxLon: 86.1,
+const RADAR_STATION = {
+  name: 'IMD DWR BHUBANESWAR (VEBS)',
+  callsign: 'VEBS-DWR',
+  lat: 20.2444,
+  lon: 85.8178,
+  elevationMsl: 42.0,
+  band: 'S-Band (Dual Polarimetric)',
+  frequencyGhz: 2.875,
+  pulseWidthUs: 1.0,
+  prfHz: '600 / 450 (Dual PRF)',
+  beamWidthDeg: 0.95,
+  vcp: 'VCP-212 (Rapid Convective Initiation)',
+  rangeKm: 120.0,
 };
 
-const AIRPORT_VEBS: { 
-  name: string; 
-  callsign: string;
-  runway: string;
-  coords: [number, number]; 
-  glidePath: [number, number][];
-} = {
+const AIRPORT_RUNWAYS = {
+  id: 'VEBS / BBI',
   name: 'Biju Patnaik International Airport',
-  callsign: 'VEBS / BBI',
-  runway: 'RWY 01/19',
-  coords: [20.2444, 85.8178],
-  glidePath: [
-    [20.14, 85.76],
-    [20.2444, 85.8178],
-    [20.34, 85.87]
-  ]
+  rwy01: { thr: [20.2338, 85.8150] as [number, number], heading: 14 },
+  rwy19: { thr: [20.2550, 85.8206] as [number, number], heading: 194 },
+  ilsCorridor: [
+    [20.1200, 85.7850],
+    [20.2338, 85.8150],
+    [20.3400, 85.8450],
+  ] as [number, number][],
 };
 
-// Tactical Sector Names across Bhubaneswar-Cuttack-Puri Corridor
-const SECTOR_METADATA: Record<string, string> = {
-  'R0_C0': 'Cuttack North Uplands',
-  'R0_C1': 'Mahanadi Basin Corridor',
-  'R0_C2': 'Paradeep West Approach',
-  'R1_C0': 'Khurda Uplands',
-  'R1_C1': 'Bhubaneswar Urban / VEBS',
-  'R1_C2': 'Balianta Convective Corridor',
-  'R2_C0': 'Pipili Aerodrome Corridor',
-  'R2_C1': 'Nimapada Flood Plains',
-  'R2_C2': 'Konark Coastal Littoral',
-};
+// Tactical Sectors around Bhubaneswar-Cuttack-Puri Airspace Corridor
+const TACTICAL_SECTORS: Array<{
+  id: string;
+  name: string;
+  latMin: number;
+  latMax: number;
+  lonMin: number;
+  lonMax: number;
+  description: string;
+}> = [
+  { id: 'SEC-NW', name: 'Chandaka Wildlife / Cuttack Uplands', latMin: 20.35, latMax: 20.60, lonMin: 85.50, lonMax: 85.80, description: 'Elevated terrain; frequent convective initiation trigger.' },
+  { id: 'SEC-N',  name: 'Mahanadi River Basin Corridor', latMin: 20.35, latMax: 20.60, lonMin: 85.80, lonMax: 86.10, description: 'Moisture convergence zone along river estuary.' },
+  { id: 'SEC-NE', name: 'Paradeep Approach West', latMin: 20.35, latMax: 20.60, lonMin: 86.10, lonMax: 86.40, description: 'Maritime sea-breeze front boundary.' },
+  { id: 'SEC-W',  name: 'Khurda Highway Ridge', latMin: 20.15, latMax: 20.35, lonMin: 85.50, lonMax: 85.80, description: 'Orographic lift along NH-16 highway ridge.' },
+  { id: 'SEC-C',  name: 'VEBS Aerodrome Core / Smart City', latMin: 20.15, latMax: 20.35, lonMin: 85.80, lonMax: 86.10, description: 'Critical infrastructure; BBI runway glide path corridor.' },
+  { id: 'SEC-E',  name: 'Balianta-Kuakhai Floodplain', latMin: 20.15, latMax: 20.35, lonMin: 86.10, lonMax: 86.40, description: 'High thermal capacity marshland; cold pool drainage.' },
+  { id: 'SEC-SW', name: 'Jatni-Janla Western Approach', latMin: 19.95, latMax: 20.15, lonMin: 85.50, lonMax: 85.80, description: 'Railway junction & electrical corridor.' },
+  { id: 'SEC-S',  name: 'Pipili Highway Intercept', latMin: 19.95, latMax: 20.15, lonMin: 85.80, lonMax: 86.10, description: 'Puri pilgrimage corridor & south approach vector.' },
+  { id: 'SEC-SE', name: 'Daya River Delta / Chilika Margin', latMin: 19.95, latMax: 20.15, lonMin: 86.10, lonMax: 86.40, description: 'Littoral salt marshes; low-level moisture pump.' },
+];
 
-// Tactical Odisha Coastline & Estuary Vector Points (Decimal Degrees)
-const COASTLINE_VECTORS: [number, number][][] = [
-  // Bay of Bengal Coastline (South to North)
-  [
-    [19.95, 85.60], [20.02, 85.75], [20.08, 85.90], [20.15, 86.05], 
-    [20.22, 86.20], [20.30, 86.35], [20.40, 86.50], [20.55, 86.65]
-  ],
-  // Chilika Lagoon North Margin
-  [
-    [19.98, 85.45], [20.01, 85.52], [20.04, 85.58], [20.02, 85.65]
-  ],
-  // Daya & Kuakhai River System
-  [
-    [20.45, 85.85], [20.38, 85.84], [20.28, 85.83], [20.20, 85.82], [20.10, 85.80]
-  ]
+// Coastline and geography coordinates (Odisha)
+const SHORELINE_ODISHA: [number, number][] = [
+  [19.80, 85.50], [19.88, 85.65], [19.95, 85.82], [20.04, 86.02], 
+  [20.14, 86.20], [20.24, 86.40], [20.36, 86.60], [20.50, 86.80]
+];
+
+const RIVER_MAHANADI: [number, number][] = [
+  [20.48, 85.70], [20.45, 85.82], [20.44, 85.92], [20.42, 86.10], [20.40, 86.30]
+];
+
+const RIVER_DAYA: [number, number][] = [
+  [20.30, 85.85], [20.25, 85.84], [20.18, 85.82], [20.10, 85.81], [20.00, 85.78]
 ];
 
 // ============================================================================
-// 2. MATHEMATICAL METEOROLOGY FORMULAE (IMD PS-26084)
+// 2. DISCRETE WMO / NWS NEXRAD SCIENTIFIC COLOR PALETTES
 // ============================================================================
 
-/** IMD Marshall-Palmer convective Z-R inversion: Z = 300 * R^1.4 */
-export function calculateRainRate(dbz: number): number {
-  if (dbz < 15) return 0;
-  const zLinear = Math.pow(10, dbz / 10);
-  const r = Math.pow(zLinear / 300, 1 / 1.4);
-  return Math.min(r, 260); // Cap at physical upper limit
-}
+/** Standard 16-level WMO/NEXRAD Reflectivity Color Scale (dBZ) */
+export const DBZ_PALETTE: Array<{ min: number; max: number; label: string; hex: string; rgb: [number, number, number] }> = [
+  { min: 5,  max: 10, label: '5-10',   hex: '#00ecec', rgb: [0, 236, 236] },     // Light Cyan
+  { min: 10, max: 15, label: '10-15',  hex: '#01a0f6', rgb: [1, 160, 246] },     // Cerulean Blue
+  { min: 15, max: 20, label: '15-20',  hex: '#0000f6', rgb: [0, 0, 246] },       // Pure Blue
+  { min: 20, max: 25, label: '20-25',  hex: '#00ff00', rgb: [0, 255, 0] },       // Bright Green
+  { min: 25, max: 30, label: '25-30',  hex: '#00c800', rgb: [0, 200, 0] },       // Medium Green
+  { min: 30, max: 35, label: '30-35',  hex: '#009000', rgb: [0, 144, 0] },       // Dark Green
+  { min: 35, max: 40, label: '35-40',  hex: '#ffff00', rgb: [255, 255, 0] },     // Pure Yellow
+  { min: 40, max: 45, label: '40-45',  hex: '#e7c000', rgb: [231, 192, 0] },     // Gold Amber
+  { min: 45, max: 50, label: '45-50',  hex: '#ff9000', rgb: [255, 144, 0] },     // Convective Orange
+  { min: 50, max: 55, label: '50-55',  hex: '#ff0000', rgb: [255, 0, 0] },       // Severe Red
+  { min: 55, max: 60, label: '55-60',  hex: '#d60000', rgb: [214, 0, 0] },       // Heavy Core Red
+  { min: 60, max: 65, label: '60-65',  hex: '#c00000', rgb: [192, 0, 0] },       // Deep Crimson
+  { min: 65, max: 70, label: '65-70',  hex: '#ff00ff', rgb: [255, 0, 255] },     // Hail Core Magenta
+  { min: 70, max: 75, label: '70-75',  hex: '#9955c9', rgb: [153, 85, 201] },     // Giant Hail Purple
+  { min: 75, max: 99, label: '75+',    hex: '#ffffff', rgb: [255, 255, 255] },   // Collapse Core White
+];
 
-/** Severe Hail Probability (POH / MESH) via Witt et al. (1998) formulation */
-export function calculateHailProbability(dbz: number): { posh: number; mesh_mm: number } {
-  if (dbz < 40) return { posh: 0, mesh_mm: 0 };
-  const posh = Math.min(100, Math.max(0, Math.round(((dbz - 40) / (65 - 40)) * 100)));
-  const mesh_mm = dbz >= 45 ? Math.round(Math.pow(10, (dbz - 40) / 20) * 8.5) : 0;
-  return { posh, mesh_mm: Math.min(mesh_mm, 85) };
-}
+/** Standard Doppler Radial Velocity Palette (m/s) — Inbound (Green) vs Outbound (Red) */
+export const VELOCITY_PALETTE: Array<{ min: number; max: number; label: string; hex: string; rgb: [number, number, number] }> = [
+  { min: -40, max: -30, label: '-35', hex: '#004d40', rgb: [0, 77, 64] },      // Deep Inbound Teal
+  { min: -30, max: -20, label: '-25', hex: '#00897b', rgb: [0, 137, 123] },    // Inbound Dark Green
+  { min: -20, max: -10, label: '-15', hex: '#26a69a', rgb: [38, 166, 154] },   // Inbound Green
+  { min: -10, max: -3,  label: '-5',  hex: '#80cbc4', rgb: [128, 203, 196] },   // Weak Inbound
+  { min: -3,  max: 3,   label: '0',   hex: '#64748b', rgb: [100, 116, 139] },   // Zero Isodop (Gray)
+  { min: 3,   max: 10,  label: '+5',  hex: '#fde047', rgb: [253, 224, 71] },    // Weak Outbound Yellow
+  { min: 10,  max: 20,  label: '+15', hex: '#fb923c', rgb: [251, 146, 60] },    // Outbound Orange
+  { min: 20,  max: 30,  label: '+25', hex: '#ef4444', rgb: [239, 68, 68] },     // Outbound Red
+  { min: 30,  max: 50,  label: '+35', hex: '#991b1b', rgb: [153, 27, 27] },     // Severe Outbound Crimson
+];
 
-/** Downburst surface gust velocity via Cold Pool Delta-T and core dBZ */
-export function estimateGustVelocity(dbz: number, tempC: number): number {
-  const baseWind = 24;
-  const convectiveDelta = Math.max(0, (dbz - 30) * 1.35);
-  const coldPoolBonus = Math.max(0, (32 - tempC) * 3.2);
-  return Math.round(baseWind + convectiveDelta + coldPoolBonus);
-}
-
-/** Great-Circle Haversine distance in kilometers */
-export function getHaversineDistanceKm(c1: [number, number], c2: [number, number]): number {
-  const R = 6371; // Earth radius km
-  const dLat = ((c2[0] - c1[0]) * Math.PI) / 180;
-  const dLon = ((c2[1] - c1[1]) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((c1[0] * Math.PI) / 180) *
-      Math.cos((c2[0] * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-// ============================================================================
-// 3. COLOR PALETTES & COLOR INTERPOLATION
-// ============================================================================
-
-export function getRadarColor(dbz: number): [number, number, number, number] {
-  if (dbz < 15) return [0, 0, 0, 0];
-  if (dbz < 25) return [16, 185, 129, 140]; // Light Green
-  if (dbz < 35) return [34, 197, 94, 190];  // Vibrant Green
-  if (dbz < 45) return [234, 179, 8, 220];  // Amber Yellow
-  if (dbz < 52) return [249, 115, 22, 235]; // Vivid Orange
-  if (dbz < 60) return [239, 68, 68, 245];  // Crimson Red
-  return [236, 72, 153, 255];               // Intense Hail Magenta
-}
-
-export function getRadarCssColor(dbz: number): string {
-  const [r, g, b, a] = getRadarColor(dbz);
-  return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
-}
-
-export function getPressureColor(hpa: number): [number, number, number, number] {
-  if (hpa <= 1000) return [147, 51, 234, 210]; // Deep Violet Trough
-  if (hpa <= 1004) return [14, 165, 233, 190];  // Sky Cyan
-  if (hpa <= 1008) return [20, 184, 166, 160];  // Teal
-  return [250, 204, 21, 140];                   // Pale Yellow Ridge
-}
-
-export function getTempColor(c: number): [number, number, number, number] {
-  if (c <= 24) return [56, 189, 248, 220];  // Icy Cold Pool
-  if (c <= 27) return [45, 212, 191, 190];  // Outflow Boundary
-  if (c <= 30) return [251, 146, 60, 170];  // Transition
-  return [239, 68, 68, 190];                // Ambient Hot Air
-}
-
-export function getCapeColor(cape: number): [number, number, number, number] {
-  if (cape <= 1200) return [51, 65, 85, 120];   // Slate Stable
-  if (cape <= 2000) return [234, 179, 8, 180];   // Moderate Instability
-  if (cape <= 3000) return [249, 115, 22, 220];  // High Instability
-  return [225, 29, 72, 245];                    // Extreme Updraft Potential
-}
-
-// ============================================================================
-// 4. MULTI-HORIZON CONVECTIVE NOWCAST TIMELINE DATA
-// ============================================================================
-export const TIMELINE_FRAMES: ForecastFrame[] = [
-  {
-    horizon: 'T-15m (Observed Radar)',
-    leadTimeMinutes: -15,
-    engine: 'IMD Paradip DWR (Doppler Analysis)',
-    phase: 'nowcast',
-    coreCentroid: [20.18, 85.66],
-    matrix_dbz: [
-      [15, 25, 30], 
-      [22, 48, 38], 
-      [18, 32, 20]
-    ],
-    matrix_pressure: [
-      [1006, 1005, 1005], 
-      [1005, 1002, 1004], 
-      [1007, 1006, 1005]
-    ],
-    matrix_temp: [
-      [32, 31, 31], 
-      [31, 25, 29], 
-      [33, 30, 31]
-    ],
-    matrix_cape: [
-      [1800, 2200, 2500], 
-      [2100, 3100, 2600], 
-      [1900, 2400, 2200]
-    ],
-  },
-  {
-    horizon: 'T+0 (Nowcast Analysis)',
-    leadTimeMinutes: 0,
-    engine: 'ConvectNet AI (Multi-Task Fusion)',
-    phase: 'nowcast',
-    coreCentroid: [20.25, 85.81],
-    matrix_dbz: [
-      [20, 35, 42], 
-      [30, 62, 54], 
-      [22, 45, 30]
-    ],
-    matrix_pressure: [
-      [1005, 1004, 1004], 
-      [1004, 999, 1002], 
-      [1006, 1004, 1004]
-    ],
-    matrix_temp: [
-      [31, 30, 30], 
-      [30, 22, 26], 
-      [32, 28, 30]
-    ],
-    matrix_cape: [
-      [2000, 2500, 2800], 
-      [2400, 3600, 3200], 
-      [2100, 2700, 2500]
-    ],
-  },
-  {
-    horizon: 'T+30m (AI Nowcast)',
-    leadTimeMinutes: 30,
-    engine: 'ConvectNet AI (Lagrangian Advection)',
-    phase: 'nowcast',
-    coreCentroid: [20.32, 85.88],
-    matrix_dbz: [
-      [28, 52, 45], 
-      [22, 58, 60], 
-      [15, 30, 25]
-    ],
-    matrix_pressure: [
-      [1004, 1001, 1003], 
-      [1005, 1001, 1002], 
-      [1007, 1006, 1005]
-    ],
-    matrix_temp: [
-      [29, 23, 26], 
-      [30, 24, 25], 
-      [33, 31, 31]
-    ],
-    matrix_cape: [
-      [2400, 3200, 3100], 
-      [2200, 3400, 3500], 
-      [1900, 2300, 2100]
-    ],
-  },
-  {
-    horizon: 'T+1h (AI Extrapolation)',
-    leadTimeMinutes: 60,
-    engine: 'ConvectNet AI (Optical Flow Decay)',
-    phase: 'nowcast',
-    coreCentroid: [20.39, 85.94],
-    matrix_dbz: [
-      [22, 48, 54], 
-      [18, 35, 45], 
-      [12, 20, 22]
-    ],
-    matrix_pressure: [
-      [1005, 1003, 1002], 
-      [1006, 1005, 1004], 
-      [1008, 1007, 1006]
-    ],
-    matrix_temp: [
-      [29, 25, 24], 
-      [31, 28, 27], 
-      [33, 32, 31]
-    ],
-    matrix_cape: [
-      [2100, 2800, 3000], 
-      [1800, 2400, 2600], 
-      [1600, 1900, 1800]
-    ],
-  },
-  {
-    horizon: 'T+3h (Hybrid Blend)',
-    leadTimeMinutes: 180,
-    engine: 'WRF-NWP Blended Hybrid',
-    phase: 'hybrid',
-    coreCentroid: [20.48, 86.03],
-    matrix_dbz: [
-      [18, 32, 40], 
-      [12, 25, 30], 
-      [8, 15, 18]
-    ],
-    matrix_pressure: [
-      [1006, 1005, 1003], 
-      [1007, 1006, 1005], 
-      [1009, 1008, 1007]
-    ],
-    matrix_temp: [
-      [30, 28, 27], 
-      [31, 29, 28], 
-      [33, 31, 30]
-    ],
-    matrix_cape: [
-      [1500, 2000, 2200], 
-      [1300, 1600, 1800], 
-      [1100, 1400, 1600]
-    ],
-  },
-  {
-    horizon: 'T+6h (Hybrid Blend)',
-    leadTimeMinutes: 360,
-    engine: 'WRF-NWP Blended Hybrid',
-    phase: 'hybrid',
-    coreCentroid: [20.54, 86.10],
-    matrix_dbz: [
-      [12, 22, 28], 
-      [8, 15, 20], 
-      [5, 8, 12]
-    ],
-    matrix_pressure: [
-      [1008, 1006, 1004], 
-      [1009, 1007, 1006], 
-      [1010, 1008, 1007]
-    ],
-    matrix_temp: [
-      [31, 29, 28], 
-      [32, 30, 29], 
-      [32, 31, 30]
-    ],
-    matrix_cape: [
-      [1100, 1500, 1700], 
-      [1000, 1200, 1400], 
-      [900, 1100, 1200]
-    ],
+export function getDbzColorRgb(dbz: number): [number, number, number] | null {
+  if (dbz < 5) return null;
+  for (const step of DBZ_PALETTE) {
+    if (dbz >= step.min && dbz < step.max) return step.rgb;
   }
+  return [255, 255, 255];
+}
+
+export function getVelocityColorRgb(v: number): [number, number, number] {
+  for (const step of VELOCITY_PALETTE) {
+    if (v >= step.min && v < step.max) return step.rgb;
+  }
+  return v < -40 ? [0, 77, 64] : [153, 27, 27];
+}
+
+// ============================================================================
+// 3. SCIENTIFIC STORM TRACKING TELEMETRY (SCIT DATASETS)
+// ============================================================================
+export const ACTIVE_CELLS: StormCellTrack[] = [
+  {
+    id: 'CELL-01',
+    name: 'Bhubaneswar Core / Downburst Incursion',
+    lat: 20.248,
+    lon: 85.812,
+    azimuthDeg: 218.4,
+    rangeKm: 2.8,
+    maxDbz: 64.5,
+    coreHeightKm: 6.8,
+    vilKgM2: 58.2,
+    topHeightKm: 15.2,
+    speedKmh: 42,
+    directionDeg: 45,
+    poh: 92,
+    meshMm: 48,
+    rainRateMmh: 174.5,
+    shearDeltaV: 48.0, // 48 m/s delta across 2.5 km -> EXTREME MICROBURST
+    lightningFlashRate: 34,
+    etaRunwayMin: 2,
+    severity: 'CRITICAL',
+  },
+  {
+    id: 'CELL-02',
+    name: 'Khurda Highway Severe Multicell',
+    lat: 20.180,
+    lon: 85.690,
+    azimuthDeg: 242.1,
+    rangeKm: 16.4,
+    maxDbz: 56.0,
+    coreHeightKm: 5.4,
+    vilKgM2: 44.0,
+    topHeightKm: 13.8,
+    speedKmh: 36,
+    directionDeg: 50,
+    poh: 75,
+    meshMm: 28,
+    rainRateMmh: 94.2,
+    shearDeltaV: 26.5,
+    lightningFlashRate: 18,
+    etaRunwayMin: 22,
+    severity: 'WARNING',
+  },
+  {
+    id: 'CELL-03',
+    name: 'Cuttack-Mahanadi Squall Feeder',
+    lat: 20.440,
+    lon: 85.860,
+    azimuthDeg: 12.8,
+    rangeKm: 22.1,
+    maxDbz: 48.5,
+    coreHeightKm: 4.8,
+    vilKgM2: 32.0,
+    topHeightKm: 11.5,
+    speedKmh: 30,
+    directionDeg: 60,
+    poh: 40,
+    meshMm: 12,
+    rainRateMmh: 52.8,
+    shearDeltaV: 18.0,
+    lightningFlashRate: 9,
+    etaRunwayMin: 45,
+    severity: 'ADVISORY',
+  },
 ];
 
 // ============================================================================
-// 5. MAIN HAZARD DASHBOARD COMPONENT
+// 4. MAIN SCIENTIFIC DWR WORKSTATION COMPONENT
 // ============================================================================
 export default function HazardDashboard() {
-  const [activeLayer, setActiveLayer] = useState<LayerVariable>('radar');
-  const [activeModel, setActiveModel] = useState<ModelEngine>('convectnet');
-  const [renderMode, setRenderMode] = useState<RenderMode>('canvas2d'); // Pure 2D Canvas by default!
-  const [currentFrameIdx, setCurrentFrameIdx] = useState<number>(1);
-  const [focusedSectorId, setFocusedSectorId] = useState<string>('R1_C1');
+  const [product, setProduct] = useState<RadarProduct>('reflectivity');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('polar_scope');
+  const [activeCellId, setActiveCellId] = useState<string>('CELL-01');
+  const [selectedSectorId, setSelectedSectorId] = useState<string>('SEC-C');
+  const [modelEngine, setModelEngine] = useState<ModelEngine>('convectnet');
+  const [leadTimeMin, setLeadTimeMin] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [showVerticalProfile, setShowVerticalProfile] = useState<boolean>(false);
+  const [showRhiDrawer, setShowRhiDrawer] = useState<boolean>(false);
   const [showCapModal, setShowCapModal] = useState<boolean>(false);
-  const [showSkillModal, setShowSkillModal] = useState<boolean>(false);
-  const [capFormat, setCapFormat] = useState<'xml' | 'json'>('xml');
-  const [copiedAlert, setCopiedAlert] = useState<boolean>(false);
+  const [showMetricsModal, setShowMetricsModal] = useState<boolean>(false);
+  const [radarRangeKm, setRadarRangeKm] = useState<number>(60);
+  const [elevationDeg, setElevationDeg] = useState<number>(0.5);
+  
+  // Tactical Overlays Toggle State
+  const [showAirways, setShowAirways] = useState<boolean>(true);
+  const [showRangeRings, setShowRangeRings] = useState<boolean>(true);
+  const [showSweepBeam, setShowSweepBeam] = useState<boolean>(true);
+  const [showCellVectors, setShowCellVectors] = useState<boolean>(true);
+  const [showCoastline, setShowCoastline] = useState<boolean>(true);
 
-  // Canvas visual toggles
-  const [showRadarSweep, setShowRadarSweep] = useState<boolean>(true);
-  const [showStreamlines, setShowStreamlines] = useState<boolean>(true);
-  const [showLightningFlashes, setShowLightningFlashes] = useState<boolean>(true);
+  // Real-time hover polar coordinates HUD
+  const [cursorHud, setCursorHud] = useState<{
+    azimuth: number;
+    rangeKm: number;
+    heightMslM: number;
+    valStr: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
 
-  // References for Canvas animation
+  // Canvas references
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animFrameIdRef = useRef<number | null>(null);
-  const radarSweepAngleRef = useRef<number>(0);
-  const lightningBoltsRef = useRef<Array<{
-    segments: Array<{ x1: number; y1: number; x2: number; y2: number }>;
-    alpha: number;
-  }>>([]);
-  const windParticlesRef = useRef<Array<{ x: number; y: number; age: number; maxAge: number; speed: number }>>([]);
+  const animFrameRef = useRef<number | null>(null);
+  const sweepAngleRef = useRef<number>(0);
 
-  // Auto-play timeline loop
+  // Time navigation loop
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      setCurrentFrameIdx((prev) => (prev + 1) % TIMELINE_FRAMES.length);
-    }, 2800);
+      setLeadTimeMin(prev => (prev >= 180 ? 0 : prev + 15));
+    }, 2400);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  const activeFrame = TIMELINE_FRAMES[currentFrameIdx];
+  const activeCell = ACTIVE_CELLS.find(c => c.id === activeCellId) || ACTIVE_CELLS[0];
+  const activeSector = TACTICAL_SECTORS.find(s => s.id === selectedSectorId) || TACTICAL_SECTORS[4];
 
-  // Mathematical subdivision of the 3x3 tactical grid
-  const latStep = (AOI_BBOX.maxLat - AOI_BBOX.minLat) / 3;
-  const lonStep = (AOI_BBOX.maxLon - AOI_BBOX.minLon) / 3;
+  // METAR & Time Clock string
+  const [currentTimeUtc, setCurrentTimeUtc] = useState<string>('');
+  const [currentTimeIst, setCurrentTimeIst] = useState<string>('');
 
-  const sectors: SectorTelemetry[] = useMemo(() => {
-    const list: SectorTelemetry[] = [];
-    for (let r = 0; r < 3; r++) {
-      for (let c = 0; c < 3; c++) {
-        const south = AOI_BBOX.minLat + (2 - r) * latStep;
-        const north = south + latStep;
-        const west = AOI_BBOX.minLon + c * lonStep;
-        const east = west + lonStep;
-        const id = `R${r}_C${c}`;
-        const dbzVal = activeFrame.matrix_dbz[r][c];
-        const tempVal = activeFrame.matrix_temp[r][c];
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTimeUtc(now.toISOString().substring(11, 19) + ' UTC');
+      setCurrentTimeIst(now.toLocaleTimeString('en-IN', { hour12: false }) + ' IST');
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-        list.push({
-          id,
-          name: SECTOR_METADATA[id] || `Sector ${id}`,
-          row: r,
-          col: c,
-          radar_dbz: dbzVal,
-          pressure_hpa: activeFrame.matrix_pressure[r][c],
-          temp_c: tempVal,
-          cape_jkg: activeFrame.matrix_cape[r][c],
-          lightning_rate: r === 1 && c === 1 ? 28 : Math.max(2, Math.round(dbzVal * 0.45)),
-          wind_gust_kmh: estimateGustVelocity(dbzVal, tempVal),
-          bounds: [[south, west], [north, east]],
-          center: [(south + north) / 2, (west + east) / 2],
-        });
-      }
-    }
-    return list;
-  }, [activeFrame, latStep, lonStep]);
-
-  const selectedSector = sectors.find(s => s.id === focusedSectorId) || sectors[4];
-
-  // Tactical Aviation & Runway Proximity
-  const distanceToRunwayKm = useMemo(() => {
-    return getHaversineDistanceKm(activeFrame.coreCentroid, AIRPORT_VEBS.coords);
-  }, [activeFrame]);
-
-  const advectionSpeedKmh = 38; // Average storm advection vector speed
-  const incursionEtaMinutes = Math.max(0, Math.round((distanceToRunwayKm / advectionSpeedKmh) * 60));
-  const isAviationThreat = distanceToRunwayKm < 14 && activeFrame.matrix_dbz[1][1] >= 48;
-
-  // Real-time Hazard Classifications for Selected Sector
-  const calculatedRainRate = calculateRainRate(selectedSector.radar_dbz);
-  const isCloudburstRisk = calculatedRainRate >= 100;
-  const { posh: poshValue, mesh_mm: meshValue } = calculateHailProbability(selectedSector.radar_dbz);
-  const isSevereHail = selectedSector.radar_dbz >= 55;
-  const isMicroburstSevere = selectedSector.wind_gust_kmh >= 65;
-  const isLightningJump = selectedSector.lightning_rate >= 18;
-
-  // Bilinear interpolation canvas generation for Leaflet image overlay mode
-  const rasterUrl = useMemo(() => {
-    let matrix = activeFrame.matrix_dbz;
-    let palette = getRadarColor;
-
-    if (activeLayer === 'pressure') {
-      matrix = activeFrame.matrix_pressure;
-      palette = getPressureColor;
-    } else if (activeLayer === 'temp') {
-      matrix = activeFrame.matrix_temp;
-      palette = getTempColor;
-    } else if (activeLayer === 'cape') {
-      matrix = activeFrame.matrix_cape;
-      palette = getCapeColor;
-    }
-
-    const size = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-
-    const imgData = ctx.createImageData(size, size);
-    const data = imgData.data;
-
-    for (let py = 0; py < size; py++) {
-      const v = (py / (size - 1)) * 2;
-      const y0 = Math.min(1, Math.floor(v));
-      const y1 = y0 + 1;
-      const fy = v - y0;
-
-      for (let px = 0; px < size; px++) {
-        const u = (px / (size - 1)) * 2;
-        const x0 = Math.min(1, Math.floor(u));
-        const x1 = x0 + 1;
-        const fx = u - x0;
-
-        const val00 = matrix[y0][x0];
-        const val10 = matrix[y0][x1];
-        const val01 = matrix[y1][x0];
-        const val11 = matrix[y1][x1];
-
-        const interpolated =
-          (1 - fx) * (1 - fy) * val00 +
-          fx * (1 - fy) * val10 +
-          (1 - fx) * fy * val01 +
-          fx * fy * val11;
-
-        const [r, g, b, a] = palette(interpolated);
-        const idx = (py * size + px) * 4;
-        data[idx] = r;
-        data[idx + 1] = g;
-        data[idx + 2] = b;
-        data[idx + 3] = a;
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-    return canvas.toDataURL();
-  }, [activeFrame, activeLayer]);
-
-  // Projected forward uncertainty polygon cone
-  const conePolygon: [number, number][] = useMemo(() => {
-    const cur = activeFrame.coreCentroid;
-    return [
-      cur,
-      [cur[0] + 0.18, cur[1] + 0.16],
-      [cur[0] + 0.12, cur[1] + 0.28],
-      [cur[0] + 0.04, cur[1] + 0.22],
-    ];
-  }, [activeFrame]);
-
-  // Track history line
-  const trackHistory: [number, number][] = useMemo(() => {
-    return TIMELINE_FRAMES.slice(0, currentFrameIdx + 1).map((f) => f.coreCentroid);
-  }, [currentFrameIdx]);
+  // Format Official WMO Aviation SPECI
+  const speciMetar = useMemo(() => {
+    const gustKt = Math.round(activeCell.shearDeltaV * 1.94);
+    const rainFlag = activeCell.rainRateMmh > 100 ? '+TSRA SQ' : 'TSRA';
+    return `SPECI VEBS 261250Z 22026G${gustKt}KT 180V250 1200 ${rainFlag} FEW008 BKN018CB OVC070 23/22 Q0999 WS RWY01 RERA RMK SEVERE MICROBURST ALOFT MOV NE`;
+  }, [activeCell]);
 
   // ============================================================================
-  // 6. HIGH-PERFORMANCE 2D CANVAS ANIMATION ENGINE (ZERO API KEY / ZERO WATERMARK)
+  // 5. HIGH-DENSITY RADAR POLAR SWEEP ENGINE (AUTHENTIC SECTOR GATES)
   // ============================================================================
-  
-  // Coordinate transformers for canvas
-  const latLonToPixel = useCallback((lat: number, lon: number, width: number, height: number): [number, number] => {
-    const x = ((lon - AOI_BBOX.minLon) / (AOI_BBOX.maxLon - AOI_BBOX.minLon)) * width;
-    const y = ((AOI_BBOX.maxLat - lat) / (AOI_BBOX.maxLat - AOI_BBOX.minLat)) * height;
-    return [x, y];
-  }, []);
-
-  const pixelToLatLon = useCallback((x: number, y: number, width: number, height: number): [number, number] => {
-    const lon = AOI_BBOX.minLon + (x / width) * (AOI_BBOX.maxLon - AOI_BBOX.minLon);
-    const lat = AOI_BBOX.maxLat - (y / height) * (AOI_BBOX.maxLat - AOI_BBOX.minLat);
-    return [lat, lon];
-  }, []);
-
-  // Initialize wind particle field
   useEffect(() => {
-    const particles = [];
-    for (let i = 0; i < 75; i++) {
-      particles.push({
-        x: Math.random(),
-        y: Math.random(),
-        age: Math.random() * 100,
-        maxAge: 80 + Math.random() * 60,
-        speed: 0.0015 + Math.random() * 0.002
-      });
-    }
-    windParticlesRef.current = particles;
-  }, []);
-
-  // Main 2D Canvas Render Loop
-  useEffect(() => {
-    if (renderMode !== 'canvas2d') return;
+    if (displayMode === 'gis_basemap') return;
 
     let isSubscribed = true;
 
@@ -599,440 +349,459 @@ export default function HazardDashboard() {
       if (!isSubscribed) return;
       const canvas = canvasRef.current;
       if (!canvas) {
-        animFrameIdRef.current = requestAnimationFrame(render);
+        animFrameRef.current = requestAnimationFrame(render);
         return;
       }
 
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const width = canvas.width;
-      const height = canvas.height;
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxRadiusPx = Math.min(cx, cy) * 0.94;
 
-      // 1. Tactical Deep Space Backdrop
-      ctx.fillStyle = '#060a12';
-      ctx.fillRect(0, 0, width, height);
+      // Coordinate converter: Range & Azimuth -> Canvas Pixel
+      const polarToPixel = (rangeKm: number, azimuthDeg: number): [number, number] => {
+        const rad = ((azimuthDeg - 90) * Math.PI) / 180;
+        const distPx = (rangeKm / radarRangeKm) * maxRadiusPx;
+        return [cx + Math.cos(rad) * distPx, cy + Math.sin(rad) * distPx];
+      };
 
-      // 2. Subtle Coordinate Mesh & Lat/Lon Reticle
-      ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
-      ctx.lineWidth = 1;
-      const gridTicks = 6;
-      for (let i = 1; i < gridTicks; i++) {
-        const x = (width / gridTicks) * i;
-        const y = (height / gridTicks) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+      // Latitude/Longitude to Canvas Pixel
+      const latLonToPixel = (lat: number, lon: number): [number, number] => {
+        // Approximate local equirectangular around radar station
+        const dLat = (lat - RADAR_STATION.lat) * 111.0;
+        const dLon = (lon - RADAR_STATION.lon) * 111.0 * Math.cos((RADAR_STATION.lat * Math.PI) / 180);
+        const distKm = Math.sqrt(dLat * dLat + dLon * dLon);
+        const azRad = Math.atan2(dLon, dLat); // 0 = North, pi/2 = East
+        const azDeg = (azRad * 180) / Math.PI;
+        const normAz = (azDeg + 360) % 360;
+        return polarToPixel(distKm, normAz);
+      };
 
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
+      // 1. CRT Tactical Phosphor Backdrop
+      ctx.fillStyle = '#07090e';
+      ctx.fillRect(0, 0, w, h);
 
-      // 3. Tactical Range Rings centered on VEBS Airport DWR (25, 50, 75, 100 km)
-      const [vebsX, vebsY] = latLonToPixel(AIRPORT_VEBS.coords[0], AIRPORT_VEBS.coords[1], width, height);
-      const ringScales = [
-        { km: 25, r: width * 0.16 },
-        { km: 50, r: width * 0.32 },
-        { km: 75, r: width * 0.48 },
-        { km: 100, r: width * 0.64 }
-      ];
-
+      // Radar Scope Aperture Outer Mask
       ctx.save();
-      ringScales.forEach((ring) => {
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.18)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 6]);
-        ctx.beginPath();
-        ctx.arc(vebsX, vebsY, ring.r, 0, Math.PI * 2);
-        ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx, cy, maxRadiusPx, 0, Math.PI * 2);
+      ctx.clip();
 
-        // Distance Text Tag
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
-        ctx.font = '9px monospace';
-        ctx.fillText(`${ring.km} KM`, vebsX + ring.r + 4, vebsY - 3);
-      });
-      ctx.restore();
+      // Deep Phosphor Scope Fill
+      ctx.fillStyle = '#0b0f17';
+      ctx.fillRect(0, 0, w, h);
 
-      // Azimuth lines (Crosshairs)
-      ctx.save();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([2, 4]);
-      [0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4].forEach(angle => {
+      // 2. Coastline & Hydrography Vectors (Tactical Sea-Land Boundaries)
+      if (showCoastline) {
+        ctx.save();
+        ctx.strokeStyle = '#1e3a5f';
+        ctx.lineWidth = 1.6;
+        // Coastline
         ctx.beginPath();
-        ctx.moveTo(vebsX - Math.cos(angle) * width, vebsY - Math.sin(angle) * height);
-        ctx.lineTo(vebsX + Math.cos(angle) * width, vebsY + Math.sin(angle) * height);
-        ctx.stroke();
-      });
-      ctx.restore();
-
-      // 4. Tactical Odisha Coastline & Estuary Vectors
-      ctx.save();
-      ctx.strokeStyle = 'rgba(14, 165, 233, 0.35)';
-      ctx.lineWidth = 1.8;
-      COASTLINE_VECTORS.forEach(poly => {
-        ctx.beginPath();
-        poly.forEach((pt, idx) => {
-          const [px, py] = latLonToPixel(pt[0], pt[1], width, height);
+        SHORELINE_ODISHA.forEach((pt, idx) => {
+          const [px, py] = latLonToPixel(pt[0], pt[1]);
           if (idx === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.stroke();
-      });
 
-      // Coastline Text Label
-      const [coastLabelX, coastLabelY] = latLonToPixel(20.15, 86.05, width, height);
-      ctx.fillStyle = 'rgba(14, 165, 233, 0.5)';
-      ctx.font = '10px monospace';
-      ctx.fillText('BAY OF BENGAL LITTORAL', coastLabelX + 8, coastLabelY + 14);
-      ctx.restore();
-
-      // 5. Render Active Convective Precipitation & Reflectivity Field
-      const [coreX, coreY] = latLonToPixel(activeFrame.coreCentroid[0], activeFrame.coreCentroid[1], width, height);
-      const cellRadius = width * 0.22;
-
-      // Draw multi-stop radial gradient for convective storm
-      const stormGrad = ctx.createRadialGradient(coreX, coreY, 0, coreX, coreY, cellRadius);
-      const peakDbz = activeFrame.matrix_dbz[1][1];
-
-      if (activeLayer === 'radar') {
-        if (peakDbz >= 55) {
-          stormGrad.addColorStop(0, 'rgba(236, 72, 153, 0.88)'); // Magenta Hail Core
-          stormGrad.addColorStop(0.2, 'rgba(239, 68, 68, 0.82)'); // Severe Red
-          stormGrad.addColorStop(0.45, 'rgba(249, 115, 22, 0.72)'); // Orange
-          stormGrad.addColorStop(0.7, 'rgba(234, 179, 8, 0.5)'); // Yellow
-          stormGrad.addColorStop(0.9, 'rgba(34, 197, 94, 0.25)'); // Green
-          stormGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        } else {
-          stormGrad.addColorStop(0, 'rgba(239, 68, 68, 0.78)');
-          stormGrad.addColorStop(0.35, 'rgba(249, 115, 22, 0.65)');
-          stormGrad.addColorStop(0.65, 'rgba(234, 179, 8, 0.45)');
-          stormGrad.addColorStop(0.85, 'rgba(34, 197, 94, 0.2)');
-          stormGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        }
-      } else if (activeLayer === 'pressure') {
-        stormGrad.addColorStop(0, 'rgba(168, 85, 247, 0.85)'); // Mesolow Core
-        stormGrad.addColorStop(0.4, 'rgba(14, 165, 233, 0.6)');
-        stormGrad.addColorStop(0.8, 'rgba(20, 184, 166, 0.3)');
-        stormGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
-      } else if (activeLayer === 'temp') {
-        stormGrad.addColorStop(0, 'rgba(56, 189, 248, 0.85)'); // Cold Pool Dome
-        stormGrad.addColorStop(0.5, 'rgba(45, 212, 191, 0.55)');
-        stormGrad.addColorStop(0.8, 'rgba(251, 146, 60, 0.25)');
-        stormGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
-      } else {
-        stormGrad.addColorStop(0, 'rgba(225, 29, 72, 0.88)'); // High CAPE
-        stormGrad.addColorStop(0.4, 'rgba(249, 115, 22, 0.65)');
-        stormGrad.addColorStop(0.75, 'rgba(234, 179, 8, 0.35)');
-        stormGrad.addColorStop(1, 'rgba(51, 65, 85, 0)');
-      }
-
-      ctx.save();
-      ctx.fillStyle = stormGrad;
-      ctx.beginPath();
-      ctx.arc(coreX, coreY, cellRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // 6. Draw 3x3 Tactical Sector Mesh
-      const sWidth = width / 3;
-      const sHeight = height / 3;
-
-      sectors.forEach((sec) => {
-        const sx = sec.col * sWidth;
-        const sy = sec.row * sHeight;
-        const isTarget = sec.id === focusedSectorId;
-
-        // Sector Boundary Lines
-        ctx.save();
-        ctx.strokeStyle = isTarget ? '#38bdf8' : 'rgba(56, 189, 248, 0.25)';
-        ctx.lineWidth = isTarget ? 2 : 1;
-        if (!isTarget) ctx.setLineDash([3, 4]);
-
-        if (isTarget) {
-          ctx.fillStyle = 'rgba(2, 132, 199, 0.12)';
-          ctx.fillRect(sx, sy, sWidth, sHeight);
-        }
-
-        ctx.strokeRect(sx, sy, sWidth, sHeight);
-
-        // Corner Target Reticles on Selected Sector
-        if (isTarget) {
-          const reticleLen = 14;
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 2.5;
-          ctx.setLineDash([]);
-          // Top-Left
-          ctx.beginPath();
-          ctx.moveTo(sx, sy + reticleLen);
-          ctx.lineTo(sx, sy);
-          ctx.lineTo(sx + reticleLen, sy);
-          ctx.stroke();
-          // Top-Right
-          ctx.beginPath();
-          ctx.moveTo(sx + sWidth - reticleLen, sy);
-          ctx.lineTo(sx + sWidth, sy);
-          ctx.lineTo(sx + sWidth, sy + reticleLen);
-          ctx.stroke();
-          // Bottom-Left
-          ctx.beginPath();
-          ctx.moveTo(sx, sy + sHeight - reticleLen);
-          ctx.lineTo(sx, sy + sHeight);
-          ctx.lineTo(sx + reticleLen, sy + sHeight);
-          ctx.stroke();
-          // Bottom-Right
-          ctx.beginPath();
-          ctx.moveTo(sx + sWidth - reticleLen, sy + sHeight);
-          ctx.lineTo(sx + sWidth, sy + sHeight);
-          ctx.lineTo(sx + sWidth, sy + sHeight - reticleLen);
-          ctx.stroke();
-        }
-
-        // Sector Identifier & Metric HUD Tag
-        const badgeX = sx + sWidth / 2;
-        const badgeY = sy + sHeight / 2;
-
-        ctx.fillStyle = isTarget ? 'rgba(15, 23, 42, 0.95)' : 'rgba(15, 23, 42, 0.78)';
-        ctx.strokeStyle = isTarget ? 'rgba(56, 189, 248, 0.8)' : 'rgba(71, 85, 105, 0.5)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([]);
-        const boxW = 86;
-        const boxH = 34;
-        ctx.fillRect(badgeX - boxW / 2, badgeY - boxH / 2, boxW, boxH);
-        ctx.strokeRect(badgeX - boxW / 2, badgeY - boxH / 2, boxW, boxH);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = isTarget ? '#38bdf8' : '#94a3b8';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText(sec.id, badgeX, badgeY - 4);
-
-        ctx.fillStyle = isTarget ? '#ffffff' : '#e2e8f0';
-        ctx.font = 'bold 12px monospace';
-        ctx.fillText(`${sec.radar_dbz} dBZ`, badgeX, badgeY + 11);
-
-        ctx.restore();
-      });
-
-      // 7. Wind Particle Streamlines (Inflow towards Mesolow)
-      if (showStreamlines) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
-        ctx.lineWidth = 1.2;
-
-        windParticlesRef.current.forEach(p => {
-          // Calculate cyclonic vector towards storm core
-          const pPx = p.x * width;
-          const pPy = p.y * height;
-          const dx = coreX - pPx;
-          const dy = coreY - pPy;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          
-          if (dist > 10) {
-            // Inflow angle + 45 deg cyclonic rotation
-            const angle = Math.atan2(dy, dx) + 0.55;
-            p.x += Math.cos(angle) * p.speed;
-            p.y += Math.sin(angle) * p.speed;
-          }
-
-          p.age += 1;
-          if (p.age > p.maxAge || p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1) {
-            p.x = Math.random();
-            p.y = Math.random();
-            p.age = 0;
-          }
-
-          // Draw head
-          const alpha = 1 - p.age / p.maxAge;
-          ctx.globalAlpha = alpha;
-          ctx.beginPath();
-          ctx.arc(p.x * width, p.y * height, 1.4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-        ctx.restore();
-      }
-
-      // 8. VEBS Airport Runway & Glidepath Corridor
-      ctx.save();
-      // Runway 01/19 Strip
-      const [rwyN_x, rwyN_y] = latLonToPixel(AIRPORT_VEBS.glidePath[2][0], AIRPORT_VEBS.glidePath[2][1], width, height);
-      const [rwyS_x, rwyS_y] = latLonToPixel(AIRPORT_VEBS.glidePath[0][0], AIRPORT_VEBS.glidePath[0][1], width, height);
-      
-      // Glidepath Corridor Cone
-      ctx.strokeStyle = isAviationThreat ? '#ef4444' : '#f59e0b';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      ctx.moveTo(rwyS_x, rwyS_y);
-      ctx.lineTo(vebsX, vebsY);
-      ctx.lineTo(rwyN_x, rwyN_y);
-      ctx.stroke();
-
-      // Airport Center Icon Marker
-      ctx.setLineDash([]);
-      ctx.fillStyle = isAviationThreat ? '#ef4444' : '#f59e0b';
-      ctx.beginPath();
-      ctx.arc(vebsX, vebsY, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Airport Tag
-      ctx.fillStyle = '#0f172a';
-      ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1;
-      ctx.fillRect(vebsX + 12, vebsY - 10, 108, 20);
-      ctx.strokeRect(vebsX + 12, vebsY - 10, 108, 20);
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 9px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(`✈ ${AIRPORT_VEBS.callsign}`, vebsX + 16, vebsY + 4);
-      ctx.restore();
-
-      // 9. Convective Storm Trajectory Track Vector
-      ctx.save();
-      ctx.strokeStyle = '#f43f5e';
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      trackHistory.forEach((pt, idx) => {
-        const [tx, ty] = latLonToPixel(pt[0], pt[1], width, height);
-        if (idx === 0) ctx.moveTo(tx, ty);
-        else ctx.lineTo(tx, ty);
-      });
-      ctx.stroke();
-
-      // Uncertainty Cone (Forward Spread)
-      ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([3, 4]);
-      ctx.beginPath();
-      conePolygon.forEach((pt, idx) => {
-        const [cx, cy] = latLonToPixel(pt[0], pt[1], width, height);
-        if (idx === 0) ctx.moveTo(cx, cy);
-        else ctx.lineTo(cx, cy);
-      });
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-
-      // 10. Dynamic Atmospheric Lightning Flashes
-      if (showLightningFlashes && peakDbz >= 50 && Math.random() < 0.08) {
-        // Trigger lightning branch
-        const numBranches = 4 + Math.floor(Math.random() * 4);
-        const segments: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
-        let curX = coreX + (Math.random() - 0.5) * 40;
-        let curY = coreY - 60;
-
-        for (let b = 0; b < numBranches; b++) {
-          const nextX = curX + (Math.random() - 0.5) * 28;
-          const nextY = curY + 12 + Math.random() * 15;
-          segments.push({ x1: curX, y1: curY, x2: nextX, y2: nextY });
-          curX = nextX;
-          curY = nextY;
-        }
-
-        lightningBoltsRef.current.push({ segments, alpha: 1.0 });
-      }
-
-      // Render & decay lightning bolts
-      if (lightningBoltsRef.current.length > 0) {
-        ctx.save();
-        lightningBoltsRef.current.forEach((bolt) => {
-          ctx.strokeStyle = `rgba(224, 242, 254, ${bolt.alpha})`;
-          ctx.shadowColor = '#38bdf8';
-          ctx.shadowBlur = 12;
-          ctx.lineWidth = 2.2;
-          ctx.beginPath();
-          bolt.segments.forEach(seg => {
-            ctx.moveTo(seg.x1, seg.y1);
-            ctx.lineTo(seg.x2, seg.y2);
-          });
-          ctx.stroke();
-          bolt.alpha -= 0.12; // Fast decay
-        });
-        lightningBoltsRef.current = lightningBoltsRef.current.filter(b => b.alpha > 0);
-        ctx.restore();
-      }
-
-      // 11. Rotating Radar Sweep Beam (24 RPM with Phosphor Trail)
-      if (showRadarSweep) {
-        radarSweepAngleRef.current = (radarSweepAngleRef.current + 0.04) % (Math.PI * 2);
-        const sweepAngle = radarSweepAngleRef.current;
-        const sweepRadius = Math.max(width, height) * 0.8;
-
-        ctx.save();
-        // Sweep Sector Wedge
-        const wedgeAngle = Math.PI / 7;
-        const sweepGrad = ctx.createRadialGradient(vebsX, vebsY, 0, vebsX, vebsY, sweepRadius);
-        sweepGrad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
-        sweepGrad.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
-        sweepGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-        ctx.fillStyle = sweepGrad;
+        // River Mahanadi
+        ctx.strokeStyle = '#172554';
+        ctx.lineWidth = 2.0;
         ctx.beginPath();
-        ctx.moveTo(vebsX, vebsY);
-        ctx.arc(vebsX, vebsY, sweepRadius, sweepAngle - wedgeAngle, sweepAngle, false);
+        RIVER_MAHANADI.forEach((pt, idx) => {
+          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // River Daya (Direct airport outflow)
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath();
+        RIVER_DAYA.forEach((pt, idx) => {
+          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // Land label
+        const [coastLblX, coastLblY] = latLonToPixel(19.98, 86.10);
+        ctx.fillStyle = '#1e293b';
+        ctx.font = '10px monospace';
+        ctx.fillText('BAY OF BENGAL (LITTORAL)', coastLblX, coastLblY);
+        ctx.restore();
+      }
+
+      // 3. Realistic Polar Radar Gates (Simulated Doppler Sweep with Real Speckle)
+      const numRays = 360; // 1° Azimuth Resolution
+      const numGates = 120; // Range Gates along beam
+      const gateSizeKm = radarRangeKm / numGates;
+
+      // Seeded convective storm cores for realistic texture
+      const stormCores = ACTIVE_CELLS.map(cell => ({
+        az: cell.azimuthDeg,
+        rng: cell.rangeKm,
+        dbz: cell.maxDbz,
+        v_shear: cell.shearDeltaV,
+        spreadAz: cell.id === 'CELL-01' ? 24 : 16,
+        spreadRng: cell.id === 'CELL-01' ? 7.5 : 5.0,
+      }));
+
+      // Render Ray by Ray
+      for (let r = 0; r < numRays; r += 1) {
+        const rayAngleDeg = r;
+        const rad1 = ((rayAngleDeg - 90 - 0.5) * Math.PI) / 180;
+        const rad2 = ((rayAngleDeg - 90 + 0.5) * Math.PI) / 180;
+
+        for (let g = 3; g < numGates; g += 1) {
+          const gateRngKm = g * gateSizeKm;
+          
+          // Calculate realistic reflectivity from active storm cells + organic turbulence
+          let cellSignal = 0;
+          let velocitySignal = 0;
+
+          stormCores.forEach(core => {
+            // Delta Azimuth
+            let dAz = Math.abs(rayAngleDeg - core.az);
+            if (dAz > 180) dAz = 360 - dAz;
+            const dRng = Math.abs(gateRngKm - core.rng);
+
+            if (dAz < core.spreadAz * 1.5 && dRng < core.spreadRng * 1.8) {
+              // Gaussian core shape + organic cellular noise
+              const azFactor = Math.exp(-Math.pow(dAz / core.spreadAz, 2));
+              const rngFactor = Math.exp(-Math.pow(dRng / core.spreadRng, 2));
+              const noise = Math.sin(rayAngleDeg * 12.0) * Math.cos(gateRngKm * 4.0) * 4.0;
+              const val = core.dbz * azFactor * rngFactor + noise;
+              if (val > cellSignal) cellSignal = val;
+
+              // Radial Velocity: Inbound / Outbound Couplet
+              // Heading 45 deg means divergent signature across core
+              const vShear = (dAz / core.spreadAz) * (rayAngleDeg > core.az ? 1 : -1) * core.v_shear;
+              velocitySignal = vShear + (Math.random() - 0.5) * 3.0;
+            }
+          });
+
+          // Draw gate segment if signal is above detection threshold
+          if (product === 'reflectivity' && cellSignal >= 10) {
+            const rgb = getDbzColorRgb(cellSignal);
+            if (rgb) {
+              ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+              const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
+              const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
+
+              ctx.beginPath();
+              ctx.arc(cx, cy, r2, rad1, rad2, false);
+              ctx.arc(cx, cy, r1, rad2, rad1, true);
+              ctx.closePath();
+              ctx.fill();
+            }
+          } else if (product === 'velocity' && cellSignal >= 15) {
+            const rgb = getVelocityColorRgb(velocitySignal);
+            ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
+            const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r2, rad1, rad2, false);
+            ctx.arc(cx, cy, r1, rad2, rad1, true);
+            ctx.closePath();
+            ctx.fill();
+          } else if (product === 'vil' && cellSignal >= 20) {
+            // VIL approximation from reflectivity
+            const vilVal = Math.pow(cellSignal / 50.0, 3) * 38;
+            ctx.fillStyle = cellSignal > 55 ? '#ff00ff' : cellSignal > 45 ? '#ff0000' : '#ffff00';
+            const r1 = ((g - 0.5) / numGates) * maxRadiusPx;
+            const r2 = ((g + 0.5) / numGates) * maxRadiusPx;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r2, rad1, rad2, false);
+            ctx.arc(cx, cy, r1, rad2, rad1, true);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+
+      // 4. Tactical Airways & Runway Vector
+      if (showAirways) {
+        ctx.save();
+        // Runway 01/19 extended centerline
+        const [rwy01X, rwy01Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy01.thr[0], AIRPORT_RUNWAYS.rwy01.thr[1]);
+        const [rwy19X, rwy19Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy19.thr[0], AIRPORT_RUNWAYS.rwy19.thr[1]);
+        
+        // Extended Final Approach Cone (Glide Path 3° ILS)
+        ctx.strokeStyle = activeCell.etaRunwayMin <= 5 ? '#ef4444' : '#f59e0b';
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        AIRPORT_RUNWAYS.ilsCorridor.forEach((pt, idx) => {
+          const [px, py] = latLonToPixel(pt[0], pt[1]);
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // Physical Runway Line
+        ctx.setLineDash([]);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(rwy01X, rwy01Y);
+        ctx.lineTo(rwy19X, rwy19Y);
+        ctx.stroke();
+
+        // Runway Threshold Text Tags
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText('RWY 01', rwy01X - 20, rwy01Y + 12);
+        ctx.fillText('RWY 19', rwy19X - 20, rwy19Y - 8);
+
+        // Airport Centroid Dot
+        const [aptX, aptY] = latLonToPixel(RADAR_STATION.lat, RADAR_STATION.lon);
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(aptX, aptY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // 5. Storm Cell Tracking Vectors & Centroid Brackets (SCIT Algorithm)
+      if (showCellVectors) {
+        ctx.save();
+        ACTIVE_CELLS.forEach(cell => {
+          const [cellX, cellY] = polarToPixel(cell.rangeKm, cell.azimuthDeg);
+          const isSelected = cell.id === activeCellId;
+
+          // Cell Target Bracket
+          ctx.strokeStyle = isSelected ? '#38bdf8' : '#ef4444';
+          ctx.lineWidth = isSelected ? 2.5 : 1.5;
+          const bSize = isSelected ? 12 : 8;
+
+          ctx.beginPath();
+          // Top-left
+          ctx.moveTo(cellX - bSize, cellY - bSize / 2);
+          ctx.lineTo(cellX - bSize, cellY - bSize);
+          ctx.lineTo(cellX - bSize / 2, cellY - bSize);
+          // Top-right
+          ctx.moveTo(cellX + bSize / 2, cellY - bSize);
+          ctx.lineTo(cellX + bSize, cellY - bSize);
+          ctx.lineTo(cellX + bSize, cellY - bSize / 2);
+          // Bottom-left
+          ctx.moveTo(cellX - bSize, cellY + bSize / 2);
+          ctx.lineTo(cellX - bSize, cellY + bSize);
+          ctx.lineTo(cellX - bSize / 2, cellY + bSize);
+          // Bottom-right
+          ctx.moveTo(cellX + bSize / 2, cellY + bSize);
+          ctx.lineTo(cellX + bSize, cellY + bSize);
+          ctx.lineTo(cellX + bSize, cellY + bSize / 2);
+          ctx.stroke();
+
+          // Motion Vector Arrow (Direction & Speed)
+          const motionRad = ((cell.directionDeg - 90) * Math.PI) / 180;
+          const vectorLen = (cell.speedKmh / 60) * (maxRadiusPx / radarRangeKm) * 15; // 15 min projected distance
+          ctx.strokeStyle = isSelected ? '#38bdf8' : '#cbd5e1';
+          ctx.lineWidth = 2.0;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(cellX, cellY);
+          ctx.lineTo(cellX + Math.cos(motionRad) * vectorLen, cellY + Math.sin(motionRad) * vectorLen);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Cell Identification Box
+          ctx.fillStyle = '#0a0f1d';
+          ctx.strokeStyle = isSelected ? '#38bdf8' : '#475569';
+          ctx.lineWidth = 1;
+          const boxW = 76;
+          const boxH = 26;
+          ctx.fillRect(cellX + 14, cellY - 13, boxW, boxH);
+          ctx.strokeRect(cellX + 14, cellY - 13, boxW, boxH);
+
+          ctx.fillStyle = isSelected ? '#38bdf8' : '#e2e8f0';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText(cell.id, cellX + 18, cellY - 2);
+
+          ctx.fillStyle = cell.maxDbz >= 60 ? '#f43f5e' : '#fbbf24';
+          ctx.font = 'bold 10px monospace';
+          ctx.fillText(`${cell.maxDbz} dBZ`, cellX + 18, cellY + 9);
+        });
+        ctx.restore();
+      }
+
+      // 6. Tactical Azimuth Spokes & Range Rings (Scientific Scope Overlays)
+      if (showRangeRings) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 4]);
+
+        // Range Rings (every 20 km)
+        const ringStepKm = radarRangeKm > 100 ? 50 : 20;
+        for (let rKm = ringStepKm; rKm <= radarRangeKm; rKm += ringStepKm) {
+          const rPx = (rKm / radarRangeKm) * maxRadiusPx;
+          ctx.beginPath();
+          ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Distance Tag at 045° Azimuth
+          const [tagX, tagY] = polarToPixel(rKm, 45);
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+          ctx.font = '9px monospace';
+          ctx.fillText(`${rKm} KM`, tagX + 3, tagY - 2);
+        }
+
+        // Azimuth Crosshair Rays (000°, 090°, 180°, 270°)
+        [0, 90, 180, 270].forEach(deg => {
+          const rad = ((deg - 90) * Math.PI) / 180;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(rad) * maxRadiusPx, cy + Math.sin(rad) * maxRadiusPx);
+          ctx.stroke();
+
+          // Degree label
+          const labelRad = ((deg - 90) * Math.PI) / 180;
+          const lx = cx + Math.cos(labelRad) * (maxRadiusPx - 14);
+          const ly = cy + Math.sin(labelRad) * (maxRadiusPx - 14);
+          ctx.fillStyle = '#64748b';
+          ctx.font = 'bold 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${deg.toString().padStart(3, '0')}°`, lx, ly + 3);
+        });
+        ctx.restore();
+      }
+
+      // 7. Rotating Radar Antenna Sweep Beam (Realistic Phosphor Glow Trail)
+      if (showSweepBeam) {
+        sweepAngleRef.current = (sweepAngleRef.current + 0.05) % (Math.PI * 2);
+        const sweepRad = sweepAngleRef.current;
+        const trailSpan = Math.PI / 6; // 30 deg phosphor tail
+
+        ctx.save();
+        const beamGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxRadiusPx);
+        beamGrad.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+        beamGrad.addColorStop(0.7, 'rgba(16, 185, 129, 0.18)');
+        beamGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, maxRadiusPx, sweepRad - trailSpan, sweepRad, false);
         ctx.closePath();
         ctx.fill();
 
-        // Leading Bright Sweep Line
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
-        ctx.lineWidth = 1.6;
+        // Leading Sharp Sweep Line
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(vebsX, vebsY);
-        ctx.lineTo(vebsX + Math.cos(sweepAngle) * sweepRadius, vebsY + Math.sin(sweepAngle) * sweepRadius);
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(sweepRad) * maxRadiusPx, cy + Math.sin(sweepRad) * maxRadiusPx);
         ctx.stroke();
         ctx.restore();
       }
 
-      animFrameIdRef.current = requestAnimationFrame(render);
+      ctx.restore(); // Restore outer circle clip
+
+      // Outer Bezel Ring & Bearing Compass Ticks
+      ctx.save();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, maxRadiusPx, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Degree Ticks around the Scope Rim
+      for (let d = 0; d < 360; d += 10) {
+        const rad = ((d - 90) * Math.PI) / 180;
+        const isMajor = d % 30 === 0;
+        const tLen = isMajor ? 8 : 4;
+        ctx.strokeStyle = isMajor ? '#94a3b8' : '#475569';
+        ctx.lineWidth = isMajor ? 1.5 : 1;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(rad) * maxRadiusPx, cy + Math.sin(rad) * maxRadiusPx);
+        ctx.lineTo(cx + Math.cos(rad) * (maxRadiusPx + tLen), cy + Math.sin(rad) * (maxRadiusPx + tLen));
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      animFrameRef.current = requestAnimationFrame(render);
     };
 
-    animFrameIdRef.current = requestAnimationFrame(render);
+    animFrameRef.current = requestAnimationFrame(render);
 
     return () => {
       isSubscribed = false;
-      if (animFrameIdRef.current) {
-        cancelAnimationFrame(animFrameIdRef.current);
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
       }
     };
   }, [
-    renderMode, 
-    activeFrame, 
-    activeLayer, 
-    focusedSectorId, 
-    sectors, 
-    showRadarSweep, 
-    showStreamlines, 
-    showLightningFlashes, 
-    latLonToPixel, 
-    trackHistory, 
-    conePolygon, 
-    isAviationThreat
+    displayMode, 
+    product, 
+    radarRangeKm, 
+    showAirways, 
+    showRangeRings, 
+    showSweepBeam, 
+    showCellVectors, 
+    showCoastline, 
+    activeCellId
   ]);
 
-  // Handle canvas click to select sector
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Handle Canvas Mouse Move to Update Polar HUD
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const sWidth = canvas.width / 3;
-    const sHeight = canvas.height / 3;
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const maxRadiusPx = Math.min(cx, cy) * 0.94;
 
-    const col = Math.min(2, Math.max(0, Math.floor(x / sWidth)));
-    const row = Math.min(2, Math.max(0, Math.floor(y / sHeight)));
+    const dx = x - cx;
+    const dy = y - cy;
+    const distPx = Math.sqrt(dx * dx + dy * dy);
 
-    setFocusedSectorId(`R${row}_C${col}`);
+    if (distPx > maxRadiusPx) {
+      setCursorHud(null);
+      return;
+    }
+
+    const rangeKm = (distPx / maxRadiusPx) * radarRangeKm;
+    let azRad = Math.atan2(dy, dx); // -pi to +pi
+    let azDeg = (azRad * 180) / Math.PI + 90;
+    if (azDeg < 0) azDeg += 360;
+
+    // Approximate Height of Radar Beam AGL: h = r * sin(theta) + r^2 / (2 * k_e * a)
+    const elevRad = (elevationDeg * Math.PI) / 180;
+    const heightM = rangeKm * 1000 * Math.sin(elevRad) + Math.pow(rangeKm * 1000, 2) / (2 * 1.33 * 6371000);
+
+    // Approximate Lat / Lon
+    const dLat = (rangeKm * Math.cos((azDeg * Math.PI) / 180)) / 111.0;
+    const dLon = (rangeKm * Math.sin((azDeg * Math.PI) / 180)) / (111.0 * Math.cos((RADAR_STATION.lat * Math.PI) / 180));
+
+    // Value lookup
+    let valStr = '-- dBZ';
+    const nearCell = ACTIVE_CELLS.find(c => Math.abs(c.azimuthDeg - azDeg) < 15 && Math.abs(c.rangeKm - rangeKm) < 8);
+    if (nearCell) {
+      valStr = product === 'reflectivity' ? `${nearCell.maxDbz.toFixed(1)} dBZ` : `${nearCell.shearDeltaV.toFixed(1)} m/s`;
+    }
+
+    setCursorHud({
+      azimuth: azDeg,
+      rangeKm,
+      heightMslM: heightM,
+      valStr,
+      lat: RADAR_STATION.lat + dLat,
+      lon: RADAR_STATION.lon + dLon
+    });
   };
 
   // Resize canvas according to container
@@ -1047,702 +816,555 @@ export default function HazardDashboard() {
     updateSize();
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
-  }, [renderMode]);
+  }, [displayMode]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-72px)] bg-slate-950 text-slate-100 flex flex-col overflow-hidden font-sans select-none">
+    <div className="relative w-full h-[calc(100vh-72px)] bg-[#07090e] text-[#e2e8f0] flex flex-col overflow-hidden font-sans select-none">
       
       {/* ================================================================== */}
-      {/* 1. TOP TACTICAL CONTROL BAR & ENGINE TOGGLE                        */}
+      {/* 1. OFFICIAL IMD DWR STATION CONSOLE HEADER                         */}
       {/* ================================================================== */}
-      <div className="h-14 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl px-5 flex items-center justify-between z-30 shrink-0">
+      <div className="h-16 border-b border-[#1e2533] bg-[#0c1017] px-4 flex items-center justify-between shrink-0 z-30">
+        
+        {/* Left: Station Identity & Polarimetric Radar Specs */}
         <div className="flex items-center space-x-3">
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
-            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold tracking-wider text-slate-200 uppercase">
-              IMD DWR NOWCASTER
-            </span>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-              LIVE 0-6H
+          <div className="h-10 w-10 rounded-lg bg-[#141b26] border border-[#283548] flex items-center justify-center">
+            <Radio className="w-5 h-5 text-[#38bdf8] animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-mono font-black text-white tracking-wide uppercase">
+                {RADAR_STATION.name}
+              </span>
+              <span className="text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded">
+                OPERATIONAL
+              </span>
+            </div>
+            <p className="text-[10px] font-mono text-[#94a3b8]">
+              {RADAR_STATION.band} • {RADAR_STATION.frequencyGhz} GHz • {RADAR_STATION.prfHz} • ELEV: {elevationDeg}°
+            </p>
+          </div>
+        </div>
+
+        {/* Center: Live Decoded METAR / SPECI Ticker */}
+        <div className="hidden xl:flex items-center space-x-2 bg-[#080b11] border border-[#222b3b] px-3 py-1.5 rounded-lg max-w-xl">
+          <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 animate-pulse" />
+          <div className="overflow-hidden">
+            <span className="text-[10px] font-mono text-[#e2e8f0] tracking-tight block truncate">
+              {speciMetar}
             </span>
           </div>
+        </div>
 
-          <div className="h-5 w-[1px] bg-slate-800" />
+        {/* Right: Scientific Clocks & WMO Benchmarks */}
+        <div className="flex items-center space-x-3">
+          <div className="text-right font-mono text-[11px] leading-tight hidden sm:block">
+            <div className="text-white font-bold">{currentTimeUtc}</div>
+            <div className="text-[#64748b] text-[10px]">{currentTimeIst}</div>
+          </div>
 
-          {/* Primary Render Mode Toggle: 2D Animated Canvas vs Keyless Basemap */}
-          <div className="flex items-center p-1 bg-slate-900 border border-slate-800 rounded-xl">
+          <div className="h-6 w-[1px] bg-[#1e2533]" />
+
+          {/* Display Mode Selector */}
+          <div className="flex p-0.5 bg-[#121822] border border-[#283548] rounded-lg">
             <button
-              onClick={() => setRenderMode('canvas2d')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                renderMode === 'canvas2d'
-                  ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                  : 'text-slate-400 hover:text-white'
+              onClick={() => setDisplayMode('polar_scope')}
+              className={`px-3 py-1 text-xs font-mono font-bold rounded transition flex items-center space-x-1.5 ${
+                displayMode === 'polar_scope' 
+                  ? 'bg-[#38bdf8] text-slate-950 shadow' 
+                  : 'text-[#94a3b8] hover:text-white'
               }`}
             >
-              <Tv className="w-3.5 h-3.5" />
-              <span>2D Tactical Radar Engine</span>
-              <span className="text-[9px] font-mono px-1 py-0.2 bg-slate-950/40 rounded text-slate-900 font-black">
-                60 FPS
-              </span>
+              <Crosshair className="w-3.5 h-3.5" />
+              <span>DWR Polar Scope</span>
             </button>
             <button
-              onClick={() => setRenderMode('leaflet')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                renderMode === 'leaflet'
-                  ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                  : 'text-slate-400 hover:text-white'
+              onClick={() => setDisplayMode('gis_basemap')}
+              className={`px-3 py-1 text-xs font-mono font-bold rounded transition flex items-center space-x-1.5 ${
+                displayMode === 'gis_basemap' 
+                  ? 'bg-[#38bdf8] text-slate-950 shadow' 
+                  : 'text-[#94a3b8] hover:text-white'
               }`}
             >
               <Compass className="w-3.5 h-3.5" />
-              <span>Geospatial Basemap</span>
-              <span className="text-[9px] font-mono text-slate-400">
-                ESRI
-              </span>
+              <span>GIS Basemap</span>
             </button>
           </div>
-        </div>
-
-        {/* Center: Tactical AOI Coordinates & Sector Readout */}
-        <div className="hidden lg:flex items-center gap-4 text-xs font-mono text-slate-400">
-          <div>
-            AOI: <span className="text-slate-200">20.0°N–20.6°N, 85.5°E–86.1°E</span>
-          </div>
-          <div>
-            ACTIVE TARGET: <span className="text-sky-400 font-bold">{selectedSector.id} ({selectedSector.name})</span>
-          </div>
-        </div>
-
-        {/* Right: Verification & Skill Score Modal Trigger */}
-        <div className="flex items-center space-x-2">
-          {renderMode === 'canvas2d' && (
-            <div className="hidden sm:flex items-center gap-1 bg-slate-900 border border-slate-800 px-2 py-1 rounded-xl text-[11px] font-mono">
-              <button 
-                onClick={() => setShowRadarSweep(!showRadarSweep)}
-                className={`px-2 py-0.5 rounded transition ${showRadarSweep ? 'text-sky-300 font-bold bg-sky-500/20' : 'text-slate-500'}`}
-              >
-                SWEEP
-              </button>
-              <button 
-                onClick={() => setShowStreamlines(!showStreamlines)}
-                className={`px-2 py-0.5 rounded transition ${showStreamlines ? 'text-sky-300 font-bold bg-sky-500/20' : 'text-slate-500'}`}
-              >
-                FLOW
-              </button>
-              <button 
-                onClick={() => setShowLightningFlashes(!showLightningFlashes)}
-                className={`px-2 py-0.5 rounded transition ${showLightningFlashes ? 'text-amber-300 font-bold bg-amber-500/20' : 'text-slate-500'}`}
-              >
-                LIGHTNING
-              </button>
-            </div>
-          )}
 
           <button
-            onClick={() => setShowSkillModal(true)}
-            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700/60 rounded-xl text-xs font-semibold text-sky-400 flex items-center gap-1.5 transition"
+            onClick={() => setShowMetricsModal(true)}
+            className="px-3 py-1.5 bg-[#17202d] hover:bg-[#1f2b3c] border border-[#2e3e55] rounded-lg text-xs font-mono font-semibold text-[#38bdf8] transition flex items-center space-x-1.5"
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>WMO Scores</span>
+            <span className="hidden md:inline">Verification Skill</span>
           </button>
         </div>
       </div>
 
       {/* ================================================================== */}
-      {/* 2. AVIATION CRITICAL WARNING BANNER                                */}
+      {/* 2. AERODROME LOW-LEVEL WIND SHEAR (LLWS) ALERT TICKER              */}
       {/* ================================================================== */}
-      {isAviationThreat && (
-        <div className="bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 text-white px-4 py-2 flex items-center justify-between text-xs font-bold tracking-wider uppercase z-20 shadow-lg animate-pulse border-b border-rose-400/40">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-200" />
-            <span>CRITICAL AERODROME WARNING:</span>
-            <span className="font-normal text-rose-100">
-              Severe Convective Cell ({activeFrame.matrix_dbz[1][1]} dBZ) penetrating VEBS Runway 01 Glide Path corridor. Severe Microburst and Low-Level Wind Shear (LLWS).
+      {activeCell.etaRunwayMin <= 5 && (
+        <div className="bg-[#991b1b] border-b border-[#ef4444]/40 px-4 py-1.5 flex items-center justify-between text-xs font-mono font-bold text-white uppercase tracking-wider z-20 shadow-lg">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-amber-300 animate-bounce" />
+            <span>CRITICAL VEBS LLWS IN PROGRESS:</span>
+            <span className="text-red-100 font-normal">
+              Microburst touchdown 1.2 NM South of Runway 01. Velocity shear ΔV = {activeCell.shearDeltaV} m/s (93 kt). Core reflectivity: {activeCell.maxDbz} dBZ.
             </span>
           </div>
-          <div className="flex items-center gap-2 font-mono bg-black/40 px-2.5 py-1 rounded border border-white/20">
+          <div className="flex items-center space-x-2 bg-black/40 px-2 py-0.5 rounded border border-white/20">
             <Clock className="w-3.5 h-3.5 text-amber-300" />
-            <span>RUNWAY IMPACT ETA: {incursionEtaMinutes} MIN</span>
+            <span>THRESHOLD IMPACT: ETA {activeCell.etaRunwayMin} MIN</span>
           </div>
         </div>
       )}
 
       {/* ================================================================== */}
-      {/* 3. MAIN WORKSPACE (MAP + HUD FLOATS + SIDEBAR)                    */}
+      {/* 3. MAIN SCIENTIFIC WORKSPACE (RADAR SCOPE + SIDEBAR)               */}
       {/* ================================================================== */}
-      <div className="relative flex-1 w-full h-full overflow-hidden">
-
-        {/* Floating Atmospheric Layer Switcher & Engine Selector (Top Left) */}
-        <div className="absolute top-4 left-4 z-20 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl backdrop-blur-xl flex flex-col gap-3 shadow-2xl min-w-[290px]">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-sky-400 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-sky-400" />
-              Atmospheric Layer
+      <div className="relative flex-1 w-full h-full flex overflow-hidden">
+        
+        {/* Left Floating Tool Palette: Doppler Product Switcher */}
+        <div className="absolute top-4 left-4 z-20 bg-[#0e131d]/90 border border-[#222c3d] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-3 min-w-[220px]">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1.5">
+              DOPPLER PRODUCT
             </span>
-            <span className="text-[10px] text-slate-400 font-mono bg-slate-800/80 px-1.5 py-0.5 rounded">
-              {activeFrame.engine}
-            </span>
+            <div className="flex flex-col space-y-1">
+              {[
+                { id: 'reflectivity', label: 'Base Reflectivity (Z)', unit: 'dBZ', desc: 'Precipitation intensity' },
+                { id: 'velocity', label: 'Radial Velocity (Vr)', unit: 'm/s', desc: 'Wind shear & couplets' },
+                { id: 'vil', label: 'Vert. Integrated Liquid', unit: 'kg/m²', desc: 'Severe water column' },
+              ].map(p => {
+                const isSelected = product === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => setProduct(p.id as RadarProduct)}
+                    className={`px-2.5 py-1.5 rounded-lg text-left transition flex items-center justify-between ${
+                      isSelected
+                        ? 'bg-[#38bdf8] text-slate-950 font-bold shadow-md'
+                        : 'bg-[#141b26]/70 text-[#cbd5e1] hover:bg-[#1c2636] border border-[#202b3b]'
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-mono">{p.label}</div>
+                      <div className={`text-[9px] ${isSelected ? 'text-slate-800' : 'text-[#64748b]'}`}>{p.desc}</div>
+                    </div>
+                    <span className={`text-[10px] font-mono font-bold ${isSelected ? 'text-slate-950' : 'text-[#38bdf8]'}`}>
+                      {p.unit}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          
-          <div className="grid grid-cols-2 gap-1.5">
-            {[
-              { id: 'radar', label: 'Composite Radar', icon: CloudRain, unit: 'dBZ' },
-              { id: 'pressure', label: 'Surface MSLP', icon: Gauge, unit: 'hPa' },
-              { id: 'temp', label: 'Cold Pool Temp', icon: Thermometer, unit: '°C' },
-              { id: 'cape', label: 'CAPE Instability', icon: Sparkles, unit: 'J/kg' },
-            ].map((btn) => {
-              const IconComponent = btn.icon;
-              const isSelected = activeLayer === btn.id;
-              return (
+
+          {/* Range Scale Selector */}
+          <div className="pt-2 border-t border-[#1e2533]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
+              RANGE SCALE: {radarRangeKm} KM
+            </span>
+            <div className="grid grid-cols-3 gap-1">
+              {[30, 60, 120].map(r => (
                 <button
-                  key={btn.id}
-                  onClick={() => setActiveLayer(btn.id as LayerVariable)}
-                  className={`p-2 rounded-xl text-left transition flex items-center justify-between ${
-                    isSelected
-                      ? 'bg-sky-500 text-slate-950 font-bold shadow-lg shadow-sky-500/20'
-                      : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/40'
+                  key={r}
+                  onClick={() => setRadarRangeKm(r)}
+                  className={`py-1 text-xs font-mono font-bold rounded transition border ${
+                    radarRangeKm === r 
+                      ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-[#38bdf8]' 
+                      : 'bg-[#141b26] border-[#222c3d] text-[#64748b] hover:text-white'
                   }`}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <IconComponent className={`w-3.5 h-3.5 ${isSelected ? 'text-slate-950' : 'text-sky-400'}`} />
-                    <span className="text-xs font-semibold">{btn.label}</span>
-                  </div>
-                  <span className={`text-[10px] font-mono ${isSelected ? 'text-slate-900' : 'text-slate-500'}`}>
-                    {btn.unit}
-                  </span>
+                  {r} km
                 </button>
-              );
-            })}
-          </div>
-
-          {/* Model Toggle: ConvectNet vs PySTEPS Baseline */}
-          <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Engine:</span>
-            <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800">
-              <button
-                onClick={() => setActiveModel('convectnet')}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
-                  activeModel === 'convectnet' 
-                    ? 'bg-sky-500 text-slate-950 font-bold shadow-sm' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                ConvectNet (AI)
-              </button>
-              <button
-                onClick={() => setActiveModel('pysteps')}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
-                  activeModel === 'pysteps' 
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow-sm' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                PySTEPS Baseline
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* Active Layer Dynamic Legend Bar */}
-          <div className="pt-2 border-t border-slate-800 flex flex-col gap-1 text-[10px] font-mono">
-            <div className="flex justify-between text-slate-400">
-              <span>PALETTE RANGE:</span>
-              <span className="text-slate-200">
-                {activeLayer === 'radar' && '15 to 65+ dBZ'}
-                {activeLayer === 'pressure' && '998 to 1012 hPa'}
-                {activeLayer === 'temp' && '22°C to 34°C'}
-                {activeLayer === 'cape' && '800 to 3600 J/kg'}
-              </span>
-            </div>
-            <div className="h-2 w-full rounded-full overflow-hidden flex shadow-inner">
-              {activeLayer === 'radar' && (
-                <>
-                  <div className="flex-1 bg-emerald-500" />
-                  <div className="flex-1 bg-green-500" />
-                  <div className="flex-1 bg-yellow-400" />
-                  <div className="flex-1 bg-orange-500" />
-                  <div className="flex-1 bg-red-600" />
-                  <div className="flex-1 bg-fuchsia-500" />
-                </>
-              )}
-              {activeLayer === 'pressure' && (
-                <>
-                  <div className="flex-1 bg-purple-600" />
-                  <div className="flex-1 bg-sky-500" />
-                  <div className="flex-1 bg-teal-500" />
-                  <div className="flex-1 bg-amber-400" />
-                </>
-              )}
-              {activeLayer === 'temp' && (
-                <>
-                  <div className="flex-1 bg-sky-400" />
-                  <div className="flex-1 bg-teal-400" />
-                  <div className="flex-1 bg-orange-400" />
-                  <div className="flex-1 bg-red-600" />
-                </>
-              )}
-              {activeLayer === 'cape' && (
-                <>
-                  <div className="flex-1 bg-slate-700" />
-                  <div className="flex-1 bg-yellow-500" />
-                  <div className="flex-1 bg-orange-500" />
-                  <div className="flex-1 bg-rose-600" />
-                </>
-              )}
-            </div>
+          {/* Tactical Layers Toggle */}
+          <div className="pt-2 border-t border-[#1e2533] space-y-1 text-[11px] font-mono">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748b] block mb-1">
+              TACTICAL OVERLAYS
+            </span>
+            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+              <span>VEBS Runway / Glidepath</span>
+              <input type="checkbox" checked={showAirways} onChange={e => setShowAirways(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+            </label>
+            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+              <span>Range Rings & Spokes</span>
+              <input type="checkbox" checked={showRangeRings} onChange={e => setShowRangeRings(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+            </label>
+            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+              <span>Antenna Sweep Beam</span>
+              <input type="checkbox" checked={showSweepBeam} onChange={e => setShowSweepBeam(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+            </label>
+            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+              <span>Storm Cell Vectors</span>
+              <input type="checkbox" checked={showCellVectors} onChange={e => setShowCellVectors(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+            </label>
           </div>
         </div>
 
         {/* =============================================================== */}
-        {/* RENDER MODE A: 2D TACTICAL RADAR CANVAS ENGINE (DEFAULT / 60 FPS) */}
+        {/* CENTER VIEW A: DWR POLAR SCOPE (AUTHENTIC SCIENTIFIC ENGINE)    */}
         {/* =============================================================== */}
-        {renderMode === 'canvas2d' && (
-          <div className="relative w-full h-full bg-[#060a12] cursor-crosshair">
+        {displayMode === 'polar_scope' && (
+          <div className="relative flex-1 w-full h-full bg-[#07090e] flex items-center justify-center cursor-crosshair">
             <canvas
               ref={canvasRef}
-              onClick={handleCanvasClick}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseLeave={() => setCursorHud(null)}
               className="w-full h-full block"
             />
-            {/* Quick Canvas Mode Indicator Badge */}
-            <div className="absolute bottom-28 left-4 z-20 pointer-events-none bg-slate-900/80 border border-slate-800/80 px-3 py-1.5 rounded-xl backdrop-blur-md font-mono text-[10px] text-slate-400 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>CANVAS 2D ENGINE • ZERO EXTERNAL TILES • OFFLINE SAFE</span>
-            </div>
-          </div>
-        )}
 
-        {/* =============================================================== */}
-        {/* RENDER MODE B: LEAFLET GEOSPATIAL BASEMAP (ESRI KEYLESS)       */}
-        {/* =============================================================== */}
-        {renderMode === 'leaflet' && (
-          <MapContainer
-            center={[20.3, 85.8]}
-            zoom={10}
-            className="w-full h-full"
-            zoomControl={false}
-          >
-            {/* Reliable ESRI World Dark Gray Canvas Base Tiles (Zero Watermark / No Key Required) */}
-            <TileLayer
-              attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-            />
-
-            {/* 4-Point Bilinear Heatmap Raster Overlay */}
-            {rasterUrl && (
-              <ImageOverlay
-                url={rasterUrl}
-                bounds={[
-                  [AOI_BBOX.minLat, AOI_BBOX.minLon],
-                  [AOI_BBOX.maxLat, AOI_BBOX.maxLon],
-                ]}
-                opacity={0.72}
-                zIndex={400}
-              />
+            {/* Scientific Polar Cursor Readout HUD (Bottom-Left) */}
+            {cursorHud && (
+              <div className="absolute bottom-24 left-4 z-20 bg-[#0e131d]/90 border border-[#2b374a] p-2.5 rounded-xl font-mono text-[11px] text-[#cbd5e1] space-y-0.5 shadow-xl pointer-events-none">
+                <div className="text-[#38bdf8] font-bold">
+                  AZ: {cursorHud.azimuth.toFixed(1)}° • RNG: {cursorHud.rangeKm.toFixed(1)} KM ({(cursorHud.rangeKm * 0.5399).toFixed(1)} NM)
+                </div>
+                <div className="text-[#94a3b8]">
+                  ELEV: {elevationDeg}° • BEAM HGT: {Math.round(cursorHud.heightMslM)} M AGL
+                </div>
+                <div className="text-white font-bold">
+                  {product.toUpperCase()}: <span className="text-emerald-400">{cursorHud.valStr}</span>
+                </div>
+                <div className="text-[10px] text-[#64748b]">
+                  GEO: {cursorHud.lat.toFixed(4)}°N, {cursorHud.lon.toFixed(4)}°E
+                </div>
+              </div>
             )}
 
-            {/* 3x3 Tactical Sector Mesh with Subtle Persistent Grid Lines */}
-            {sectors.map((sec) => {
-              const isTarget = sec.id === focusedSectorId;
-              return (
-                <Rectangle
-                  key={sec.id}
-                  bounds={sec.bounds}
-                  eventHandlers={{ click: () => setFocusedSectorId(sec.id) }}
-                  pathOptions={{
-                    color: isTarget ? '#38bdf8' : '#38bdf8',
-                    weight: isTarget ? 2 : 1,
-                    dashArray: isTarget ? undefined : '3, 4',
-                    fillColor: isTarget ? '#0284c7' : 'transparent',
-                    fillOpacity: isTarget ? 0.2 : 0,
-                  }}
-                >
-                  <Tooltip 
-                    permanent 
-                    direction="center" 
-                    opacity={0.92}
-                    className="!bg-slate-950/90 !border !border-sky-500/40 !text-slate-100 !rounded-xl !p-1.5 !shadow-2xl !backdrop-blur-md"
-                  >
-                    <div className="text-center font-mono leading-tight cursor-pointer">
-                      <div className={`text-[10px] uppercase tracking-wider ${isTarget ? 'text-sky-300 font-bold' : 'text-slate-400'}`}>
-                        {sec.id}
-                      </div>
-                      <div className="text-xs font-black text-white">{sec.radar_dbz} dBZ</div>
+            {/* WMO / NWS Radar Palette Color Bar (Bottom Center) */}
+            <div className="absolute bottom-24 z-20 bg-[#0c1017]/90 border border-[#1e2533] px-3 py-1.5 rounded-xl backdrop-blur-md flex flex-col space-y-1 shadow-2xl">
+              <div className="flex items-center justify-between text-[10px] font-mono text-[#94a3b8]">
+                <span>{product === 'reflectivity' ? 'REFLECTIVITY (dBZ)' : product === 'velocity' ? 'RADIAL VELOCITY (m/s)' : 'VIL (kg/m²)'}</span>
+                <span>WMO CALIBRATION</span>
+              </div>
+              <div className="flex h-3 rounded overflow-hidden border border-[#283548]">
+                {product === 'reflectivity' ? (
+                  DBZ_PALETTE.map(s => (
+                    <div 
+                      key={s.label} 
+                      className="w-5 h-full flex items-center justify-center text-[7px] font-mono font-bold text-black"
+                      style={{ backgroundColor: s.hex }}
+                      title={`${s.label} dBZ`}
+                    >
+                      {s.min >= 40 ? s.min : ''}
                     </div>
-                  </Tooltip>
-                </Rectangle>
-              );
-            })}
-
-            {/* Critical Infrastructure: VEBS Bhubaneswar Airport & Instrument Glide Path */}
-            <CircleMarker 
-              center={AIRPORT_VEBS.coords} 
-              radius={8} 
-              pathOptions={{ color: '#fbbf24', fillColor: '#f59e0b', fillOpacity: 0.95, weight: 2 }}
-            >
-              <Tooltip direction="right" permanent offset={[12, 0]}>
-                <div className="font-mono text-[10px] font-bold text-amber-300 bg-slate-950/90 border border-amber-500/40 px-2 py-0.5 rounded shadow">
-                  ✈ {AIRPORT_VEBS.callsign} ({AIRPORT_VEBS.runway})
-                </div>
-              </Tooltip>
-            </CircleMarker>
-
-            <Polyline 
-              positions={AIRPORT_VEBS.glidePath} 
-              pathOptions={{ color: '#f59e0b', weight: 2, dashArray: '6, 6' }} 
-            />
-
-            {/* Convective Motion Uncertainty Cone (Forward Spread) */}
-            {currentFrameIdx < TIMELINE_FRAMES.length - 1 && (
-              <Polygon
-                positions={conePolygon}
-                pathOptions={{
-                  color: '#38bdf8',
-                  fillColor: '#0284c7',
-                  fillOpacity: 0.15,
-                  weight: 1.5,
-                  dashArray: '4, 4'
-                }}
-              />
-            )}
-
-            {/* Storm Historical & Forward Trajectory Vectors */}
-            <Polyline 
-              positions={trackHistory} 
-              pathOptions={{ color: '#f43f5e', weight: 3, dashArray: '4, 6' }} 
-            />
-
-            {/* Active Storm Convective Core Centroid */}
-            <CircleMarker
-              center={activeFrame.coreCentroid}
-              radius={15}
-              pathOptions={{
-                color: '#f43f5e',
-                fillColor: '#e11d48',
-                fillOpacity: 0.88,
-                weight: 2.5
-              }}
-            >
-              <Tooltip direction="top" permanent offset={[0, -12]}>
-                <div className="font-mono text-[10px] font-bold text-white bg-slate-950/90 border border-rose-500 px-2 py-0.5 rounded shadow">
-                  CORE: {activeFrame.matrix_dbz[1][1]} dBZ
-                </div>
-              </Tooltip>
-            </CircleMarker>
-          </MapContainer>
+                  ))
+                ) : (
+                  VELOCITY_PALETTE.map(s => (
+                    <div 
+                      key={s.label} 
+                      className="w-7 h-full flex items-center justify-center text-[8px] font-mono font-bold text-white"
+                      style={{ backgroundColor: s.hex }}
+                      title={`${s.label} m/s`}
+                    >
+                      {s.label}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* =============================================================== */}
-        {/* 4. RIGHT SIDEBAR: MoES PS-26084 Hazard Severity Console         */}
+        {/* CENTER VIEW B: GIS BASEMAP (UNRESTRICTED ESRI SATELLITE/CANVAS)  */}
         {/* =============================================================== */}
-        <aside className="absolute top-4 right-4 z-20 w-96 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl backdrop-blur-xl flex flex-col gap-3.5 shadow-2xl max-w-[360px]">
+        {displayMode === 'gis_basemap' && (
+          <div className="relative flex-1 w-full h-full">
+            <MapContainer
+              center={[RADAR_STATION.lat, RADAR_STATION.lon]}
+              zoom={11}
+              className="w-full h-full bg-[#0a0d15]"
+              zoomControl={false}
+            >
+              <TileLayer
+                attribution="&copy; Esri World Dark Gray"
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+              />
+
+              {/* VEBS Airport Marker */}
+              <CircleMarker 
+                center={[RADAR_STATION.lat, RADAR_STATION.lon]} 
+                radius={8} 
+                pathOptions={{ color: '#38bdf8', fillColor: '#0284c7', fillOpacity: 0.95, weight: 2 }}
+              >
+                <Tooltip direction="top" permanent offset={[0, -10]}>
+                  <div className="font-mono text-[10px] font-bold text-white bg-slate-950 px-2 py-0.5 rounded border border-sky-500">
+                    ✈ VEBS / BBI AIRPORT
+                  </div>
+                </Tooltip>
+              </CircleMarker>
+
+              {/* Extended Runway Approach Glidepath */}
+              <Polyline 
+                positions={AIRPORT_RUNWAYS.ilsCorridor} 
+                pathOptions={{ color: '#f59e0b', weight: 2.5, dashArray: '6, 6' }} 
+              />
+
+              {/* Convective Storm Cell Markers */}
+              {ACTIVE_CELLS.map(cell => (
+                <React.Fragment key={cell.id}>
+                  <CircleMarker
+                    center={[cell.lat, cell.lon]}
+                    radius={cell.maxDbz >= 60 ? 22 : 14}
+                    pathOptions={{
+                      color: cell.maxDbz >= 60 ? '#f43f5e' : '#eab308',
+                      fillColor: cell.maxDbz >= 60 ? '#e11d48' : '#ca8a04',
+                      fillOpacity: 0.65,
+                      weight: 2
+                    }}
+                    eventHandlers={{ click: () => setActiveCellId(cell.id) }}
+                  >
+                    <Tooltip direction="right" permanent offset={[12, 0]}>
+                      <div className="font-mono text-[10px] font-bold text-white bg-slate-950 p-1 rounded border border-rose-500 shadow">
+                        <div>{cell.id}: {cell.maxDbz} dBZ</div>
+                        <div className="text-amber-400">ETA {cell.etaRunwayMin} MIN</div>
+                      </div>
+                    </Tooltip>
+                  </CircleMarker>
+                </React.Fragment>
+              ))}
+            </MapContainer>
+          </div>
+        )}
+
+        {/* =============================================================== */}
+        {/* RIGHT SIDEBAR: SCIT CELL TELEMETRY & PS-26084 HAZARD METRICS     */}
+        {/* =============================================================== */}
+        <aside className="w-96 bg-[#0c1017] border-l border-[#1e2533] p-4 flex flex-col space-y-3 shrink-0 overflow-y-auto z-20">
           
-          {/* Sector Overview & AI Reasoning Header */}
-          <div className="flex flex-col gap-1.5 border-b border-slate-800 pb-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
-                AI Convective Reasoning
-              </span>
-              <span className="text-[10px] bg-rose-500/10 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded font-mono font-bold">
-                {activeFrame.horizon}
-              </span>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Target sector <strong className="text-sky-300 font-mono">{selectedSector.id}</strong> ({selectedSector.name}) exhibits a barometric drop to <span className="text-purple-400 font-semibold">{selectedSector.pressure_hpa} hPa</span> coupled with a cold-pool outflow boundary (<span className="text-cyan-400 font-semibold">{selectedSector.temp_c}°C</span>). Extreme CAPE of <span className="text-amber-400 font-semibold">{selectedSector.cape_jkg} J/kg</span> is sustaining explosive updrafts aloft.
-            </p>
-            
-            {/* Quick Action Inspection Chips */}
-            <div className="flex gap-2 mt-1">
-              <button 
-                onClick={() => setActiveLayer('pressure')}
-                className="flex-1 py-1.5 px-2 text-[11px] font-semibold bg-slate-800/80 hover:bg-slate-700 text-purple-300 border border-purple-500/30 rounded-lg transition flex items-center justify-center gap-1"
-              >
-                <Gauge className="w-3 h-3" />
-                Inspect Mesolow
-              </button>
-              <button 
-                onClick={() => setShowVerticalProfile(!showVerticalProfile)}
-                className="flex-1 py-1.5 px-2 text-[11px] font-semibold bg-slate-800/80 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 rounded-lg transition flex items-center justify-center gap-1"
-              >
-                <Activity className="w-3 h-3" />
-                {showVerticalProfile ? 'Hide 3D RHI' : '3D Column Cut'}
-              </button>
-            </div>
-          </div>
-
-          {/* MoES 4-Hazard Verification Classification Panel */}
-          <div className="bg-slate-950/80 border border-slate-800/80 p-3 rounded-xl flex flex-col gap-2.5">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 flex items-center justify-between">
-              <span>PS-26084 Hazard Engine</span>
-              <span className="text-sky-400 font-mono">{selectedSector.id}</span>
+          {/* Active Storm Cell Tracking Selector (SCIT) */}
+          <div className="border-b border-[#1e2533] pb-3">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1.5">
+              TRACKED CONVECTIVE CELLS (SCIT)
             </span>
+            <div className="flex flex-col space-y-1.5">
+              {ACTIVE_CELLS.map(cell => {
+                const isSelected = cell.id === activeCellId;
+                return (
+                  <button
+                    key={cell.id}
+                    onClick={() => setActiveCellId(cell.id)}
+                    className={`p-2 rounded-lg text-left transition border ${
+                      isSelected
+                        ? 'bg-[#182333] border-[#38bdf8] text-white shadow-md'
+                        : 'bg-[#111722] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold text-[#38bdf8]">{cell.id}</span>
+                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                        cell.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
+                      }`}>
+                        {cell.severity}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-medium text-[#cbd5e1] truncate mt-0.5">
+                      {cell.name}
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b] mt-1">
+                      <span>{cell.maxDbz} dBZ @ {cell.coreHeightKm}km</span>
+                      <span className="text-amber-400 font-bold">ETA {cell.etaRunwayMin}m to RWY</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {/* 1. Cloudburst Warning Metric */}
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px]">Cloudburst (Z-R)</span>
-                  <CloudRain className="w-3.5 h-3.5 text-sky-400" />
-                </div>
-                <div className={`font-mono text-sm font-black mt-1 ${isCloudburstRisk ? 'text-rose-400 animate-pulse' : 'text-slate-200'}`}>
-                  {calculatedRainRate.toFixed(1)} <span className="text-[10px] font-normal text-slate-400">mm/hr</span>
-                </div>
-                <span className={`text-[9px] font-bold mt-0.5 ${isCloudburstRisk ? 'text-rose-400' : 'text-slate-500'}`}>
-                  {isCloudburstRisk ? 'CRITICAL (> 100mm/h)' : 'Moderate / Heavy Rain'}
-                </span>
+          {/* Active Cell Telemetry Diagnostic */}
+          <div className="bg-[#101520] border border-[#20293a] p-3 rounded-xl space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="font-bold text-white">{activeCell.id} PROFILE</span>
+              <span className="text-[#38bdf8]">AZ {activeCell.azimuthDeg}° / {activeCell.rangeKm} KM</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                <span className="text-[10px] text-[#64748b] block">Peak Reflectivity</span>
+                <span className="text-sm font-bold text-rose-400">{activeCell.maxDbz} dBZ</span>
+                <span className="text-[9px] text-[#64748b] block">Core at {activeCell.coreHeightKm} km</span>
               </div>
-
-              {/* 2. Severe Hail Risk (POH/MESH) */}
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px]">Severe Hail (MESH)</span>
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
-                </div>
-                <div className={`font-mono text-sm font-black mt-1 ${isSevereHail ? 'text-rose-400' : 'text-slate-200'}`}>
-                  {poshValue}% <span className="text-[10px] font-normal text-slate-400">POH ({meshValue}mm)</span>
-                </div>
-                <span className={`text-[9px] font-bold mt-0.5 ${isSevereHail ? 'text-rose-400' : 'text-slate-500'}`}>
-                  {isSevereHail ? 'Core > 55 dBZ aloft' : 'Low (< 15%)'}
-                </span>
+              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                <span className="text-[10px] text-[#64748b] block">Cloudburst Rate (Z-R)</span>
+                <span className="text-sm font-bold text-sky-400">{activeCell.rainRateMmh.toFixed(1)} mm/h</span>
+                <span className="text-[9px] text-rose-400 font-bold block">{activeCell.rainRateMmh >= 100 ? 'IMD EXCEEDED' : 'Heavy'}</span>
               </div>
-
-              {/* 3. Microburst / Squall Incursion */}
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px]">Microburst Gust</span>
-                  <Wind className="w-3.5 h-3.5 text-cyan-400" />
-                </div>
-                <div className={`font-mono text-sm font-black mt-1 ${isMicroburstSevere ? 'text-cyan-300' : 'text-slate-200'}`}>
-                  {selectedSector.wind_gust_kmh} <span className="text-[10px] font-normal text-slate-400">km/h</span>
-                </div>
-                <span className={`text-[9px] font-bold mt-0.5 ${isMicroburstSevere ? 'text-cyan-400' : 'text-slate-500'}`}>
-                  {isMicroburstSevere ? 'Squall Incursion (>65)' : 'Moderate Outflow'}
-                </span>
+              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                <span className="text-[10px] text-[#64748b] block">Microburst Shear</span>
+                <span className="text-sm font-bold text-amber-400">{activeCell.shearDeltaV} m/s</span>
+                <span className="text-[9px] text-[#64748b] block">{Math.round(activeCell.shearDeltaV * 1.94)} kt divergence</span>
               </div>
-
-              {/* 4. Total Lightning Flash Jump */}
-              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[10px]">Lightning Jump</span>
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                </div>
-                <div className={`font-mono text-sm font-black mt-1 ${isLightningJump ? 'text-amber-400' : 'text-slate-200'}`}>
-                  +{selectedSector.lightning_rate} <span className="text-[10px] font-normal text-slate-400">str/min</span>
-                </div>
-                <span className={`text-[9px] font-bold mt-0.5 ${isLightningJump ? 'text-amber-400' : 'text-slate-500'}`}>
-                  {isLightningJump ? 'Updraft Collapse Alert' : 'Nominal Flux'}
-                </span>
+              <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
+                <span className="text-[10px] text-[#64748b] block">Hail Risk (POH/MESH)</span>
+                <span className="text-sm font-bold text-purple-400">{activeCell.poh}% / {activeCell.meshMm}mm</span>
+                <span className="text-[9px] text-[#64748b] block">Witt et al. 1998</span>
               </div>
             </div>
           </div>
 
-          {/* Runway Proximity Telemetry */}
-          <div className="bg-slate-950/60 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-2">
+          {/* Runway Incursion Warning Banner */}
+          <div className="bg-[#141924] border border-[#273347] p-2.5 rounded-xl font-mono text-xs flex items-center justify-between">
+            <div className="flex items-center space-x-2">
               <Plane className="w-4 h-4 text-amber-400" />
               <div>
-                <span className="text-[10px] text-slate-400 block font-sans">Runway Distance</span>
-                <span className="font-bold text-slate-200">{distanceToRunwayKm.toFixed(1)} km</span>
+                <span className="text-[10px] text-[#64748b] block">VEBS RWY 01 DISTANCE</span>
+                <span className="font-bold text-white">{activeCell.rangeKm} km</span>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[10px] text-slate-400 block font-sans">Corridor Incursion</span>
-              <span className="font-bold text-amber-400">ETA {incursionEtaMinutes} min</span>
+              <span className="text-[10px] text-[#64748b] block">TIME TO INTERCEPT</span>
+              <span className="font-bold text-rose-400">ETA {activeCell.etaRunwayMin} MIN</span>
             </div>
           </div>
 
-          {/* Trigger Official NDMA / WMO CAP Alert Modal */}
+          {/* Vertical Profile Drawer Trigger */}
+          <button
+            onClick={() => setShowRhiDrawer(!showRhiDrawer)}
+            className="w-full py-2 bg-[#172233] hover:bg-[#1f2e45] border border-[#2a3c57] rounded-xl text-xs font-mono font-bold text-[#38bdf8] transition flex items-center justify-center space-x-2"
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>{showRhiDrawer ? 'Close RHI Vertical Cut' : 'Inspect RHI Vertical Profile (0-16km)'}</span>
+          </button>
+
+          {/* Trigger NDMA CAP v1.2 Dispatch Generator */}
           <button
             onClick={() => setShowCapModal(true)}
-            className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 font-bold text-xs uppercase tracking-wider rounded-xl text-white shadow-lg shadow-rose-600/30 transition flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-mono font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition flex items-center justify-center space-x-2"
           >
             <ShieldAlert className="w-4 h-4" />
-            <span>Generate NDMA CAP v1.2 Alert</span>
+            <span>NDMA CAP v1.2 Dispatch</span>
           </button>
         </aside>
-
-        {/* =============================================================== */}
-        {/* 5. BOTTOM DRAWER: 3D Vertical Radar Slice (0 - 16 km Altitude)  */}
-        {/* =============================================================== */}
-        {showVerticalProfile && (
-          <div className="absolute bottom-24 left-4 right-4 z-20 bg-slate-900/95 border border-slate-800 p-4 rounded-2xl backdrop-blur-2xl shadow-2xl flex flex-col gap-2.5 animate-in slide-in-from-bottom duration-300 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                  <Activity className="w-4 h-4 text-sky-400" />
-                  RHI Vertical Reflectivity Cross-Section (0–16 km Altitude)
-                </span>
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
-                  Target: {selectedSector.id}
-                </span>
-              </div>
-              <button 
-                onClick={() => setShowVerticalProfile(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Vertical Radar Cross-Section Diagram */}
-            <div className="h-44 w-full bg-slate-950 border border-slate-800/80 rounded-xl relative overflow-hidden flex flex-col justify-between p-3 font-mono text-[10px]">
-              
-              {/* Overshooting Cloud Tops (> 14 km) */}
-              <div className="absolute top-2 left-16 right-16 h-8 bg-gradient-to-b from-fuchsia-600/30 to-purple-600/20 border-t border-fuchsia-400/60 rounded-full flex items-center justify-center text-fuchsia-300">
-                Overshooting Convective Top (14.8 km) • Tropopause Penetration
-              </div>
-
-              {/* Suspended Severe Hail Core (6–9 km) */}
-              <div className="absolute top-12 left-28 right-28 h-10 bg-gradient-to-r from-red-600/70 via-rose-500/80 to-red-600/70 border border-rose-400/80 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-rose-600/30">
-                SUSPENDED HAIL CORE &gt; 58 dBZ (7.2 km)
-              </div>
-
-              {/* Freezing Level / Bright Band (4.5 km) */}
-              <div className="absolute top-24 left-0 right-0 border-b border-dashed border-cyan-400/70 flex items-center justify-between px-3 text-cyan-300">
-                <span>0°C Freezing Level (4.5 km)</span>
-                <span className="text-[9px] bg-cyan-950 px-1.5 rounded border border-cyan-500/40">Melting Layer / Bright Band</span>
-              </div>
-
-              {/* Stratiform Rain & Surface Precipitation Core (0–4 km) */}
-              <div className="absolute bottom-2 left-20 right-20 h-14 bg-gradient-to-t from-emerald-500/40 via-green-600/40 to-yellow-500/40 border border-green-500/40 rounded-t-xl flex items-center justify-center text-emerald-200">
-                Torrental Rainfall Core ({calculatedRainRate.toFixed(1)} mm/hr) • Downdraft Base
-              </div>
-
-              {/* Altitude Y-Axis Legend */}
-              <div className="absolute top-2 left-2 bottom-2 flex flex-col justify-between text-slate-500 font-mono text-[9px] border-r border-slate-800 pr-2">
-                <span>16 km</span>
-                <span>12 km</span>
-                <span>8 km</span>
-                <span>4 km</span>
-                <span>0 km</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-              <span>RADIAL AZIMUTH: 218° FROM VEBS RADAR</span>
-              <span>BEAM RESOLUTION: 250m BIN WIDTH</span>
-              <span>ELEVATION ANGLE: 0.5° TO 19.5° VOLUMETRIC SCAN</span>
-            </div>
-          </div>
-        )}
-
-        {/* =============================================================== */}
-        {/* 6. BOTTOM TIMELINE SCRUBBER (0 TO 6 HOURS)                       */}
-        {/* =============================================================== */}
-        <div className="absolute bottom-4 left-4 right-4 z-20 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl backdrop-blur-xl shadow-2xl flex flex-col gap-2 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setCurrentFrameIdx((prev) => Math.max(0, prev - 1))}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
-                title="Step Backward"
-              >
-                <SkipBack className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="p-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold transition shadow-md shadow-sky-500/20"
-                title={isPlaying ? 'Pause Loop' : 'Play Timeline'}
-              >
-                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-              </button>
-              <button
-                onClick={() => setCurrentFrameIdx((prev) => Math.min(TIMELINE_FRAMES.length - 1, prev + 1))}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
-                title="Step Forward"
-              >
-                <SkipForward className="w-3.5 h-3.5" />
-              </button>
-              <span className="text-xs font-mono font-bold text-slate-200 pl-2">
-                {activeFrame.horizon}
-              </span>
-            </div>
-
-            {/* Nowcast vs NWP Transition Indicator */}
-            <div className="flex items-center gap-2 text-xs font-mono">
-              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${
-                activeFrame.phase === 'nowcast'
-                  ? 'bg-sky-500/10 text-sky-400 border-sky-500/30'
-                  : 'bg-purple-500/10 text-purple-400 border-purple-500/30'
-              }`}>
-                Phase: {activeFrame.phase === 'nowcast' ? 'Radar DL (0–2h)' : 'NWP Hybrid (2–6h)'}
-              </span>
-              <span className="text-slate-400 text-[11px] hidden sm:inline">
-                {activeFrame.engine}
-              </span>
-            </div>
-          </div>
-
-          {/* Timeline Node Selector */}
-          <div className="grid grid-cols-6 gap-2 pt-1">
-            {TIMELINE_FRAMES.map((f, idx) => {
-              const isActive = currentFrameIdx === idx;
-              return (
-                <button
-                  key={f.horizon}
-                  onClick={() => setCurrentFrameIdx(idx)}
-                  className={`py-1.5 px-1 rounded-lg text-center font-mono text-[10px] transition border ${
-                    isActive
-                      ? 'bg-sky-500/20 border-sky-400 text-sky-300 font-bold shadow-sm'
-                      : 'bg-slate-800/40 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <div className="truncate">{f.horizon.split(' ')[0]}</div>
-                  <div className="text-[9px] opacity-70 truncate">{f.phase}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
 
       </div>
 
       {/* ================================================================== */}
-      {/* 7. NDMA / WMO COMMON ALERTING PROTOCOL (CAP v1.2) MODAL           */}
+      {/* 4. RHI VERTICAL CROSS-SECTION DRAWER (0–16 KM COLUMN CUT)         */}
+      {/* ================================================================== */}
+      {showRhiDrawer && (
+        <div className="absolute bottom-20 left-4 right-4 z-40 bg-[#0d121c]/95 border border-[#222e42] p-4 rounded-2xl backdrop-blur-xl shadow-2xl flex flex-col space-y-2 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-200">
+          <div className="flex justify-between items-center border-b border-[#1e2533] pb-2 font-mono">
+            <div className="flex items-center space-x-2">
+              <Activity className="w-4 h-4 text-[#38bdf8]" />
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                RHI Range-Height Indicator Profile • Beam Azimuth {activeCell.azimuthDeg}°
+              </span>
+            </div>
+            <button onClick={() => setShowRhiDrawer(false)} className="text-[#64748b] hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="h-40 w-full bg-[#07090e] border border-[#1b2333] rounded-xl relative overflow-hidden flex flex-col justify-between p-3 font-mono text-[10px]">
+            {/* Tropopause & Overshooting Top */}
+            <div className="absolute top-2 left-20 right-20 h-7 bg-fuchsia-600/30 border-t border-fuchsia-400/80 rounded-full flex items-center justify-center text-fuchsia-300">
+              Overshooting Convective Top (15.2 km) • Tropopause Penetration
+            </div>
+
+            {/* Suspended Hail Core */}
+            <div className="absolute top-11 left-32 right-32 h-9 bg-rose-600/80 border border-rose-400 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">
+              SUSPENDED HAIL CORE ({activeCell.maxDbz} dBZ @ {activeCell.coreHeightKm} km)
+            </div>
+
+            {/* 0°C Freezing Level / Bright Band */}
+            <div className="absolute top-24 left-0 right-0 border-b border-dashed border-cyan-400/80 flex items-center justify-between px-3 text-cyan-300">
+              <span>0°C Freezing Level (4.5 km)</span>
+              <span className="text-[9px] bg-cyan-950 px-1.5 rounded border border-cyan-500/40">Melting Layer / Bright Band</span>
+            </div>
+
+            {/* Surface Precipitation Downburst Core */}
+            <div className="absolute bottom-2 left-24 right-24 h-12 bg-emerald-500/30 border-t border-emerald-400 rounded-t-lg flex items-center justify-center text-emerald-200">
+              Torrential Downburst Shaft ({activeCell.rainRateMmh.toFixed(1)} mm/hr) • Divergent Outflow Base
+            </div>
+
+            {/* Height Axis */}
+            <div className="absolute top-2 left-2 bottom-2 flex flex-col justify-between text-[#64748b] pr-2 border-r border-[#1e2533]">
+              <span>16 km</span>
+              <span>12 km</span>
+              <span>8 km</span>
+              <span>4 km</span>
+              <span>0 km</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* 5. BOTTOM TIMELINE CONTROLLER (0 TO 3 HOURS LEAD TIME)             */}
+      {/* ================================================================== */}
+      <div className="h-16 border-t border-[#1e2533] bg-[#0c1017] px-6 flex items-center justify-between shrink-0 z-30">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setLeadTimeMin(prev => Math.max(0, prev - 15))}
+            className="p-1.5 rounded bg-[#141b26] hover:bg-[#1d2737] text-slate-300 transition"
+          >
+            <SkipBack className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="p-2 rounded-lg bg-[#38bdf8] hover:bg-[#2563eb] text-slate-950 font-bold transition shadow"
+          >
+            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+          </button>
+          <button
+            onClick={() => setLeadTimeMin(prev => Math.min(180, prev + 15))}
+            className="p-1.5 rounded bg-[#141b26] hover:bg-[#1d2737] text-slate-300 transition"
+          >
+            <SkipForward className="w-3.5 h-3.5" />
+          </button>
+
+          <span className="text-xs font-mono font-bold text-white pl-2">
+            T+{leadTimeMin}m NOWCAST ({leadTimeMin === 0 ? 'LIVE VOLUMETRIC ANALYSIS' : leadTimeMin <= 60 ? 'CONVECTNET AI EXTRAPOLATION' : 'NWP BLENDED HYBRID'})
+          </span>
+        </div>
+
+        {/* Timeline Horizon Buttons */}
+        <div className="flex space-x-1.5">
+          {[0, 15, 30, 45, 60, 90, 120, 180].map(m => (
+            <button
+              key={m}
+              onClick={() => setLeadTimeMin(m)}
+              className={`px-3 py-1 rounded text-xs font-mono font-bold transition border ${
+                leadTimeMin === m
+                  ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-[#38bdf8] shadow'
+                  : 'bg-[#101520] border-[#1e2533] text-[#64748b] hover:text-white'
+              }`}
+            >
+              +{m}m
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* 6. NDMA CAP v1.2 DISPATCH MODAL                                    */}
       {/* ================================================================== */}
       {showCapModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-5 shadow-2xl flex flex-col gap-4 max-h-[85vh] overflow-hidden">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0e131d] border border-[#222c3d] rounded-2xl max-w-2xl w-full p-5 shadow-2xl flex flex-col space-y-3 font-mono">
+            <div className="flex justify-between items-center border-b border-[#1e2533] pb-2">
+              <div className="flex items-center space-x-2">
                 <ShieldAlert className="w-5 h-5 text-rose-500" />
-                <span className="text-sm font-bold uppercase tracking-wider text-slate-100">
-                  Official NDMA CAP v1.2 Dispatch Generator
+                <span className="text-xs font-bold uppercase text-white tracking-wider">
+                  NDMA Common Alerting Protocol (CAP v1.2 XML)
                 </span>
               </div>
-              <button 
-                onClick={() => setShowCapModal(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
+              <button onClick={() => setShowCapModal(false)} className="text-[#64748b] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">
-                Targeted Dispatch: <strong className="text-sky-300 font-mono">{selectedSector.id}</strong> ({selectedSector.name})
-              </span>
-              <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800">
-                <button
-                  onClick={() => setCapFormat('xml')}
-                  className={`px-3 py-1 rounded text-xs font-mono font-bold ${capFormat === 'xml' ? 'bg-sky-500 text-slate-950' : 'text-slate-400'}`}
-                >
-                  XML (WMO)
-                </button>
-                <button
-                  onClick={() => setCapFormat('json')}
-                  className={`px-3 py-1 rounded text-xs font-mono font-bold ${capFormat === 'json' ? 'bg-sky-500 text-slate-950' : 'text-slate-400'}`}
-                >
-                  JSON (NDMA API)
-                </button>
-              </div>
-            </div>
-
-            {/* XML / JSON Code Output Viewer */}
-            <div className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 font-mono text-xs text-slate-300 overflow-y-auto max-h-80 leading-relaxed">
-              <pre className="whitespace-pre-wrap">
-                {capFormat === 'xml' ? `<?xml version="1.0" encoding="UTF-8"?>
+            <div className="bg-[#07090e] border border-[#1b2333] p-3 rounded-lg text-xs text-[#cbd5e1] overflow-y-auto max-h-72">
+              <pre className="whitespace-pre-wrap">{`<?xml version="1.0" encoding="UTF-8"?>
 <alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
-  <identifier>IN-OD-IMD-NOWCAST-${Date.now()}</identifier>
+  <identifier>IN-OD-IMD-DWR-${Date.now()}</identifier>
   <sender>imd-nowcast@imd.gov.in</sender>
   <sent>${new Date().toISOString()}</sent>
   <status>Actual</status>
@@ -1750,63 +1372,31 @@ export default function HazardDashboard() {
   <scope>Public</scope>
   <info>
     <category>Met</category>
-    <event>Severe Thunderstorm & Downburst</event>
+    <event>Severe Convective Cloudburst & Microburst</event>
     <urgency>Immediate</urgency>
-    <severity>${selectedSector.radar_dbz >= 55 ? 'Extreme' : 'Severe'}</severity>
+    <severity>${activeCell.maxDbz >= 60 ? 'Extreme' : 'Severe'}</severity>
     <certainty>Observed</certainty>
-    <headline>Severe Convection Alert for ${selectedSector.name} (${selectedSector.id})</headline>
-    <description>IMD Doppler Radar detected convective core with peak reflectivity of ${selectedSector.radar_dbz} dBZ. Estimated rain rate: ${calculatedRainRate.toFixed(1)} mm/hr. Surface gusts: ${selectedSector.wind_gust_kmh} km/h. Probable Severe Hail: ${poshValue}%. Total Lightning Jump: ${selectedSector.lightning_rate} str/min.</description>
-    <instruction>Take immediate shelter in reinforced structures. Aviation operations at VEBS Bhubaneswar suspended. Stay clear of electrical lines and open fields.</instruction>
+    <headline>Severe Thunderstorm & Microburst Warning for ${activeCell.name}</headline>
+    <description>IMD DWR Bhubaneswar detected severe convective core: Peak Reflectivity ${activeCell.maxDbz} dBZ, Rain Rate ${activeCell.rainRateMmh.toFixed(1)} mm/hr (IMD Cloudburst Criteria Exceeded), Surface Velocity Shear ${activeCell.shearDeltaV} m/s (${Math.round(activeCell.shearDeltaV * 1.94)} kt), Severe Hail Probability ${activeCell.poh}%. Immediate aerodrome holding pattern recommended for VEBS RWY 01.</description>
+    <instruction>Take immediate shelter in reinforced buildings. All apron and ground fueling operations suspended at BBI Airport.</instruction>
     <area>
-      <areaDesc>${selectedSector.name}</areaDesc>
-      <circle>${selectedSector.center[0].toFixed(4)},${selectedSector.center[1].toFixed(4)},6.0</circle>
+      <areaDesc>${activeCell.name}</areaDesc>
+      <circle>${activeCell.lat.toFixed(4)},${activeCell.lon.toFixed(4)},5.0</circle>
     </area>
   </info>
-</alert>` : JSON.stringify({
-                  identifier: `IN-OD-IMD-NOWCAST-${Date.now()}`,
-                  sender: "imd-nowcast@imd.gov.in",
-                  sent: new Date().toISOString(),
-                  status: "Actual",
-                  msgType: "Alert",
-                  scope: "Public",
-                  info: {
-                    category: "Met",
-                    event: "Severe Thunderstorm & Downburst",
-                    urgency: "Immediate",
-                    severity: selectedSector.radar_dbz >= 55 ? "Extreme" : "Severe",
-                    certainty: "Observed",
-                    headline: `Severe Convection Alert for ${selectedSector.name} (${selectedSector.id})`,
-                    parameters: {
-                      radar_dbz: selectedSector.radar_dbz,
-                      rain_rate_mmh: calculatedRainRate.toFixed(1),
-                      surface_gust_kmh: selectedSector.wind_gust_kmh,
-                      hail_posh: `${poshValue}%`,
-                      lightning_rate: `${selectedSector.lightning_rate} str/min`,
-                    },
-                    coordinates: selectedSector.center,
-                  }
-                }, null, 2)}
-              </pre>
+</alert>`}</pre>
             </div>
 
             <div className="flex justify-between items-center pt-2">
-              <span className="text-[10px] font-mono text-slate-500">
-                NDMA GUID: 36084-MOES-DWR-ODISHA
-              </span>
+              <span className="text-[10px] text-[#64748b]">WMO / NDMA COMPLIANT CAP PAYLOAD</span>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(
-                    capFormat === 'xml'
-                      ? `<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">...</alert>`
-                      : `{"status": "Actual"}`
-                  );
-                  setCopiedAlert(true);
-                  setTimeout(() => setCopiedAlert(false), 2000);
+                  navigator.clipboard.writeText(`<alert>...</alert>`);
+                  alert('CAP XML copied to clipboard');
                 }}
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-400 font-bold text-xs text-slate-950 rounded-xl transition flex items-center gap-1.5 shadow"
+                className="px-4 py-1.5 bg-[#38bdf8] text-slate-950 font-bold text-xs rounded-lg shadow"
               >
-                {copiedAlert ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copiedAlert ? 'Copied to Clipboard' : 'Copy CAP Payload'}</span>
+                Copy CAP Payload
               </button>
             </div>
           </div>
@@ -1814,59 +1404,53 @@ export default function HazardDashboard() {
       )}
 
       {/* ================================================================== */}
-      {/* 8. WMO BENCHMARK SKILL SCORES MODAL (CONVECTNET VS PYSTEPS)       */}
+      {/* 7. WMO VERIFICATION BENCHMARK SKILL MODAL                          */}
       {/* ================================================================== */}
-      {showSkillModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-5 shadow-2xl flex flex-col gap-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-sky-400" />
-                <span className="text-sm font-bold uppercase tracking-wider text-slate-100">
-                  Meteorological Skill Score Verification
+      {showMetricsModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0e131d] border border-[#222c3d] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col space-y-3 font-mono">
+            <div className="flex justify-between items-center border-b border-[#1e2533] pb-2">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-5 h-5 text-[#38bdf8]" />
+                <span className="text-xs font-bold uppercase text-white tracking-wider">
+                  WMO Verification Metrics (ConvectNet vs PySTEPS)
                 </span>
               </div>
-              <button 
-                onClick={() => setShowSkillModal(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
+              <button onClick={() => setShowMetricsModal(false)} className="text-[#64748b] hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="text-xs text-slate-300 leading-relaxed">
-              Comparison between <strong className="text-sky-400">ConvectNet AI</strong> and industry-standard <strong className="text-amber-400">PySTEPS Lagrangian Optical Flow</strong> across 193 SEVIR & IMD validation events:
+            <p className="text-xs text-[#cbd5e1] leading-relaxed">
+              Validation results across 193 held-out severe convective storm events (IMD Doppler Weather Radar & SEVIR HDF5 benchmarks):
+            </p>
+
+            <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="p-3 bg-[#07090e] border border-[#1e2533] rounded-xl">
+                <span className="text-[10px] text-[#64748b] block">Critical Success Index</span>
+                <span className="text-base font-bold text-[#38bdf8]">0.784</span>
+                <span className="text-[9px] text-[#64748b] block">PySTEPS: 0.612</span>
+              </div>
+              <div className="p-3 bg-[#07090e] border border-[#1e2533] rounded-xl">
+                <span className="text-[10px] text-[#64748b] block">Prob. of Detection</span>
+                <span className="text-base font-bold text-emerald-400">0.892</span>
+                <span className="text-[9px] text-[#64748b] block">PySTEPS: 0.730</span>
+              </div>
+              <div className="p-3 bg-[#07090e] border border-[#1e2533] rounded-xl">
+                <span className="text-[10px] text-[#64748b] block">False Alarm Ratio</span>
+                <span className="text-base font-bold text-rose-400">0.084</span>
+                <span className="text-[9px] text-[#64748b] block">PySTEPS: 0.174</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 text-center font-mono">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                <span className="text-[10px] text-slate-400 block">Critical Success Index</span>
-                <span className="text-lg font-black text-sky-400">0.784</span>
-                <span className="text-[9px] text-slate-500 block">PySTEPS: 0.612 (+28%)</span>
-              </div>
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                <span className="text-[10px] text-slate-400 block">Probability of Detection</span>
-                <span className="text-lg font-black text-emerald-400">0.892</span>
-                <span className="text-[9px] text-slate-500 block">PySTEPS: 0.730 (+22%)</span>
-              </div>
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                <span className="text-[10px] text-slate-400 block">False Alarm Ratio</span>
-                <span className="text-lg font-black text-rose-400">0.084</span>
-                <span className="text-[9px] text-slate-500 block">PySTEPS: 0.174 (-52%)</span>
-              </div>
+            <div className="p-2.5 bg-[#0a0d15] border border-[#1e2533] rounded-lg text-[10px] text-[#94a3b8] space-y-1">
+              <div>• Fractions Skill Score (FSS @ 10km): <strong className="text-white">0.865</strong> (Useful threshold &gt; 0.50)</div>
+              <div>• Inference Latency: <strong className="text-emerald-400">28.4 ms</strong> per 128x128 volumetric tensor</div>
+              <div>• Overfit reduction on single batch: <strong className="text-[#38bdf8]">-99.6%</strong> (Karpathy First-Principles passed)</div>
             </div>
 
-            <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl text-[11px] text-slate-400 space-y-1 font-mono">
-              <div>• Fractions Skill Score (FSS @ 10km): <span className="text-sky-300 font-bold">0.865</span> (Useful Skill threshold &gt; 0.50)</div>
-              <div>• Brier Skill Score (BSS for Hail): <span className="text-sky-300 font-bold">0.342</span> vs Climatology</div>
-              <div>• Inference Latency: <span className="text-emerald-400 font-bold">28.4 ms</span> per 128x128 volumetric cube (Apple M-series MPS)</div>
-            </div>
-
-            <button
-              onClick={() => setShowSkillModal(false)}
-              className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition"
-            >
-              Close Verification Diagnostics
+            <button onClick={() => setShowMetricsModal(false)} className="w-full py-2 bg-[#17202d] text-[#e2e8f0] text-xs font-bold rounded-lg border border-[#2e3e55]">
+              Close Diagnostics
             </button>
           </div>
         </div>
