@@ -495,7 +495,7 @@ export default function HazardDashboard() {
   };
 
   return (
-    <div className="relative w-screen h-screen bg-slate-950 text-slate-100 flex flex-col overflow-hidden font-sans select-none">
+    <div className="relative w-full h-full bg-slate-950 text-slate-100 flex flex-col overflow-hidden font-sans select-none">
 
       {/* ================================================================== */}
       {/* 1. TOP STATUS BAR: Mission Control & Meteorological Provenance     */}
@@ -700,10 +700,10 @@ export default function HazardDashboard() {
           className="w-full h-full"
           zoomControl={false}
         >
-          {/* Real CartoDB Dark Matter Base Tiles */}
+          {/* Reliable ESRI World Dark Gray Canvas Base Tiles (Zero Watermark / No Key Required) */}
           <TileLayer
-            attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
           />
 
           {/* 4-Point Bilinear Heatmap Raster Overlay */}
@@ -735,7 +735,12 @@ export default function HazardDashboard() {
                   fillOpacity: isTarget ? 0.2 : 0,
                 }}
               >
-                <Tooltip permanent direction="center" opacity={0.9}>
+                <Tooltip 
+                  permanent 
+                  direction="center" 
+                  opacity={0.92}
+                  className="!bg-slate-950/90 !border !border-sky-500/40 !text-slate-100 !rounded-xl !p-1.5 !shadow-2xl !backdrop-blur-md"
+                >
                   <div className="text-center font-mono leading-tight cursor-pointer">
                     <div className={`text-[10px] uppercase tracking-wider ${isTarget ? 'text-sky-300 font-bold' : 'text-slate-400'}`}>
                       {sec.id}
