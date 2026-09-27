@@ -40,7 +40,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
       const iHours = String(istDate.getUTCHours()).padStart(2, '0');
       const iMinutes = String(istDate.getUTCMinutes()).padStart(2, '0');
       const iSeconds = String(istDate.getUTCSeconds()).padStart(2, '0');
-      setIstTime(`${iHours}:${iMinutes}:${iSeconds} IST`);
+      setIstTime(`${iHours}:${iMinutes}:${iSeconds}`);
     };
 
     updateClocks();
@@ -51,7 +51,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
   return (
     <header className="h-14 bg-[#0a0d15]/95 border-b border-[#1e293b] backdrop-blur-md px-4 flex items-center justify-between z-30 select-none">
       {/* Brand & Mission Badge */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-shrink-0">
         <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#1888ef] to-[#0055c4] flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/30">
           <Radar className="w-5 h-5 text-white" />
         </div>
@@ -69,9 +69,9 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
       </div>
 
       {/* Center: System Status & Data Mode & Latencies */}
-      <div className="hidden lg:flex items-center gap-3">
+      <div className="hidden xl:flex items-center gap-2.5 flex-shrink min-w-0">
         {/* System Beacon */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex-shrink-0">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -81,7 +81,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
 
         {/* Live vs Historical Mode Badge */}
         <div
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-mono transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-mono transition-colors flex-shrink-0 ${
             isLiveMode
               ? 'bg-blue-950/40 border-blue-500/40 text-blue-300'
               : 'bg-slate-800/60 border-slate-500/40 text-slate-300'
@@ -92,7 +92,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         </div>
 
         {/* Latency Tickers */}
-        <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-[#131928]/80 px-2.5 py-1 rounded border border-[#1e293b]">
+        <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-[#131928]/80 px-2.5 py-1 rounded border border-[#1e293b] flex-shrink-0">
           <span className="flex items-center gap-1">
             <Radio className="w-3 h-3 text-emerald-400" />
             <span className="text-slate-300 font-medium">Radar:</span>
@@ -117,23 +117,23 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
       </div>
 
       {/* Right Controls: Dual Clock, Replay Button, Layers Drawer Button */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
         {/* Dual UTC / IST Real-Time Clock */}
-        <div className="bg-[#131928] border border-[#1e293b] rounded px-3 py-1 text-right font-mono">
-          <div className="text-xs font-semibold text-slate-200 tracking-wider flex items-center justify-end gap-1.5">
-            <span className="text-blue-400">UTC</span>
-            <span>{utcTime || '--:--:-- Z'}</span>
+        <div className="flex-shrink-0 bg-[#131928] border border-[#1e293b] rounded-md px-2.5 py-1 text-right font-mono whitespace-nowrap shadow-sm flex flex-col justify-center">
+          <div className="text-[11px] font-semibold text-slate-200 tracking-wider flex items-center justify-end gap-1.5 leading-none">
+            <span className="text-[9px] px-1 py-0.5 rounded bg-sky-950/80 border border-sky-500/40 text-sky-400 font-bold">UTC</span>
+            <span className="tabular-nums">{utcTime || '--:--:-- Z'}</span>
           </div>
-          <div className="text-[10px] text-slate-400 tracking-tight flex items-center justify-end gap-1.5">
-            <span className="text-amber-400">IST</span>
-            <span>{istTime || '--:--:-- IST'}</span>
+          <div className="text-[10px] text-slate-300 tracking-tight flex items-center justify-end gap-1.5 leading-none mt-1">
+            <span className="text-[9px] px-1 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-400 font-bold">IST</span>
+            <span className="tabular-nums">{istTime || '--:--:--'}</span>
           </div>
         </div>
 
         {/* Historical Event Replay Toggle */}
         <button
           onClick={onToggleReplay}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-medium transition-all ${
+          className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-all ${
             isReplayActive
               ? 'bg-rose-600/30 border border-rose-500 text-rose-200 ring-2 ring-rose-500/30 shadow-lg shadow-rose-900/40 animate-pulse'
               : 'bg-[#131928] hover:bg-[#1a2236] border border-[#1e293b] text-slate-300 hover:text-white'
@@ -148,7 +148,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         {onOpenVerification && (
           <button
             onClick={onOpenVerification}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-[#131928] hover:bg-[#1a2236] text-blue-300 hover:text-white border border-[#1e293b] hover:border-blue-500/50"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-[#131928] hover:bg-[#1a2236] text-blue-300 hover:text-white border border-[#1e293b] hover:border-blue-500/50"
             title="WMO Operational Verification Benchmark (POD, FAR, CSI vs pySTEPS)"
           >
             <Award className="w-3.5 h-3.5 text-blue-400" />
@@ -160,7 +160,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         {onOpenCapModal && (
           <button
             onClick={onOpenCapModal}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 hover:text-white border border-rose-800/40 hover:border-rose-500/60"
+            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 hover:text-white border border-rose-800/40 hover:border-rose-500/60"
             title="Generate & Dispatch WMO/NDMA CAP v1.2 Warning Alert"
           >
             <Send className="w-3.5 h-3.5 text-rose-400" />
@@ -171,7 +171,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         {/* Layer Drawer Toggle */}
         <button
           onClick={onToggleLayers}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors border ${
+          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors border ${
             isLayerDrawerOpen
               ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30'
               : 'bg-[#131928] hover:bg-[#1a2236] text-slate-300 hover:text-white border-[#1e293b]'

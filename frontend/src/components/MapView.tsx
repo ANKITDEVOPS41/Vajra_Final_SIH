@@ -383,7 +383,7 @@ export const MapView: React.FC<MapViewProps> = ({
       ],
       view: new View({
         center: SOHRA_WEB_MERCATOR,
-        zoom: 8.5,
+        zoom: 9.2,
         minZoom: 6,
         maxZoom: 14,
       }),
