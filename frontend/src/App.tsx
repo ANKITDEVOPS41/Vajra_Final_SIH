@@ -176,17 +176,39 @@ export const App: React.FC = () => {
     // WebSocket connection
     const wsClient = new LiveWebSocketClient(
       (data) => {
-        if (data.hazard_probabilities && !isReplayMode) {
+        const hazardProbs = data.hazard_probabilities || data.hazards;
+        if (hazardProbs && !isReplayMode) {
           setHazards((prev) =>
             prev.map((h) => {
-              if (h.type === 'ci') return { ...h, value: data.hazard_probabilities.ci_prob || h.value };
-              if (h.type === 'lightning') return { ...h, value: data.hazard_probabilities.lightning_prob || h.value };
-              if (h.type === 'hail') return { ...h, value: data.hazard_probabilities.hail_prob || h.value };
-              if (h.type === 'downburst') return { ...h, value: data.hazard_probabilities.downburst_prob || h.value };
-              if (h.type === 'cloudburst') return { ...h, value: data.hazard_probabilities.cloudburst_prob || h.value };
+              if (h.type === 'ci') return { ...h, value: hazardProbs.ci_prob ?? h.value };
+              if (h.type === 'lightning') return { ...h, value: hazardProbs.lightning_prob ?? h.value };
+              if (h.type === 'hail') return { ...h, value: hazardProbs.hail_prob ?? h.value };
+              if (h.type === 'downburst') return { ...h, value: hazardProbs.downburst_prob ?? h.value };
+              if (h.type === 'cloudburst') return { ...h, value: hazardProbs.cloudburst_prob ?? h.value };
               return h;
             })
           );
+        }
+
+        if (data.storm_cells && !isReplayMode) {
+          if (Array.isArray(data.storm_cells)) {
+            setStormCells(data.storm_cells);
+          } else if (data.storm_cells.features && Array.isArray(data.storm_cells.features)) {
+            setStormCells(
+              data.storm_cells.features.map((f: any, idx: number) => ({
+                id: f.properties?.cell_id || `ws-cell-${idx}`,
+                name: f.properties?.name || `Live Cell ${idx + 1}`,
+                centroid: f.geometry?.coordinates || [91.73, 25.27],
+                radiusKm: f.properties?.radiusKm || 14,
+                maxDbz: f.properties?.max_dbz || 55,
+                echoTopKm: f.properties?.echo_top_km || 14,
+                speedKmh: f.properties?.speedKmh || 42,
+                bearingDeg: f.properties?.bearingDeg || 45,
+                etaMinutes: f.properties?.etaMinutes || 25,
+                severity: f.properties?.severity || 'SEVERE',
+              }))
+            );
+          }
         }
       },
       (connected) => {

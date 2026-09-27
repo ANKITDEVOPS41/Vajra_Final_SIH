@@ -335,6 +335,8 @@ async def _push_live_update(ws: WebSocket) -> None:
             "type": "hazard_update",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "hazards": forecast.hazard_probabilities,
+            "hazard_probabilities": forecast.hazard_probabilities,
+            "storm_cells": forecast.storm_cells,
             "storm_motion": forecast.storm_motion,
             "data_mode": forecast.data_mode,
             "ai_model": ConvectNetInference.MODEL_NAME,
