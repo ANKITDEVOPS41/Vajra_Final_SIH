@@ -8,9 +8,15 @@ import {
   Polyline, 
   Polygon,
   ImageOverlay,
-  Marker
+  Marker,
+  ScaleControl,
+  useMap
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { 
+  AERODROME_3X3_KM_GRID, 
+  AERODROME_CORE_SPECS 
+} from '../types/tacticalGrid';
 import { 
   Play, 
   Pause, 
@@ -58,6 +64,15 @@ export type RadarProduct = 'reflectivity' | 'velocity' | 'zdr' | 'vil' | 'echoto
 export type DisplayMode = 'polar_scope' | 'gis_basemap';
 export type ModelEngine = 'convectnet' | 'pysteps';
 export type SidebarTab = 'grid3x3' | 'aws_network' | 'scit_cells';
+export type DomainScope = 'aerodrome_3km' | 'regional_60km';
+
+function MapViewController({ center, zoom }: { center: [number, number]; zoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 0.8 });
+  }, [center, zoom, map]);
+  return null;
+}
 
 export interface StormCellTrack {
   id: string;
@@ -679,8 +694,9 @@ export const ACTIVE_CELLS: StormCellTrack[] = [
 export default function HazardDashboard() {
   const [product, setProduct] = useState<RadarProduct>('reflectivity');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('polar_scope');
+  const [domainScope, setDomainScope] = useState<DomainScope>('aerodrome_3km');
   const [activeCellId, setActiveCellId] = useState<string>('CELL-01');
-  const [selectedSectorId, setSelectedSectorId] = useState<string>('SEC-C');
+  const [selectedSectorId, setSelectedSectorId] = useState<string>('T-C2');
   const [selectedAwsId, setSelectedAwsId] = useState<string>('AWS-VEBS');
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('grid3x3');
   const [leadTimeMin, setLeadTimeMin] = useState<number>(0);
@@ -688,7 +704,7 @@ export default function HazardDashboard() {
   const [showRhiDrawer, setShowRhiDrawer] = useState<boolean>(false);
   const [showCapModal, setShowCapModal] = useState<boolean>(false);
   const [showMetricsModal, setShowMetricsModal] = useState<boolean>(false);
-  const [radarRangeKm, setRadarRangeKm] = useState<number>(60);
+  const [radarRangeKm, setRadarRangeKm] = useState<number>(3);
   const [elevationDeg, setElevationDeg] = useState<number>(0.5);
   
   // Tactical Overlays Toggle State
@@ -725,8 +741,12 @@ export default function HazardDashboard() {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
+  const currentGrid = useMemo(() => {
+    return domainScope === 'aerodrome_3km' ? AERODROME_3X3_KM_GRID : TACTICAL_3X3_GRID;
+  }, [domainScope]);
+
   const activeCell = ACTIVE_CELLS.find(c => c.id === activeCellId) || ACTIVE_CELLS[0];
-  const activeSector = TACTICAL_3X3_GRID.find(s => s.id === selectedSectorId) || TACTICAL_3X3_GRID[4];
+  const activeSector = currentGrid.find(s => s.id === selectedSectorId) || currentGrid[domainScope === 'aerodrome_3km' ? 7 : 4];
   const activeAws = SURROUNDING_AWS_STATIONS.find(a => a.id === selectedAwsId) || SURROUNDING_AWS_STATIONS[0];
 
   // Clocks
@@ -917,10 +937,10 @@ export default function HazardDashboard() {
         }
       }
 
-      // 4. THE 3x3 TACTICAL GRID OVERLAY (AOI PROJECTION)
+      // 4. THE 3x3 TACTICAL GRID OVERLAY (AOI PROJECTION - UNCLUTTERED)
       if (show3x3Grid) {
         ctx.save();
-        TACTICAL_3X3_GRID.forEach(sector => {
+        currentGrid.forEach(sector => {
           const isSelected = sector.id === selectedSectorId;
 
           // 4 corner coordinates in pixels
@@ -938,74 +958,119 @@ export default function HazardDashboard() {
           ctx.closePath();
 
           if (isSelected) {
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.14)';
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
             ctx.fill();
             ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2.0;
+            ctx.lineWidth = 1.8;
             ctx.setLineDash([]);
           } else {
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
-            ctx.lineWidth = 1.0;
-            ctx.setLineDash([3, 4]);
+            ctx.strokeStyle = domainScope === 'aerodrome_3km' ? 'rgba(56, 189, 248, 0.35)' : 'rgba(56, 189, 248, 0.22)';
+            ctx.lineWidth = domainScope === 'aerodrome_3km' ? 1.0 : 0.8;
+            ctx.setLineDash([3, 3]);
           }
           ctx.stroke();
 
-          // Sector Center Label Tag
-          const [centX, centY] = latLonToPixel(sector.center[0], sector.center[1], cx, cy, maxRadiusPx);
-          
+          // Unobtrusive Sector Code in TOP-LEFT corner
           ctx.setLineDash([]);
-          ctx.fillStyle = isSelected ? '#0a101d' : 'rgba(10, 15, 26, 0.85)';
-          ctx.strokeStyle = isSelected ? '#38bdf8' : 'rgba(71, 85, 105, 0.6)';
-          ctx.lineWidth = 1;
-          const boxW = 84;
-          const boxH = 26;
-          ctx.fillRect(centX - boxW / 2, centY - boxH / 2, boxW, boxH);
-          ctx.strokeRect(centX - boxW / 2, centY - boxH / 2, boxW, boxH);
+          ctx.textAlign = 'left';
+          ctx.font = '600 9px monospace';
+          ctx.fillStyle = isSelected ? '#38bdf8' : 'rgba(148, 163, 184, 0.7)';
+          const cellTag = domainScope === 'aerodrome_3km' ? `${sector.code} [1km²]` : sector.code;
+          ctx.fillText(cellTag, nwX + 6, nwY + 12);
 
-          ctx.textAlign = 'center';
-          ctx.fillStyle = isSelected ? '#38bdf8' : '#94a3b8';
-          ctx.font = 'bold 9px monospace';
-          ctx.fillText(`${sector.id} [${sector.code}]`, centX, centY - 2);
+          // ONLY display a floating HUD tag if the sector is explicitly SELECTED
+          if (isSelected) {
+            const [centX, centY] = latLonToPixel(sector.center[0], sector.center[1], cx, cy, maxRadiusPx);
+            ctx.fillStyle = 'rgba(9, 13, 21, 0.92)';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 1;
+            const bW = domainScope === 'aerodrome_3km' ? 116 : 88;
+            const bH = 20;
+            ctx.fillRect(centX - bW / 2, centY - bH / 2, bW, bH);
+            ctx.strokeRect(centX - bW / 2, centY - bH / 2, bW, bH);
 
-          ctx.fillStyle = sector.radarDbz >= 55 ? '#f43f5e' : sector.radarDbz >= 40 ? '#eab308' : '#e2e8f0';
-          ctx.font = 'bold 10px monospace';
-          ctx.fillText(`${sector.radarDbz} dBZ • ${sector.rainRateMmh.toFixed(0)} mm/h`, centX, centY + 9);
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText(`${sector.id} • ${sector.radarDbz} dBZ`, centX, centY + 3);
+          }
         });
+
+        // IF IN REGIONAL 60KM: Highlight the central 3.0 km x 3.0 km Aerodrome Core
+        if (domainScope === 'regional_60km') {
+          const core = AERODROME_CORE_SPECS;
+          const [cswX, cswY] = latLonToPixel(core.bounds[0][0], core.bounds[0][1], cx, cy, maxRadiusPx);
+          const [cneX, cneY] = latLonToPixel(core.bounds[1][0], core.bounds[1][1], cx, cy, maxRadiusPx);
+
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.8;
+          ctx.setLineDash([]);
+          ctx.strokeRect(cswX, cneY, cneX - cswX, cswY - cneY);
+
+          // Dimension badge
+          ctx.fillStyle = 'rgba(9, 13, 21, 0.92)';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 0.8;
+          ctx.fillRect(cswX - 12, cneY - 18, (cneX - cswX) + 24, 15);
+          ctx.strokeRect(cswX - 12, cneY - 18, (cneX - cswX) + 24, 15);
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 8px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('3x3 km CORE (9 km²)', (cswX + cneX) / 2, cneY - 7);
+        }
+
+        // IF IN AERODROME 3KM: Draw perimeter dimension brackets
+        if (domainScope === 'aerodrome_3km') {
+          const core = AERODROME_CORE_SPECS;
+          const [cswX, cswY] = latLonToPixel(core.bounds[0][0], core.bounds[0][1], cx, cy, maxRadiusPx);
+          const [cneX, cneY] = latLonToPixel(core.bounds[1][0], core.bounds[1][1], cx, cy, maxRadiusPx);
+
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2.0;
+          ctx.setLineDash([]);
+          ctx.strokeRect(cswX, cneY, cneX - cswX, cswY - cneY);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 8.5px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('┌──────── 3.0 km (3,000m) AERODROME CORE PERIMETER ────────┐', (cswX + cneX) / 2, cneY - 8);
+        }
+
         ctx.restore();
       }
 
-      // 5. IN-SITU SURFACE AUTOMATIC WEATHER STATIONS (AWS)
+      // 5. IN-SITU SURFACE AUTOMATIC WEATHER STATIONS (AWS - TACTICAL DOTS)
       if (showAwsStations) {
         ctx.save();
         SURROUNDING_AWS_STATIONS.forEach(aws => {
           const [ax, ay] = latLonToPixel(aws.lat, aws.lon, cx, cy, maxRadiusPx);
           const isSelected = aws.id === selectedAwsId;
 
-          // Diamond Marker ◈
+          // Clean tactical target dot (No bulky black boxes)
           ctx.save();
-          ctx.translate(ax, ay);
-          ctx.rotate(Math.PI / 4);
+          ctx.beginPath();
+          ctx.arc(ax, ay, isSelected ? 4 : 2.5, 0, Math.PI * 2);
           ctx.fillStyle = aws.status === 'SEVERE_ALERT' ? '#ef4444' : aws.status === 'WARNING' ? '#f59e0b' : '#38bdf8';
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.5;
-          const dSize = isSelected ? 8 : 5.5;
-          ctx.fillRect(-dSize / 2, -dSize / 2, dSize, dSize);
-          ctx.strokeRect(-dSize / 2, -dSize / 2, dSize, dSize);
-          ctx.restore();
+          ctx.fill();
 
-          // Station Identification Tag
-          ctx.fillStyle = isSelected ? '#1e293b' : 'rgba(15, 23, 42, 0.85)';
-          ctx.strokeStyle = isSelected ? '#38bdf8' : '#475569';
+          ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.45)';
           ctx.lineWidth = 1;
-          const tagW = 78;
-          const tagH = 18;
-          ctx.fillRect(ax + 8, ay - 9, tagW, tagH);
-          ctx.strokeRect(ax + 8, ay - 9, tagW, tagH);
+          ctx.beginPath();
+          ctx.arc(ax, ay, isSelected ? 7 : 4.5, 0, Math.PI * 2);
+          ctx.stroke();
 
-          ctx.textAlign = 'left';
-          ctx.fillStyle = '#ffffff';
+          // Station callsign (Crisp text with 1px shadow, intelligent offset to prevent collision)
+          const shortName = aws.id.replace('AWS-', '');
           ctx.font = 'bold 8px monospace';
-          ctx.fillText(aws.id, ax + 11, ay + 3);
+          ctx.fillStyle = isSelected ? '#ffffff' : '#fbbf24';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+          ctx.shadowBlur = 3;
+          ctx.textAlign = 'left';
+
+          const offX = aws.lon >= 85.80 ? 6 : -28;
+          const offY = aws.lat >= 20.30 ? -4 : 8;
+          ctx.fillText(shortName, ax + offX, ay + offY);
+          ctx.restore();
         });
         ctx.restore();
       }
@@ -1016,9 +1081,9 @@ export default function HazardDashboard() {
         const [rwy01X, rwy01Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy01.thr[0], AIRPORT_RUNWAYS.rwy01.thr[1], cx, cy, maxRadiusPx);
         const [rwy19X, rwy19Y] = latLonToPixel(AIRPORT_RUNWAYS.rwy19.thr[0], AIRPORT_RUNWAYS.rwy19.thr[1], cx, cy, maxRadiusPx);
         
-        ctx.strokeStyle = activeCell.etaRunwayMin <= 5 ? '#ef4444' : '#f59e0b';
-        ctx.lineWidth = 2.0;
-        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = activeCell.etaRunwayMin <= 5 ? 'rgba(239, 68, 68, 0.7)' : 'rgba(245, 158, 11, 0.5)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
         AIRPORT_RUNWAYS.ilsCorridor.forEach((pt, idx) => {
           const [px, py] = latLonToPixel(pt[0], pt[1], cx, cy, maxRadiusPx);
@@ -1029,21 +1094,30 @@ export default function HazardDashboard() {
 
         ctx.setLineDash([]);
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(rwy01X, rwy01Y);
         ctx.lineTo(rwy19X, rwy19Y);
         ctx.stroke();
 
+        ctx.font = 'bold 8px monospace';
         ctx.fillStyle = '#fef08a';
-        ctx.font = 'bold 9px monospace';
-        ctx.fillText('RWY 01', rwy01X - 20, rwy01Y + 12);
-        ctx.fillText('RWY 19', rwy19X - 20, rwy19Y - 8);
+        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+        ctx.shadowBlur = 2;
+        ctx.fillText('01', rwy01X + 4, rwy01Y + 7);
+        ctx.fillText('19', rwy19X + 4, rwy19Y - 4);
+
+        if (domainScope === 'aerodrome_3km') {
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = 'bold 8px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('◀── 2,743 m RUNWAY 01/19 ──▶', (rwy01X + rwy19X) / 2 + 45, (rwy01Y + rwy19Y) / 2);
+        }
 
         const [aptX, aptY] = latLonToPixel(RADAR_STATION.lat, RADAR_STATION.lon, cx, cy, maxRadiusPx);
         ctx.fillStyle = '#38bdf8';
         ctx.beginPath();
-        ctx.arc(aptX, aptY, 4, 0, Math.PI * 2);
+        ctx.arc(aptX, aptY, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -1095,7 +1169,7 @@ export default function HazardDashboard() {
         ctx.lineWidth = 1;
         ctx.setLineDash([2, 4]);
 
-        const ringStepKm = radarRangeKm > 100 ? 50 : 20;
+        const ringStepKm = radarRangeKm > 100 ? 50 : radarRangeKm <= 5 ? 1 : 20;
         for (let rKm = ringStepKm; rKm <= radarRangeKm; rKm += ringStepKm) {
           const rPx = (rKm / radarRangeKm) * maxRadiusPx;
           ctx.beginPath();
@@ -1153,6 +1227,126 @@ export default function HazardDashboard() {
         ctx.restore();
       }
 
+      // 10. GRAPHICAL METRIC SCALE BAR (BOTTOM-LEFT OF RADAR SCOPE)
+      ctx.save();
+      const scaleBarX = cx - maxRadiusPx + 24;
+      const scaleBarY = cy + maxRadiusPx - 34;
+
+      if (radarRangeKm <= 5) {
+        // 3 km domain scale ruler: 0 to 1 km to 2 km to 3 km
+        const oneKmPx = (1.0 / radarRangeKm) * maxRadiusPx;
+        const totalPx = (3.0 / radarRangeKm) * maxRadiusPx;
+
+        ctx.fillStyle = 'rgba(9, 13, 21, 0.9)';
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.fillRect(scaleBarX - 8, scaleBarY - 22, totalPx + 20, 36);
+        ctx.strokeRect(scaleBarX - 8, scaleBarY - 22, totalPx + 20, 36);
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(scaleBarX, scaleBarY);
+        ctx.lineTo(scaleBarX + totalPx, scaleBarY);
+        ctx.moveTo(scaleBarX, scaleBarY - 5);
+        ctx.lineTo(scaleBarX, scaleBarY + 5);
+        ctx.moveTo(scaleBarX + oneKmPx, scaleBarY - 3);
+        ctx.lineTo(scaleBarX + oneKmPx, scaleBarY + 3);
+        ctx.moveTo(scaleBarX + oneKmPx * 2, scaleBarY - 3);
+        ctx.lineTo(scaleBarX + oneKmPx * 2, scaleBarY + 3);
+        ctx.moveTo(scaleBarX + totalPx, scaleBarY - 5);
+        ctx.lineTo(scaleBarX + totalPx, scaleBarY + 5);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('0', scaleBarX, scaleBarY - 7);
+        ctx.fillText('1 km', scaleBarX + oneKmPx, scaleBarY - 7);
+        ctx.fillText('2 km', scaleBarX + oneKmPx * 2, scaleBarY - 7);
+        ctx.fillText('3 km', scaleBarX + totalPx, scaleBarY - 7);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 8px monospace';
+        ctx.fillText('SCALE: 1:25,000 • 1 km CELL RESOLUTION', scaleBarX, scaleBarY + 10);
+      } else {
+        // 60 km domain scale ruler: 0 to 10 km to 20 km to 40 km
+        const tenKmPx = (10.0 / radarRangeKm) * maxRadiusPx;
+        const totalPx = (40.0 / radarRangeKm) * maxRadiusPx;
+
+        ctx.fillStyle = 'rgba(9, 13, 21, 0.9)';
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.fillRect(scaleBarX - 8, scaleBarY - 22, totalPx + 20, 36);
+        ctx.strokeRect(scaleBarX - 8, scaleBarY - 22, totalPx + 20, 36);
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(scaleBarX, scaleBarY);
+        ctx.lineTo(scaleBarX + totalPx, scaleBarY);
+        ctx.moveTo(scaleBarX, scaleBarY - 5);
+        ctx.lineTo(scaleBarX, scaleBarY + 5);
+        ctx.moveTo(scaleBarX + tenKmPx, scaleBarY - 3);
+        ctx.lineTo(scaleBarX + tenKmPx, scaleBarY + 3);
+        ctx.moveTo(scaleBarX + tenKmPx * 2, scaleBarY - 3);
+        ctx.lineTo(scaleBarX + tenKmPx * 2, scaleBarY + 3);
+        ctx.moveTo(scaleBarX + totalPx, scaleBarY - 5);
+        ctx.lineTo(scaleBarX + totalPx, scaleBarY + 5);
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('0', scaleBarX, scaleBarY - 7);
+        ctx.fillText('10 km', scaleBarX + tenKmPx, scaleBarY - 7);
+        ctx.fillText('20 km', scaleBarX + tenKmPx * 2, scaleBarY - 7);
+        ctx.fillText('40 km', scaleBarX + totalPx, scaleBarY - 7);
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '600 8px monospace';
+        ctx.fillText('SCALE: 1:500,000 • 60 km REGIONAL BUFFER', scaleBarX, scaleBarY + 10);
+      }
+      ctx.restore();
+
+      // 11. DOMAIN SPECIFICATION HUD (TOP-RIGHT OF RADAR SCOPE)
+      ctx.save();
+      const specBoxX = cx + maxRadiusPx - 200;
+      const specBoxY = cy - maxRadiusPx + 16;
+      ctx.fillStyle = 'rgba(9, 13, 21, 0.9)';
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      ctx.fillRect(specBoxX, specBoxY, 185, 46);
+      ctx.strokeRect(specBoxX, specBoxY, 185, 46);
+
+      ctx.font = 'bold 8.5px monospace';
+      ctx.fillStyle = '#38bdf8';
+      ctx.textAlign = 'left';
+      ctx.fillText(
+        domainScope === 'aerodrome_3km' 
+          ? 'DOMAIN: 3.0 km × 3.0 km (9 km²)' 
+          : 'DOMAIN: 60 km × 60 km (3,600 km²)',
+        specBoxX + 8, specBoxY + 13
+      );
+
+      ctx.font = '8px monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(
+        domainScope === 'aerodrome_3km'
+          ? 'CELL RES: 1.0 km × 1.0 km (PS-26084)'
+          : 'AOI: Bhubaneswar-Cuttack-Puri',
+        specBoxX + 8, specBoxY + 25
+      );
+      ctx.fillText(
+        domainScope === 'aerodrome_3km'
+          ? 'RUNWAY 01/19: 2,743 m Reference'
+          : '3x3 km CORE: Highlighted Center',
+        specBoxX + 8, specBoxY + 37
+      );
+      ctx.restore();
+
       ctx.restore();
 
       // Outer Bezel Ring
@@ -1191,6 +1385,8 @@ export default function HazardDashboard() {
     displayMode, 
     product, 
     radarRangeKm, 
+    domainScope,
+    currentGrid,
     show3x3Grid,
     showAwsStations,
     showAirways, 
@@ -1240,7 +1436,7 @@ export default function HazardDashboard() {
     const targetLon = RADAR_STATION.lon + dLon;
 
     // Detect which sector cursor is inside
-    const inSector = TACTICAL_3X3_GRID.find(
+    const inSector = currentGrid.find(
       s => targetLat >= s.latMin && targetLat <= s.latMax && targetLon >= s.lonMin && targetLon <= s.lonMax
     );
 
@@ -1255,7 +1451,7 @@ export default function HazardDashboard() {
       rangeKm,
       heightMslM: heightM,
       valStr,
-      sectorTag: inSector ? `${inSector.id} (${inSector.code})` : 'OUTSIDE 3X3 AOI',
+      sectorTag: inSector ? `${inSector.id} (${inSector.code})` : 'OUTSIDE AOI',
       lat: targetLat,
       lon: targetLon
     });
@@ -1264,7 +1460,7 @@ export default function HazardDashboard() {
   // Handle Canvas Click to Select Sector or AWS Station
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!cursorHud) return;
-    const clickedSector = TACTICAL_3X3_GRID.find(
+    const clickedSector = currentGrid.find(
       s => cursorHud.lat >= s.latMin && cursorHud.lat <= s.latMax && cursorHud.lon >= s.lonMin && cursorHud.lon <= s.lonMax
     );
     if (clickedSector) {
@@ -1296,109 +1492,130 @@ export default function HazardDashboard() {
   }, [displayMode]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-72px)] bg-[#07090e] text-[#e2e8f0] flex flex-col overflow-hidden font-sans select-none">
+    <div className="relative w-full h-[calc(100vh-56px)] bg-[#07090e] text-[#e2e8f0] flex flex-col overflow-hidden font-sans select-none">
       
       {/* ================================================================== */}
-      {/* 1. DWR STATION CONSOLE & OBSERVATION HEADER                         */}
+      {/* 1. UNIFIED DWR STATION CONSOLE & OBSERVATION HEADER                */}
       {/* ================================================================== */}
-      <div className="h-16 border-b border-[#1e2533] bg-[#0c1017] px-4 flex items-center justify-between shrink-0 z-30">
+      <div className="h-12 border-b border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-30">
         
         {/* Left: Station Identity & Polarimetric Radar Specs */}
-        <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 rounded-lg bg-[#141b26] border border-[#283548] flex items-center justify-center">
-            <Radio className="w-5 h-5 text-[#38bdf8] animate-pulse" />
+        <div className="flex items-center space-x-2.5">
+          <div className="h-7 w-7 rounded-md bg-[#121926] border border-sky-500/20 flex items-center justify-center">
+            <Radio className="w-3.5 h-3.5 text-[#38bdf8]" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono font-black text-white tracking-wide uppercase">
-                {RADAR_STATION.name}
+              <span className="text-xs font-mono font-bold text-white tracking-wide">
+                VEBS • IMD DWR BHUBANESWAR
               </span>
-              <span className="text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded">
-                OPERATIONAL
-              </span>
-              <span className="text-[10px] font-mono text-sky-400 bg-sky-500/10 border border-sky-500/30 px-1.5 py-0.2 rounded">
-                3x3 TACTICAL AOI ACTIVE
+              <span className="flex items-center space-x-1 text-[9px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>OPERATIONAL</span>
               </span>
             </div>
-            <p className="text-[10px] font-mono text-[#94a3b8]">
-              {RADAR_STATION.band} • {RADAR_STATION.frequencyGhz} GHz • {RADAR_STATION.prfHz} • ELEV: {elevationDeg}°
+            <p className="text-[10px] font-mono text-[#8a99ad]">
+              {RADAR_STATION.band} • {RADAR_STATION.frequencyGhz} GHz • Elev {elevationDeg}° • 3x3 Corridor AOI
             </p>
           </div>
         </div>
 
-        {/* Center: Live Decoded Aviation SPECI Ticker */}
-        <div className="hidden xl:flex items-center space-x-2 bg-[#080b11] border border-[#222b3b] px-3 py-1.5 rounded-lg max-w-xl">
-          <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 animate-pulse" />
-          <div className="overflow-hidden">
-            <span className="text-[10px] font-mono text-[#e2e8f0] tracking-tight block truncate">
+        {/* Center: Live Alert Pill or Decoded SPECI METAR Ticker */}
+        {activeCell.etaRunwayMin <= 5 ? (
+          <div className="flex items-center space-x-2 bg-rose-950/80 border border-rose-500/40 px-3 py-1 rounded-md text-xs font-mono text-rose-200 shadow-sm animate-pulse">
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+            <span className="font-bold text-white uppercase tracking-wider">CRITICAL LLWS:</span>
+            <span>Microburst touchdown 1.2 NM S of RWY 01 • ΔV {activeCell.shearDeltaV} m/s (93 kt) • ETA {activeCell.etaRunwayMin}m</span>
+          </div>
+        ) : (
+          <div className="hidden xl:flex items-center space-x-2 bg-[#0c111a] border border-[#1b2434] px-3 py-1 rounded-md max-w-xl">
+            <span className="text-[10px] font-mono text-slate-400 truncate">
               {speciMetar}
             </span>
           </div>
-        </div>
+        )}
 
-        {/* Right: Scientific Clocks & Mode Selector */}
-        <div className="flex items-center space-x-3">
-          <div className="text-right font-mono text-[11px] leading-tight hidden sm:block">
-            <div className="text-white font-bold">{currentTimeUtc}</div>
-            <div className="text-[#64748b] text-[10px]">{currentTimeIst}</div>
+        {/* Right: Mode Selector, Verification & Scientific Clocks */}
+        <div className="flex items-center space-x-2.5">
+          {/* Domain Scope Toggle (3x3km Aerodrome Core vs 60km Regional Corridor) */}
+          <div className="flex p-0.5 bg-[#0f1420] border border-[#1e2738] rounded-md">
+            <button
+              onClick={() => {
+                setDomainScope('aerodrome_3km');
+                setRadarRangeKm(3);
+                setSelectedSectorId('T-C2');
+              }}
+              className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition flex items-center space-x-1.5 active:scale-[0.98] ${
+                domainScope === 'aerodrome_3km' 
+                  ? 'bg-[#1c283c] text-white shadow-sm border border-sky-500/50 font-semibold' 
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              title="Target 3.0 km × 3.0 km Aerodrome Core with 1.0 km × 1.0 km sub-grid resolution"
+            >
+              <Plane className="w-3.5 h-3.5 text-sky-400" />
+              <span>3x3 km Core</span>
+              <span className="text-[8px] font-bold px-1 py-0.2 bg-sky-500/20 text-sky-300 rounded">1km Res</span>
+            </button>
+            <button
+              onClick={() => {
+                setDomainScope('regional_60km');
+                setRadarRangeKm(60);
+                setSelectedSectorId('SEC-C');
+              }}
+              className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition flex items-center space-x-1.5 active:scale-[0.98] ${
+                domainScope === 'regional_60km' 
+                  ? 'bg-[#1c283c] text-white shadow-sm border border-sky-500/50 font-semibold' 
+                  : 'text-[#94a3b8] hover:text-white'
+              }`}
+              title="Regional 60 km × 60 km Convective Catchment Area (Radar Buffer)"
+            >
+              <Radio className="w-3.5 h-3.5 text-amber-400" />
+              <span>60 km Regional</span>
+            </button>
           </div>
 
-          <div className="h-6 w-[1px] bg-[#1e2533]" />
-
           {/* Display Mode Selector */}
-          <div className="flex p-0.5 bg-[#121822] border border-[#283548] rounded-lg">
+          <div className="flex p-0.5 bg-[#0f1420] border border-[#1e2738] rounded-md">
             <button
               onClick={() => setDisplayMode('polar_scope')}
-              className={`px-3 py-1 text-xs font-mono font-bold rounded transition flex items-center space-x-1.5 ${
+              className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition flex items-center space-x-1.5 active:scale-[0.98] ${
                 displayMode === 'polar_scope' 
-                  ? 'bg-[#38bdf8] text-slate-950 shadow' 
+                  ? 'bg-[#1c283c] text-white shadow-sm border border-slate-600 font-semibold' 
                   : 'text-[#94a3b8] hover:text-white'
               }`}
             >
-              <Crosshair className="w-3.5 h-3.5" />
-              <span>DWR Polar Scope</span>
+              <Crosshair className="w-3.5 h-3.5 text-sky-400" />
+              <span>Polar Scope</span>
             </button>
             <button
               onClick={() => setDisplayMode('gis_basemap')}
-              className={`px-3 py-1 text-xs font-mono font-bold rounded transition flex items-center space-x-1.5 ${
+              className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition flex items-center space-x-1.5 active:scale-[0.98] ${
                 displayMode === 'gis_basemap' 
-                  ? 'bg-[#38bdf8] text-slate-950 shadow' 
+                  ? 'bg-[#1c283c] text-white shadow-sm border border-slate-600 font-semibold' 
                   : 'text-[#94a3b8] hover:text-white'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" />
+              <Compass className="w-3.5 h-3.5 text-emerald-400" />
               <span>GIS Basemap</span>
             </button>
           </div>
 
           <button
             onClick={() => setShowMetricsModal(true)}
-            className="px-3 py-1.5 bg-[#17202d] hover:bg-[#1f2b3c] border border-[#2e3e55] rounded-lg text-xs font-mono font-semibold text-[#38bdf8] transition flex items-center space-x-1.5"
+            className="px-2.5 py-1 bg-[#121926] hover:bg-[#1a2334] border border-[#212d40] rounded-md text-xs font-mono font-medium text-slate-300 transition flex items-center space-x-1.5 active:scale-[0.98]"
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Verification Skill</span>
+            <BarChart3 className="w-3.5 h-3.5 text-sky-400" />
+            <span className="hidden md:inline">Verification</span>
           </button>
+
+          <div className="h-5 w-[1px] bg-[#1e2533] hidden sm:block" />
+
+          <div className="text-right font-mono text-[11px] leading-tight hidden sm:block">
+            <div className="text-white font-bold">{currentTimeUtc}</div>
+            <div className="text-[#64748b] text-[10px]">{currentTimeIst}</div>
+          </div>
         </div>
       </div>
-
-      {/* ================================================================== */}
-      {/* 2. AERODROME LOW-LEVEL WIND SHEAR (LLWS) ALERT TICKER              */}
-      {/* ================================================================== */}
-      {activeCell.etaRunwayMin <= 5 && (
-        <div className="bg-[#991b1b] border-b border-[#ef4444]/40 px-4 py-1.5 flex items-center justify-between text-xs font-mono font-bold text-white uppercase tracking-wider z-20 shadow-lg">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-amber-300 animate-bounce" />
-            <span>CRITICAL VEBS LLWS IN PROGRESS:</span>
-            <span className="text-red-100 font-normal">
-              Microburst touchdown 1.2 NM South of Runway 01. Velocity shear ΔV = {activeCell.shearDeltaV} m/s (93 kt). Core reflectivity: {activeCell.maxDbz} dBZ.
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 bg-black/40 px-2 py-0.5 rounded border border-white/20">
-            <Clock className="w-3.5 h-3.5 text-amber-300" />
-            <span>THRESHOLD IMPACT: ETA {activeCell.etaRunwayMin} MIN</span>
-          </div>
-        </div>
-      )}
 
       {/* ================================================================== */}
       {/* 3. MAIN WORKSPACE (RADAR SCOPE + SIDEBAR OBSERVATIONS)             */}
@@ -1406,33 +1623,36 @@ export default function HazardDashboard() {
       <div className="relative flex-1 w-full h-full flex overflow-hidden">
         
         {/* Left Floating Tool Palette: Doppler Product & Overlays */}
-        <div className="absolute top-4 left-4 z-20 bg-[#0e131d]/90 border border-[#222c3d] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-3 min-w-[230px]">
+        <div className="absolute top-3 left-3 z-20 bg-[#090d15]/95 border border-[#1b2434] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-2.5 w-[215px]">
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1.5">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#64748b] block mb-1.5">
               DOPPLER PRODUCT
             </span>
             <div className="flex flex-col space-y-1">
               {[
-                { id: 'reflectivity', label: 'Base Reflectivity (Z)', unit: 'dBZ', desc: 'Precipitation intensity' },
-                { id: 'velocity', label: 'Radial Velocity (Vr)', unit: 'm/s', desc: 'Wind shear & couplets' },
-                { id: 'vil', label: 'Vert. Integrated Liquid', unit: 'kg/m²', desc: 'Severe water column' },
+                { id: 'reflectivity', label: 'Base Reflectivity (Z)', unit: 'dBZ', desc: 'Precipitation' },
+                { id: 'velocity', label: 'Radial Velocity (Vr)', unit: 'm/s', desc: 'Shear & couplets' },
+                { id: 'vil', label: 'Vert. Integrated Liquid', unit: 'kg/m²', desc: 'Water column' },
               ].map(p => {
                 const isSelected = product === p.id;
                 return (
                   <button
                     key={p.id}
                     onClick={() => setProduct(p.id as RadarProduct)}
-                    className={`px-2.5 py-1.5 rounded-lg text-left transition flex items-center justify-between ${
+                    className={`px-2.5 py-1.5 rounded-lg text-left transition flex items-center justify-between active:scale-[0.98] ${
                       isSelected
-                        ? 'bg-[#38bdf8] text-slate-950 font-bold shadow-md'
-                        : 'bg-[#141b26]/70 text-[#cbd5e1] hover:bg-[#1c2636] border border-[#202b3b]'
+                        ? 'bg-[#182336] text-white border border-sky-500/50 shadow-sm font-semibold'
+                        : 'bg-[#0e1420] text-[#94a3b8] hover:text-white hover:bg-[#141b2a] border border-[#1a2333]'
                     }`}
                   >
-                    <div>
-                      <div className="text-xs font-mono">{p.label}</div>
-                      <div className={`text-[9px] ${isSelected ? 'text-slate-800' : 'text-[#64748b]'}`}>{p.desc}</div>
+                    <div className="flex items-center space-x-1.5">
+                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>}
+                      <div>
+                        <div className="text-xs font-mono">{p.label}</div>
+                        <div className="text-[9px] text-[#64748b]">{p.desc}</div>
+                      </div>
                     </div>
-                    <span className={`text-[10px] font-mono font-bold ${isSelected ? 'text-slate-950' : 'text-[#38bdf8]'}`}>
+                    <span className={`text-[10px] font-mono font-bold ${isSelected ? 'text-sky-300' : 'text-slate-500'}`}>
                       {p.unit}
                     </span>
                   </button>
@@ -1442,62 +1662,94 @@ export default function HazardDashboard() {
           </div>
 
           {/* Range Scale Selector */}
-          <div className="pt-2 border-t border-[#1e2533]">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
-              RANGE SCALE: {radarRangeKm} KM
-            </span>
-            <div className="grid grid-cols-3 gap-1">
-              {[30, 60, 120].map(r => (
-                <button
-                  key={r}
-                  onClick={() => setRadarRangeKm(r)}
-                  className={`py-1 text-xs font-mono font-bold rounded transition border ${
-                    radarRangeKm === r 
-                      ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-[#38bdf8]' 
-                      : 'bg-[#141b26] border-[#222c3d] text-[#64748b] hover:text-white'
-                  }`}
-                >
-                  {r} km
-                </button>
-              ))}
+          <div className="pt-2 border-t border-[#182130]">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#64748b]">
+                RADAR RANGE
+              </span>
+              <span className="text-[10px] font-mono text-sky-400 font-bold">
+                {radarRangeKm} KM
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-1 p-0.5 bg-[#070a10] border border-[#161f2e] rounded-lg">
+              {[
+                { rng: 3, label: '3 km', sub: 'Core' },
+                { rng: 15, label: '15 km', sub: 'TMA' },
+                { rng: 60, label: '60 km', sub: 'AOI' },
+                { rng: 120, label: '120 km', sub: 'IMD' }
+              ].map(item => {
+                const isSelected = radarRangeKm === item.rng;
+                return (
+                  <button
+                    key={item.rng}
+                    onClick={() => {
+                      setRadarRangeKm(item.rng);
+                      if (item.rng <= 5) setDomainScope('aerodrome_3km');
+                      else setDomainScope('regional_60km');
+                    }}
+                    className={`py-1 rounded text-center transition active:scale-[0.98] ${
+                      isSelected
+                        ? 'bg-[#182336] text-white border border-sky-500/50 shadow-sm font-bold'
+                        : 'text-[#8a99ad] hover:text-white bg-[#0a0e16]'
+                    }`}
+                  >
+                    <span className="text-[10px] block leading-tight font-mono">{item.label}</span>
+                    <span className="text-[8px] text-slate-500 block leading-tight">{item.sub}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* 3x3 Grid & AWS Observation Layers Toggle */}
-          <div className="pt-2 border-t border-[#1e2533] space-y-1.5 text-[11px] font-mono">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] block mb-1 flex items-center justify-between">
-              <span>GRID & IN-SITU LAYERS</span>
-              <Grid className="w-3.5 h-3.5" />
+          <div className="pt-2 border-t border-[#182130] space-y-1.5 text-[11px] font-mono">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8a99ad] block mb-1 flex items-center justify-between">
+              <span>LAYERS & GRID</span>
+              <Layers className="w-3.5 h-3.5 text-sky-400" />
             </span>
             
-            <label className="flex items-center justify-between text-white font-semibold cursor-pointer bg-[#141b26] px-2 py-1 rounded border border-[#283548]">
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer bg-[#0e1420] px-2 py-1 rounded border border-[#1a2333] hover:border-slate-700 transition">
               <span className="flex items-center gap-1.5">
-                <Grid className="w-3.5 h-3.5 text-[#38bdf8]" />
-                <span>3x3 Tactical Sector Grid</span>
+                <Grid className="w-3.5 h-3.5 text-sky-400" />
+                <span>3x3 Sector Grid</span>
               </span>
-              <input type="checkbox" checked={show3x3Grid} onChange={e => setShow3x3Grid(e.target.checked)} className="rounded bg-[#0c1017] border-[#38bdf8]" />
+              <input type="checkbox" checked={show3x3Grid} onChange={e => setShow3x3Grid(e.target.checked)} className="rounded bg-[#070a10] border-slate-700 text-sky-500 focus:ring-0" />
             </label>
 
-            <label className="flex items-center justify-between text-white font-semibold cursor-pointer bg-[#141b26] px-2 py-1 rounded border border-[#283548]">
+            <label className="flex items-center justify-between text-slate-200 cursor-pointer bg-[#0e1420] px-2 py-1 rounded border border-[#1a2333] hover:border-slate-700 transition">
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                <span>In-Situ Surface AWS (9)</span>
+                <span>In-Situ AWS (9)</span>
               </span>
-              <input type="checkbox" checked={showAwsStations} onChange={e => setShowAwsStations(e.target.checked)} className="rounded bg-[#0c1017] border-amber-400" />
+              <input type="checkbox" checked={showAwsStations} onChange={e => setShowAwsStations(e.target.checked)} className="rounded bg-[#070a10] border-slate-700 text-amber-500 focus:ring-0" />
             </label>
 
-            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer pt-1">
-              <span>VEBS Runway / Glidepath</span>
-              <input type="checkbox" checked={showAirways} onChange={e => setShowAirways(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+            <label className="flex items-center justify-between text-[#8a99ad] hover:text-white cursor-pointer pt-0.5">
+              <span>VEBS Runway / ILS</span>
+              <input type="checkbox" checked={showAirways} onChange={e => setShowAirways(e.target.checked)} className="rounded bg-[#0e1420] border-slate-700" />
             </label>
-            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+            <label className="flex items-center justify-between text-[#8a99ad] hover:text-white cursor-pointer">
               <span>Range Rings & Spokes</span>
-              <input type="checkbox" checked={showRangeRings} onChange={e => setShowRangeRings(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+              <input type="checkbox" checked={showRangeRings} onChange={e => setShowRangeRings(e.target.checked)} className="rounded bg-[#0e1420] border-slate-700" />
             </label>
-            <label className="flex items-center justify-between text-[#94a3b8] cursor-pointer">
+            <label className="flex items-center justify-between text-[#8a99ad] hover:text-white cursor-pointer">
               <span>Antenna Sweep Beam</span>
-              <input type="checkbox" checked={showSweepBeam} onChange={e => setShowSweepBeam(e.target.checked)} className="rounded bg-[#141b26] border-[#283548]" />
+              <input type="checkbox" checked={showSweepBeam} onChange={e => setShowSweepBeam(e.target.checked)} className="rounded bg-[#0e1420] border-slate-700" />
             </label>
+
+            {/* Quick Declutter Spell */}
+            <button
+              onClick={() => {
+                const anyOn = show3x3Grid || showAwsStations || showAirways;
+                setShow3x3Grid(!anyOn);
+                setShowAwsStations(!anyOn);
+                setShowAirways(!anyOn);
+              }}
+              className="w-full mt-1.5 py-1 rounded bg-[#101622] hover:bg-[#162030] border border-[#1c2637] text-[10px] font-mono text-slate-300 transition flex items-center justify-center space-x-1.5 active:scale-[0.98]"
+            >
+              <Eye className="w-3 h-3 text-sky-400" />
+              <span>{show3x3Grid ? 'Declutter Radar' : 'Restore All Overlays'}</span>
+            </button>
           </div>
         </div>
 
@@ -1576,18 +1828,23 @@ export default function HazardDashboard() {
         {displayMode === 'gis_basemap' && (
           <div className="relative flex-1 w-full h-full">
             <MapContainer
-              center={[RADAR_STATION.lat, RADAR_STATION.lon]}
-              zoom={10}
+              center={domainScope === 'aerodrome_3km' ? [20.2444, 85.8178] : [RADAR_STATION.lat, RADAR_STATION.lon]}
+              zoom={domainScope === 'aerodrome_3km' ? 14 : 10}
               className="w-full h-full bg-[#0a0d15]"
               zoomControl={false}
             >
+              <MapViewController
+                center={domainScope === 'aerodrome_3km' ? [20.2444, 85.8178] : [RADAR_STATION.lat, RADAR_STATION.lon]}
+                zoom={domainScope === 'aerodrome_3km' ? 14 : 10}
+              />
+              <ScaleControl position="bottomleft" />
               <TileLayer
                 attribution="&copy; Esri World Dark Gray"
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
               />
 
-              {/* 3x3 Tactical Sector Rectangles */}
-              {show3x3Grid && TACTICAL_3X3_GRID.map(sec => {
+              {/* 3×3 Grid — switches between aerodrome 3km and regional 60km domains */}
+              {show3x3Grid && currentGrid.map(sec => {
                 const isSelected = sec.id === selectedSectorId;
                 return (
                   <Rectangle
@@ -1605,33 +1862,51 @@ export default function HazardDashboard() {
                       fillOpacity: isSelected ? 0.22 : 0.04
                     }}
                   >
-                    <Tooltip direction="center" permanent className="!bg-slate-950/90 !border !border-sky-500/50 !text-white !font-mono !text-[10px]">
+                    <Tooltip direction="center" permanent={isSelected} className="!bg-slate-950/90 !border !border-sky-500/50 !text-white !font-mono !text-[10px]">
                       <div>
                         <div className="font-bold text-sky-400">{sec.id} ({sec.code})</div>
                         <div>{sec.radarDbz} dBZ • {sec.rainRateMmh.toFixed(0)} mm/h</div>
+                        {domainScope === 'aerodrome_3km' && <div className="text-sky-300 font-bold">1 km² CELL</div>}
                       </div>
                     </Tooltip>
                   </Rectangle>
                 );
               })}
 
+              {/* Verified 3×3 km aerodrome perimeter — proves targeting claim */}
+              {domainScope === 'aerodrome_3km' && (
+                <Rectangle
+                  bounds={[
+                    [AERODROME_CORE_SPECS.bounds[0][0], AERODROME_CORE_SPECS.bounds[0][1]],
+                    [AERODROME_CORE_SPECS.bounds[1][0], AERODROME_CORE_SPECS.bounds[1][1]]
+                  ]}
+                  pathOptions={{ color: '#38bdf8', weight: 2.5, dashArray: undefined, fillOpacity: 0 }}
+                >
+                  <Tooltip direction="top" permanent className="!bg-slate-950/95 !border !border-sky-400/60 !text-white !font-mono !text-[10px]">
+                    <div className="text-sky-300 font-bold">✈ 3.0 km × 3.0 km AERODROME CORE</div>
+                    <div className="text-slate-300">VEBS/BBI · 9 × 1 km² CELLS VERIFIED</div>
+                    <div className="text-slate-400">{AERODROME_CORE_SPECS.complianceNote}</div>
+                  </Tooltip>
+                </Rectangle>
+              )}
+
               {/* 9 In-Situ Surface AWS Stations */}
               {showAwsStations && SURROUNDING_AWS_STATIONS.map(aws => (
                 <CircleMarker
                   key={aws.id}
                   center={[aws.lat, aws.lon]}
-                  radius={aws.id === selectedAwsId ? 8 : 6}
+                  radius={aws.id === selectedAwsId ? 8 : 5}
                   pathOptions={{
                     color: '#fbbf24',
                     fillColor: aws.status === 'SEVERE_ALERT' ? '#ef4444' : '#f59e0b',
                     fillOpacity: 0.95,
-                    weight: 2
+                    weight: aws.id === selectedAwsId ? 2.5 : 1.5
                   }}
                   eventHandlers={{ click: () => { setSelectedAwsId(aws.id); setSidebarTab('aws_network'); } }}
                 >
-                  <Tooltip direction="right" permanent offset={[10, 0]}>
-                    <div className="font-mono text-[9px] font-bold text-amber-200 bg-slate-950 px-2 py-0.5 rounded border border-amber-500 shadow">
-                      {aws.id}: {aws.tempC}°C | {aws.pressureHpa}hPa
+                  <Tooltip direction="top" permanent={aws.id === selectedAwsId} offset={[0, -6]}>
+                    <div className="font-mono text-[9px] font-semibold text-slate-200 bg-slate-950/95 px-1.5 py-0.5 rounded border border-slate-700/80 shadow-md">
+                      <span className="text-amber-400 font-bold">{aws.id.replace('AWS-', '')}</span> {aws.tempC}°C • {aws.pressureHpa}hPa
                     </div>
                   </Tooltip>
                 </CircleMarker>
@@ -1662,63 +1937,65 @@ export default function HazardDashboard() {
         {/* =============================================================== */}
         {/* RIGHT SIDEBAR: 3X3 GRID TELEMETRY + AWS NETWORK OBSERVATIONS    */}
         {/* =============================================================== */}
-        <aside className="w-[420px] bg-[#0c1017] border-l border-[#1e2533] p-4 flex flex-col space-y-3 shrink-0 overflow-y-auto z-20">
+        <aside className="w-[360px] bg-[#090d15] border-l border-[#182130] p-3 flex flex-col space-y-2.5 shrink-0 overflow-y-auto z-20">
           
           {/* Tri-View Sidebar Navigation Switcher */}
-          <div className="flex p-1 bg-[#121822] border border-[#283548] rounded-xl">
+          <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-[#070a10] border border-[#161f2e] rounded-lg">
             <button
               onClick={() => setSidebarTab('grid3x3')}
-              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'grid3x3' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              className={`py-1 text-xs font-mono font-medium rounded transition flex items-center justify-center gap-1 active:scale-[0.98] ${
+                sidebarTab === 'grid3x3' ? 'bg-[#182336] text-white border border-slate-700 shadow-sm font-semibold' : 'text-[#8a99ad] hover:text-white'
               }`}
             >
-              <Grid className="w-3.5 h-3.5" />
-              <span>3x3 Grid (9)</span>
+              <Grid className="w-3.5 h-3.5 text-sky-400" />
+              <span>3x3 Grid</span>
             </button>
             <button
               onClick={() => setSidebarTab('aws_network')}
-              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'aws_network' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              className={`py-1 text-xs font-mono font-medium rounded transition flex items-center justify-center gap-1 active:scale-[0.98] ${
+                sidebarTab === 'aws_network' ? 'bg-[#182336] text-white border border-slate-700 shadow-sm font-semibold' : 'text-[#8a99ad] hover:text-white'
               }`}
             >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>AWS Network (9)</span>
+              <MapPin className="w-3.5 h-3.5 text-amber-400" />
+              <span>AWS Net (9)</span>
             </button>
             <button
               onClick={() => setSidebarTab('scit_cells')}
-              className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
-                sidebarTab === 'scit_cells' ? 'bg-[#38bdf8] text-slate-950 shadow' : 'text-[#94a3b8] hover:text-white'
+              className={`py-1 text-xs font-mono font-medium rounded transition flex items-center justify-center gap-1 active:scale-[0.98] ${
+                sidebarTab === 'scit_cells' ? 'bg-[#182336] text-white border border-slate-700 shadow-sm font-semibold' : 'text-[#8a99ad] hover:text-white'
               }`}
             >
-              <Crosshair className="w-3.5 h-3.5" />
-              <span>Storm Cells</span>
+              <Crosshair className="w-3.5 h-3.5 text-rose-400" />
+              <span>Cells</span>
             </button>
           </div>
 
           {/* TAB 1: 3x3 TACTICAL GRID SECTOR INSPECTOR */}
           {sidebarTab === 'grid3x3' && (
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748b] block mb-1">
-                  TACTICAL 3x3 DOMAIN (BHUBANESWAR-CUTTACK-PURI)
+                <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#64748b] block mb-1">
+                  {domainScope === 'aerodrome_3km'
+                    ? 'AERODROME 3×3 KM CORE (1 km² CELLS)'
+                    : 'TACTICAL 3×3 DOMAIN (BHUBANESWAR-CUTTACK-PURI)'}
                 </span>
                 
                 {/* 3x3 Matrix Quick Matrix Buttons */}
-                <div className="grid grid-cols-3 gap-1.5 p-2 bg-[#080b11] border border-[#1e2533] rounded-xl">
-                  {TACTICAL_3X3_GRID.map(sec => {
+                <div className="grid grid-cols-3 gap-1 p-1 bg-[#070a10] border border-[#161f2e] rounded-xl">
+                  {currentGrid.map(sec => {
                     const isSelected = sec.id === selectedSectorId;
                     return (
                       <button
                         key={sec.id}
                         onClick={() => setSelectedSectorId(sec.id)}
-                        className={`p-2 rounded-lg text-left font-mono transition border ${
+                        className={`p-1.5 rounded-lg text-left font-mono transition border active:scale-[0.98] ${
                           isSelected
-                            ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-white shadow-sm'
-                            : 'bg-[#121824] border-[#1e2533] text-[#94a3b8] hover:border-[#2f3d52]'
+                            ? 'bg-[#182336] border-sky-500/60 text-white shadow-sm'
+                            : 'bg-[#0e1420] border-[#182130] text-[#94a3b8] hover:border-slate-600'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[10px]">
-                          <span className={isSelected ? 'text-[#38bdf8] font-bold' : 'text-slate-400'}>{sec.code}</span>
+                          <span className={isSelected ? 'text-sky-300 font-bold' : 'text-slate-400'}>{sec.code}</span>
                           <span className={sec.radarDbz >= 55 ? 'text-rose-400 font-bold' : 'text-slate-400'}>{sec.radarDbz} dBZ</span>
                         </div>
                         <div className="text-[9px] text-[#cbd5e1] truncate mt-0.5">{sec.name.split(' ')[0]}</div>
@@ -1743,23 +2020,23 @@ export default function HazardDashboard() {
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Reflectivity & Z-R Rate</span>
-                    <span className="text-sm font-bold text-rose-400">{activeSector.radarDbz} dBZ</span>
-                    <span className="text-[10px] text-sky-400 font-bold block">{activeSector.rainRateMmh.toFixed(1)} mm/hr</span>
+                    <span className={`text-sm font-bold block ${activeSector.radarDbz >= 55 ? 'text-rose-400' : 'text-white'}`}>{activeSector.radarDbz} dBZ</span>
+                    <span className="text-[10px] text-slate-300 font-bold block">{activeSector.rainRateMmh.toFixed(1)} mm/hr</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Surface Pressure & Outflow</span>
-                    <span className="text-sm font-bold text-purple-400">{activeSector.pressureHpa} hPa</span>
-                    <span className="text-[10px] text-cyan-400 font-bold block">{activeSector.tempC}°C Cold Pool</span>
+                    <span className="text-sm font-bold text-white block">{activeSector.pressureHpa} hPa</span>
+                    <span className="text-[10px] text-slate-300 font-bold block">{activeSector.tempC}°C Cold Pool</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Surface Wind Gust</span>
-                    <span className="text-sm font-bold text-amber-400">{activeSector.windGustKmh} km/h</span>
+                    <span className={`text-sm font-bold block ${activeSector.windGustKmh >= 65 ? 'text-amber-400' : 'text-white'}`}>{activeSector.windGustKmh} km/h</span>
                     <span className="text-[9px] text-[#64748b] block">{activeSector.windGustKmh >= 65 ? 'Squall Criteria Met' : 'Moderate Inflow'}</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Instability (CAPE) & Lightning</span>
-                    <span className="text-sm font-bold text-rose-400">{activeSector.capeJkg} J/kg</span>
-                    <span className="text-[10px] text-amber-400 font-bold block">+{activeSector.lightningStrokesMin} str/min</span>
+                    <span className={`text-sm font-bold block ${activeSector.capeJkg >= 2000 ? 'text-rose-400' : 'text-white'}`}>{activeSector.capeJkg} J/kg</span>
+                    <span className="text-[10px] text-slate-300 font-bold block">+{activeSector.lightningStrokesMin} str/min</span>
                   </div>
                 </div>
 
@@ -1830,23 +2107,23 @@ export default function HazardDashboard() {
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Dry Bulb / Dew Point</span>
-                    <span className="text-sm font-bold text-sky-400">{activeAws.tempC}°C / {activeAws.dewPointC}°C</span>
+                    <span className="text-sm font-bold text-white block">{activeAws.tempC}°C / {activeAws.dewPointC}°C</span>
                     <span className="text-[9px] text-[#64748b] block">RH: {activeAws.humidityPct}%</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Surface Pressure & Tendency</span>
-                    <span className="text-sm font-bold text-purple-400">{activeAws.pressureHpa} hPa</span>
-                    <span className="text-[10px] text-rose-400 font-bold block">{activeAws.tendency3h} hPa / 3h</span>
+                    <span className="text-sm font-bold text-white block">{activeAws.pressureHpa} hPa</span>
+                    <span className={`text-[10px] font-bold block ${activeAws.tendency3h < -2 ? 'text-rose-400' : 'text-slate-300'}`}>{activeAws.tendency3h} hPa / 3h</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Surface Wind & Peak Gust</span>
-                    <span className="text-sm font-bold text-amber-400">{activeAws.windDirDeg}° @ {activeAws.windSpeedKt} kt</span>
-                    <span className="text-[10px] text-rose-400 font-bold block">GUST: {activeAws.windGustKt} kt</span>
+                    <span className="text-sm font-bold text-white block">{activeAws.windDirDeg}° @ {activeAws.windSpeedKt} kt</span>
+                    <span className={`text-[10px] font-bold block ${activeAws.windGustKt >= 35 ? 'text-amber-400' : 'text-slate-300'}`}>GUST: {activeAws.windGustKt} kt</span>
                   </div>
                   <div className="p-2 bg-[#0a0d15] border border-[#1e2533] rounded-lg">
                     <span className="text-[10px] text-[#64748b] block">Precipitation & Instability</span>
-                    <span className="text-sm font-bold text-sky-400">{activeAws.rain1hMm} mm (1h)</span>
-                    <span className="text-[10px] text-rose-400 font-bold block">CAPE: {activeAws.capeJkg} J/kg</span>
+                    <span className="text-sm font-bold text-white block">{activeAws.rain1hMm} mm (1h)</span>
+                    <span className={`text-[10px] font-bold block ${activeAws.capeJkg >= 2000 ? 'text-rose-400' : 'text-slate-300'}`}>CAPE: {activeAws.capeJkg} J/kg</span>
                   </div>
                 </div>
               </div>
@@ -1943,19 +2220,19 @@ export default function HazardDashboard() {
           {/* Vertical Profile Drawer Trigger */}
           <button
             onClick={() => setShowRhiDrawer(!showRhiDrawer)}
-            className="w-full py-2 bg-[#172233] hover:bg-[#1f2e45] border border-[#2a3c57] rounded-xl text-xs font-mono font-bold text-[#38bdf8] transition flex items-center justify-center space-x-2"
+            className="w-full py-1.5 bg-[#121926] hover:bg-[#1a2334] border border-[#202c3e] rounded-lg text-xs font-mono font-medium text-sky-400 active:scale-[0.98] transition flex items-center justify-center space-x-2"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>{showRhiDrawer ? 'Close RHI Vertical Cut' : 'Inspect RHI Vertical Profile (0-16km)'}</span>
+            <span>{showRhiDrawer ? 'Close RHI Vertical Cut' : 'RHI Vertical Profile (0–16km)'}</span>
           </button>
 
           {/* Trigger NDMA CAP v1.2 Dispatch Generator */}
           <button
             onClick={() => setShowCapModal(true)}
-            className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-mono font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition flex items-center justify-center space-x-2"
+            className="w-full py-2 bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-mono font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm transition flex items-center justify-center space-x-2"
           >
             <ShieldAlert className="w-4 h-4" />
-            <span>NDMA CAP v1.2 Dispatch</span>
+            <span>Dispatch NDMA CAP Alert</span>
           </button>
         </aside>
 
@@ -1965,7 +2242,7 @@ export default function HazardDashboard() {
       {/* 4. RHI VERTICAL CROSS-SECTION DRAWER (0–16 KM COLUMN CUT)         */}
       {/* ================================================================== */}
       {showRhiDrawer && (
-        <div className="absolute bottom-20 left-4 right-4 z-40 bg-[#0d121c]/95 border border-[#222e42] p-4 rounded-2xl backdrop-blur-xl shadow-2xl flex flex-col space-y-2 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-200">
+        <div className="absolute bottom-16 left-4 right-4 z-40 bg-[#0d121c]/95 border border-[#222e42] p-4 rounded-xl backdrop-blur-xl shadow-2xl flex flex-col space-y-2 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-200">
           <div className="flex justify-between items-center border-b border-[#1e2533] pb-2 font-mono">
             <div className="flex items-center space-x-2">
               <Activity className="w-4 h-4 text-[#38bdf8]" />
@@ -2010,42 +2287,42 @@ export default function HazardDashboard() {
       {/* ================================================================== */}
       {/* 5. BOTTOM TIMELINE CONTROLLER (0 TO 3 HOURS LEAD TIME)             */}
       {/* ================================================================== */}
-      <div className="h-16 border-t border-[#1e2533] bg-[#0c1017] px-6 flex items-center justify-between shrink-0 z-30">
-        <div className="flex items-center space-x-3">
+      <div className="h-12 border-t border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-30">
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => setLeadTimeMin(prev => Math.max(0, prev - 15))}
-            className="p-1.5 rounded bg-[#141b26] hover:bg-[#1d2737] text-slate-300 transition"
+            className="p-1 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
           >
             <SkipBack className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="p-2 rounded-lg bg-[#38bdf8] hover:bg-[#2563eb] text-slate-950 font-bold transition shadow"
+            className="p-1.5 rounded-md bg-[#162234] hover:bg-[#1e2f47] border border-sky-500/40 text-sky-300 font-medium active:scale-95 transition shadow-sm"
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
           </button>
           <button
             onClick={() => setLeadTimeMin(prev => Math.min(180, prev + 15))}
-            className="p-1.5 rounded bg-[#141b26] hover:bg-[#1d2737] text-slate-300 transition"
+            className="p-1 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
           >
             <SkipForward className="w-3.5 h-3.5" />
           </button>
 
-          <span className="text-xs font-mono font-bold text-white pl-2">
-            T+{leadTimeMin}m NOWCAST ({leadTimeMin === 0 ? 'LIVE VOLUMETRIC ANALYSIS' : leadTimeMin <= 60 ? 'CONVECTNET AI EXTRAPOLATION' : 'NWP BLENDED HYBRID'})
+          <span className="text-xs font-mono text-white pl-2">
+            <span className="font-bold">T+{leadTimeMin}m</span> <span className="text-slate-400">({leadTimeMin === 0 ? 'Live Volumetric' : leadTimeMin <= 60 ? 'ConvectNet AI' : 'NWP Hybrid'})</span>
           </span>
         </div>
 
         {/* Timeline Horizon Buttons */}
-        <div className="flex space-x-1.5">
+        <div className="flex space-x-1">
           {[0, 15, 30, 45, 60, 90, 120, 180].map(m => (
             <button
               key={m}
               onClick={() => setLeadTimeMin(m)}
-              className={`px-3 py-1 rounded text-xs font-mono font-bold transition border ${
+              className={`px-2.5 py-0.5 rounded text-xs font-mono font-medium transition active:scale-[0.98] border ${
                 leadTimeMin === m
-                  ? 'bg-[#38bdf8]/20 border-[#38bdf8] text-[#38bdf8] shadow'
-                  : 'bg-[#101520] border-[#1e2533] text-[#64748b] hover:text-white'
+                  ? 'bg-[#182336] border-sky-500/50 text-sky-300 font-bold shadow-sm'
+                  : 'bg-[#0c1017] border-[#161f2e] text-[#8a99ad] hover:text-white hover:bg-white/5'
               }`}
             >
               +{m}m
@@ -2105,7 +2382,7 @@ export default function HazardDashboard() {
                   navigator.clipboard.writeText(`<alert>...</alert>`);
                   alert('CAP XML copied to clipboard');
                 }}
-                className="px-4 py-1.5 bg-[#38bdf8] text-slate-950 font-bold text-xs rounded-lg shadow"
+                className="px-3.5 py-1.5 bg-[#182336] hover:bg-[#202e47] border border-sky-500/40 text-sky-200 font-mono text-xs rounded-lg shadow-sm transition active:scale-95"
               >
                 Copy CAP Payload
               </button>
