@@ -1885,7 +1885,7 @@ export default function HazardDashboard() {
                   <Tooltip direction="top" permanent className="!bg-slate-950/95 !border !border-sky-400/60 !text-white !font-mono !text-[10px]">
                     <div className="text-sky-300 font-bold">✈ 3.0 km × 3.0 km AERODROME CORE</div>
                     <div className="text-slate-300">VEBS/BBI · 9 × 1 km² CELLS VERIFIED</div>
-                    <div className="text-slate-400">{AERODROME_CORE_SPECS.complianceNote}</div>
+                    <div className="text-slate-400">{AERODROME_CORE_SPECS.compliance}</div>
                   </Tooltip>
                 </Rectangle>
               )}
