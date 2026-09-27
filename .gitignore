@@ -1,33 +1,34 @@
-# Byte-compiled / optimized / DLL files
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing & Cache
+.pytest_cache/
 __pycache__/
 *.py[cod]
 *$py.class
+.coverage
+htmlcov/
 
-# Environment variables & Credentials
-.env
-.env.*
-config.json
-convectnow/backend/data/mosdac/config.json
-*.pem
-*.key
-
-# Large Datasets & Model Weights
-datasets/
-*.h5
-*.hdf5
-*.pth
-*.pt
-*.npy
-*.gif
-*.png
-
-# Node / Frontend
-node_modules/
+# Production Build
 dist/
-.vite/
+build/
+*.tsbuildinfo
 
-# OS / Editor
-.DS_Store
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
 .vscode/
 .idea/
-testss/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
