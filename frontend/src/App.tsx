@@ -19,6 +19,7 @@ import {
   createDispatchedAlert, 
   FALLBACK_STORM_CELLS 
 } from './types/dispatch';
+import { ApiService } from './services/api';
 import { TACTICAL_3X3_GRID, SURROUNDING_AWS_STATIONS } from './types/tacticalGrid';
 
 export default function App() {
@@ -28,13 +29,30 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'hazard' | 'tactical' | 'convectnow' | 'inference' | 'public' | 'hyperlocal' | 'replay' | 'grid' | 'microburst'>('hazard');
   const [showMissionBriefing, setShowMissionBriefing] = useState<boolean>(false);
 
+  const [backendLive, setBackendLive] = useState<boolean | null>(null);
+
   useEffect(() => {
-    setStormData({
-      storm_cells: FALLBACK_STORM_CELLS,
-      hazard_summary: {}
-    });
-    setSelectedCell(FALLBACK_STORM_CELLS[0]);
-    setDispatchedAlert(createDispatchedAlert(FALLBACK_STORM_CELLS[0]));
+    // Try to load live storm cell data from the trained ConvectNet backend.
+    // Falls back to FALLBACK_STORM_CELLS silently if backend is not running.
+    const loadLiveData = async () => {
+      const cells = await ApiService.getLiveStormCells();
+      if (cells && cells.length > 0) {
+        setStormData({ storm_cells: cells, hazard_summary: {}, data_mode: 'live' });
+        setSelectedCell(cells[0]);
+        setDispatchedAlert(createDispatchedAlert(cells[0]));
+        setBackendLive(true);
+      } else {
+        // Backend unavailable or returned empty — use rich fallback storm cells
+        setStormData({ storm_cells: FALLBACK_STORM_CELLS, hazard_summary: {}, data_mode: 'historical_fallback' });
+        setSelectedCell(FALLBACK_STORM_CELLS[0]);
+        setDispatchedAlert(createDispatchedAlert(FALLBACK_STORM_CELLS[0]));
+        setBackendLive(false);
+      }
+    };
+    loadLiveData();
+    // Poll every 60s for fresh predictions
+    const interval = setInterval(loadLiveData, 60_000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -170,9 +188,17 @@ export default function App() {
             <span>Mission Briefing [M]</span>
           </button>
 
-          <span className="flex items-center space-x-2 px-2.5 py-1 rounded-md bg-[#101522] border border-[#212b3e] text-xs font-mono text-slate-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Live Stream</span>
+          <span className={`flex items-center space-x-2 px-2.5 py-1 rounded-md border text-xs font-mono ${
+            backendLive === true
+              ? 'bg-emerald-900/20 border-emerald-500/30 text-emerald-300'
+              : backendLive === false
+              ? 'bg-amber-900/20 border-amber-500/30 text-amber-300'
+              : 'bg-[#101522] border-[#212b3e] text-slate-300'
+          }`}>
+            <span className={`w-2 h-2 rounded-full animate-pulse ${
+              backendLive === true ? 'bg-emerald-400' : backendLive === false ? 'bg-amber-400' : 'bg-slate-500'
+            }`}></span>
+            <span>{backendLive === true ? 'AI Live' : backendLive === false ? 'Fallback Mode' : 'Connecting…'}</span>
           </span>
         </div>
       </header>
