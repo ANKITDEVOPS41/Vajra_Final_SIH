@@ -693,7 +693,8 @@ export const ACTIVE_CELLS: StormCellTrack[] = [
 // ============================================================================
 export default function HazardDashboard() {
   const [product, setProduct] = useState<RadarProduct>('reflectivity');
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('polar_scope');
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('gis_basemap'); // Default to GIS Basemap so user immediately sees high-res map
+  const [mapType, setMapType] = useState<'satellite' | 'streets' | 'dark'>('satellite'); // Default to high-res satellite
   const [domainScope, setDomainScope] = useState<DomainScope>('aerodrome_3km');
   const [activeCellId, setActiveCellId] = useState<string>('CELL-01');
   const [selectedSectorId, setSelectedSectorId] = useState<string>('T-C2');
@@ -1823,29 +1824,139 @@ export default function HazardDashboard() {
         )}
 
         {/* =============================================================== */}
-        {/* CENTER VIEW B: GIS BASEMAP (WITH 3x3 SECTORS & AWS MARKERS)     */}
+        {/* CENTER VIEW B: GIS BASEMAP (WITH 3x3 SECTORS, DOPPLER & AWS)    */}
         {/* =============================================================== */}
         {displayMode === 'gis_basemap' && (
           <div className="relative flex-1 w-full h-full">
+            {/* Top-Right Basemap Switcher */}
+            <div className="absolute top-3 right-3 z-[400] flex bg-[#08090a]/92 border border-[#34343a] rounded-lg p-1 shadow-xl backdrop-blur-md gap-1">
+              <button
+                onClick={() => setMapType('satellite')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
+                  mapType === 'satellite'
+                    ? 'bg-sky-600 text-white font-bold shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🛰️ Satellite HD
+              </button>
+              <button
+                onClick={() => setMapType('streets')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
+                  mapType === 'streets'
+                    ? 'bg-sky-600 text-white font-bold shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🗺️ Streets
+              </button>
+              <button
+                onClick={() => setMapType('dark')}
+                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
+                  mapType === 'dark'
+                    ? 'bg-sky-600 text-white font-bold shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🌑 Dark
+              </button>
+            </div>
+
             <MapContainer
               center={domainScope === 'aerodrome_3km' ? [20.2444, 85.8178] : [RADAR_STATION.lat, RADAR_STATION.lon]}
               zoom={domainScope === 'aerodrome_3km' ? 14 : 10}
               className="w-full h-full bg-[#0a0d15]"
-              zoomControl={false}
+              zoomControl={true}
             >
               <MapViewController
                 center={domainScope === 'aerodrome_3km' ? [20.2444, 85.8178] : [RADAR_STATION.lat, RADAR_STATION.lon]}
                 zoom={domainScope === 'aerodrome_3km' ? 14 : 10}
               />
-              <ScaleControl position="bottomleft" />
-              <TileLayer
-                attribution="&copy; Esri World Dark Gray"
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-              />
+              <ScaleControl position="bottomleft" metric={true} imperial={false} />
+
+              {/* High-Resolution Basemap Tiles */}
+              {mapType === 'satellite' && (
+                <>
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                    maxZoom={19}
+                    attribution="Tiles &copy; Esri, Maxar, Earthstar Geographics"
+                  />
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                    maxZoom={19}
+                    opacity={0.85}
+                  />
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"
+                    maxZoom={19}
+                    opacity={0.8}
+                  />
+                </>
+              )}
+              {mapType === 'streets' && (
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  maxZoom={19}
+                  attribution="&copy; OpenStreetMap contributors"
+                />
+              )}
+              {mapType === 'dark' && (
+                <>
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                    maxZoom={19}
+                    opacity={0.9}
+                    attribution="&copy; Esri"
+                  />
+                  <TileLayer
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                    maxZoom={19}
+                    opacity={0.85}
+                  />
+                </>
+              )}
+
+              {/* Doppler Radar Convective Storm Cells & Microburst Footprint Overlay */}
+              {ACTIVE_CELLS.map(cell => (
+                <React.Fragment key={cell.id}>
+                  {/* Outer Outflow & Wind Shear Halo */}
+                  <CircleMarker
+                    center={[cell.lat, cell.lon]}
+                    radius={domainScope === 'aerodrome_3km' ? 36 : 24}
+                    pathOptions={{
+                      color: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
+                      fillColor: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
+                      fillOpacity: 0.28,
+                      weight: 1.5,
+                      dashArray: '3, 3'
+                    }}
+                  />
+                  {/* High-Reflectivity Precipitation Core */}
+                  <CircleMarker
+                    center={[cell.lat, cell.lon]}
+                    radius={domainScope === 'aerodrome_3km' ? 16 : 10}
+                    pathOptions={{
+                      color: '#ffffff',
+                      fillColor: cell.maxDbz >= 60 ? '#dc2626' : '#d97706',
+                      fillOpacity: 0.92,
+                      weight: 2,
+                    }}
+                  >
+                    <Tooltip permanent direction="top" offset={[0, -12]} className="!bg-red-950/95 !text-white !font-mono !text-[10px] !border !border-red-500 !shadow-lg">
+                      🔴 {cell.name.split(' / ')[0]} ({cell.maxDbz} dBZ)
+                    </Tooltip>
+                  </CircleMarker>
+                </React.Fragment>
+              ))}
 
               {/* 3×3 Grid — switches between aerodrome 3km and regional 60km domains */}
               {show3x3Grid && currentGrid.map(sec => {
                 const isSelected = sec.id === selectedSectorId;
+                const isExtreme = sec.cloudburstFlag || sec.radarDbz >= 60;
+                const color = isExtreme ? '#ef4444' : isSelected ? '#f59e0b' : '#38bdf8';
+                const shortId = sec.id.replace('T-', '').replace('SEC-', '');
+
                 return (
                   <Rectangle
                     key={sec.id}
@@ -1855,52 +1966,50 @@ export default function HazardDashboard() {
                     ]}
                     eventHandlers={{ click: () => setSelectedSectorId(sec.id) }}
                     pathOptions={{
-                      color: isSelected ? '#38bdf8' : '#38bdf8',
-                      weight: isSelected ? 2.5 : 1,
-                      dashArray: isSelected ? undefined : '3, 4',
-                      fillColor: isSelected ? '#0284c7' : 'transparent',
-                      fillOpacity: isSelected ? 0.22 : 0.04
+                      color: isSelected ? '#ffffff' : color,
+                      weight: isSelected ? 2.5 : 1.2,
+                      dashArray: isSelected ? undefined : '4, 4',
+                      fillColor: color,
+                      fillOpacity: isSelected ? 0.24 : 0.06
                     }}
                   >
-                    <Tooltip direction="center" permanent={isSelected} className="!bg-slate-950/90 !border !border-sky-500/50 !text-white !font-mono !text-[10px]">
-                      <div>
-                        <div className="font-bold text-sky-400">{sec.id} ({sec.code})</div>
-                        <div>{sec.radarDbz} dBZ • {sec.rainRateMmh.toFixed(0)} mm/h</div>
-                        {domainScope === 'aerodrome_3km' && <div className="text-sky-300 font-bold">1 km² CELL</div>}
-                      </div>
+                    <Tooltip direction="center" permanent className="!bg-black/75 !backdrop-blur-sm !border !border-white/20 !text-white !font-mono !text-[11px] !px-2 !py-0.5 !rounded !shadow">
+                      <span className={isSelected ? 'text-amber-300 font-extrabold' : 'text-sky-200'}>
+                        [{shortId}] {sec.radarDbz} dBZ {isExtreme ? '⚠️' : ''}
+                      </span>
                     </Tooltip>
                   </Rectangle>
                 );
               })}
 
-              {/* Verified 3×3 km aerodrome perimeter — proves targeting claim */}
-              {domainScope === 'aerodrome_3km' && (
-                <Rectangle
-                  bounds={[
-                    [AERODROME_CORE_SPECS.bounds[0][0], AERODROME_CORE_SPECS.bounds[0][1]],
-                    [AERODROME_CORE_SPECS.bounds[1][0], AERODROME_CORE_SPECS.bounds[1][1]]
-                  ]}
-                  pathOptions={{ color: '#38bdf8', weight: 2.5, dashArray: undefined, fillOpacity: 0 }}
-                >
-                  <Tooltip direction="top" permanent className="!bg-slate-950/95 !border !border-sky-400/60 !text-white !font-mono !text-[10px]">
-                    <div className="text-sky-300 font-bold">✈ 3.0 km × 3.0 km AERODROME CORE</div>
-                    <div className="text-slate-300">VEBS/BBI · 9 × 1 km² CELLS VERIFIED</div>
-                    <div className="text-slate-400">{AERODROME_CORE_SPECS.compliance}</div>
-                  </Tooltip>
-                </Rectangle>
-              )}
+              {/* Runway 01/19 Highlight (2,743m × 45m) */}
+              <Polyline
+                positions={[
+                  [20.2338, 85.8150], // Runway 01 Threshold
+                  [20.2550, 85.8206], // Runway 19 Threshold
+                ]}
+                pathOptions={{
+                  color: '#00e5ff',
+                  weight: 4.5,
+                  opacity: 0.95,
+                }}
+              >
+                <Tooltip direction="top" className="!bg-black/90 !text-cyan-300 !font-mono !text-[10px] !font-bold !border !border-cyan-500/50">
+                  ✈️ RWY 01/19 (2,743m)
+                </Tooltip>
+              </Polyline>
 
               {/* 9 In-Situ Surface AWS Stations */}
               {showAwsStations && SURROUNDING_AWS_STATIONS.map(aws => (
                 <CircleMarker
                   key={aws.id}
                   center={[aws.lat, aws.lon]}
-                  radius={aws.id === selectedAwsId ? 8 : 5}
+                  radius={aws.id === selectedAwsId ? 7 : 4.5}
                   pathOptions={{
-                    color: '#fbbf24',
+                    color: '#ffffff',
                     fillColor: aws.status === 'SEVERE_ALERT' ? '#ef4444' : '#f59e0b',
                     fillOpacity: 0.95,
-                    weight: aws.id === selectedAwsId ? 2.5 : 1.5
+                    weight: 1.5
                   }}
                   eventHandlers={{ click: () => { setSelectedAwsId(aws.id); setSidebarTab('aws_network'); } }}
                 >
@@ -1912,15 +2021,15 @@ export default function HazardDashboard() {
                 </CircleMarker>
               ))}
 
-              {/* VEBS Airport Marker */}
+              {/* VEBS DWR Radar Site Marker */}
               <CircleMarker 
                 center={[RADAR_STATION.lat, RADAR_STATION.lon]} 
                 radius={8} 
-                pathOptions={{ color: '#38bdf8', fillColor: '#0284c7', fillOpacity: 0.95, weight: 2 }}
+                pathOptions={{ color: '#ffffff', fillColor: '#0284c7', fillOpacity: 0.95, weight: 2 }}
               >
-                <Tooltip direction="top" permanent offset={[0, -10]}>
+                <Tooltip direction="bottom" offset={[0, 8]}>
                   <div className="font-mono text-[10px] font-bold text-white bg-slate-950 px-2 py-0.5 rounded border border-sky-500">
-                    ✈ VEBS / BBI AIRPORT
+                    📡 IMD DWR RADAR (VEBS)
                   </div>
                 </Tooltip>
               </CircleMarker>
@@ -1928,7 +2037,7 @@ export default function HazardDashboard() {
               {/* Extended Runway Approach Glidepath */}
               <Polyline 
                 positions={AIRPORT_RUNWAYS.ilsCorridor} 
-                pathOptions={{ color: '#f59e0b', weight: 2.5, dashArray: '6, 6' }} 
+                pathOptions={{ color: '#f59e0b', weight: 2, dashArray: '5, 5', opacity: 0.7 }} 
               />
             </MapContainer>
           </div>
@@ -1937,7 +2046,7 @@ export default function HazardDashboard() {
         {/* =============================================================== */}
         {/* RIGHT SIDEBAR: 3X3 GRID TELEMETRY + AWS NETWORK OBSERVATIONS    */}
         {/* =============================================================== */}
-        <aside className="w-[360px] bg-[#090d15] border-l border-[#182130] p-3 flex flex-col space-y-2.5 shrink-0 overflow-y-auto z-20">
+        <aside className="w-[380px] bg-[#090d15] border-l border-[#182130] p-4 flex flex-col space-y-4 shrink-0 overflow-y-auto z-20">
           
           {/* Tri-View Sidebar Navigation Switcher */}
           <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-[#070a10] border border-[#161f2e] rounded-lg">
