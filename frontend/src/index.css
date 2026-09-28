@@ -2,77 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --color-bg: #0a0d15;
-    --color-card: #131928;
-    --color-border: #1e293b;
-    --color-accent: #1888ef;
-  }
-
-  body {
-    background-color: #0a0d15;
-    color: #f8fafc;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+html, body, #root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #08090a;
+  color: #f7f8f8;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
-/* OpenLayers Custom Reset & Styling */
-.ol-viewport {
-  width: 100% !important;
-  height: 100% !important;
-  background-color: #0a0d15 !important;
-}
-
-.ol-attribution {
-  bottom: 0.5em !important;
-  left: 0.5em !important;
-  right: auto !important;
-  background-color: rgba(10, 13, 21, 0.75) !important;
-  border-radius: 4px !important;
-  padding: 2px 6px !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 9px !important;
-  color: #64748b !important;
-}
-
-.ol-attribution ul {
-  color: #64748b !important;
-}
-
-.ol-attribution a {
-  color: #94a3b8 !important;
-}
-
-/* Custom Scrollbar for Ops Panels */
+/* Custom Linear scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #0a0d15;
+  background: #08090a;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 3px;
+  background: #23252a;
+  border: 2px solid #08090a;
+  border-radius: 9999px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #34343a;
 }
 
-/* Animations */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
-}
