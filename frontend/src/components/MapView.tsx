@@ -56,21 +56,21 @@ export const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // 0. Base Dark Cartography (ESRI Dark Gray Canvas - unauthenticated, zero watermark)
+    // 0. Base Dark Cartography (CartoDB Dark — no API key, never blocked)
     const baseCartoLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        url: 'https://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
         crossOrigin: 'anonymous',
-        attributions: 'Esri, HERE, Garmin, © OpenStreetMap',
+        attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
       }),
     });
 
     const baseReferenceLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+        url: 'https://{a-c}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
         crossOrigin: 'anonymous',
       }),
-      opacity: 0.75,
+      opacity: 0.85,
     });
 
     // 1. Administrative Boundaries & Meghalaya River Basins (Bhuvan WMS)
@@ -476,29 +476,37 @@ export const MapView: React.FC<MapViewProps> = ({
 
     radarSource.clear();
 
-    // Generate dynamic convective echo cells centered on storm positions
+    // Render each storm cell as a single realistic irregular polygon
     stormCells.forEach((cell) => {
       const baseMercator = fromLonLat(cell.centroid);
-      const bands = [
-        { radiusFraction: 1.0, dbz: 30 },
-        { radiusFraction: 0.7, dbz: 42 },
-        { radiusFraction: 0.45, dbz: 52 },
-        { radiusFraction: 0.25, dbz: cell.maxDbz },
-      ];
+      const baseRadiusM = cell.radiusKm * 1000;
+      const bearingRad = (cell.bearingDeg * Math.PI) / 180;
+      const nPoints = 32;
+      const polyCoords: number[][] = [];
 
-      bands.forEach((band) => {
-        const ringPoints: number[][] = [];
-        const r = cell.radiusKm * 1000 * band.radiusFraction;
-        for (let i = 0; i <= 24; i++) {
-          const a = (i * 2 * Math.PI) / 24;
-          ringPoints.push([baseMercator[0] + r * Math.sin(a), baseMercator[1] + r * Math.cos(a)]);
-        }
-        const f = new Feature({
-          geometry: new Polygon([ringPoints]),
-          dbz: band.dbz,
-        });
-        radarSource.addFeature(f);
+      for (let i = 0; i <= nPoints; i++) {
+        const angle = (i * 2 * Math.PI) / nPoints;
+        const relAngle = angle - bearingRad;
+        const alongMotion = Math.cos(relAngle);
+        const acrossMotion = Math.sin(relAngle);
+        const shapeRadius =
+          baseRadiusM *
+          (0.85 + 0.15 * acrossMotion * acrossMotion) *
+          (1.0 - 0.15 * Math.max(0, alongMotion));
+        const seed = (cell.name?.charCodeAt(0) ?? 65) + i;
+        const noise = 0.12 * Math.sin(seed * 2.3 + i * 0.7) * shapeRadius;
+
+        polyCoords.push([
+          baseMercator[0] + (shapeRadius + noise) * Math.sin(angle),
+          baseMercator[1] + (shapeRadius + noise) * Math.cos(angle),
+        ]);
+      }
+
+      const f = new Feature({
+        geometry: new Polygon([polyCoords]),
+        dbz: cell.maxDbz,
       });
+      radarSource.addFeature(f);
     });
   }, [stormCells, activeLeadTimeMin, isReplayMode, replayStepIndex]);
 

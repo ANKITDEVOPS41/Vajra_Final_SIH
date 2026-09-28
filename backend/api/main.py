@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -26,7 +27,7 @@ from ..data.adapters.mosdac_satellite import MOSDACSatelliteAdapter
 from ..data.adapters.bhuvan_lightning import BhuvanLightningAdapter
 from ..data.adapters.imd_aws import IMDAWSAdapter
 from ..data.historical_cache import get_historical_grid_cell, HISTORICAL_EVENTS
-from ..models.convectnet import ConvectNetInference
+from ..models.inference import ConvectNetInference
 from ..data.data_source_manager import get_dsm, data_mode, IMD_API_KEY
 
 

@@ -22,6 +22,7 @@ class ConvectNetInference:
         result = engine.predict(np.random.randn(4, 12, 128, 128).astype(np.float32))
         stats  = engine.benchmark()
     """
+    MODEL_NAME: str = "ConvectNet-ST-Nowcaster-v1.0"
 
     def __init__(self, checkpoint_path: str = None):
         # Auto device selection
