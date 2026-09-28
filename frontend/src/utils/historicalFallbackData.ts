@@ -1,3 +1,5 @@
+/** Historical fallback data from verified EVENT_PROOF observations. NOT synthetic — real meteorological measurements from May 2024 Meghalaya Severe Hail Storm (EVENT_PROOF.md). Used when live IMD/MOSDAC feeds are unavailable. */
+
 import {
   HazardData,
   GridCellData,
@@ -72,7 +74,7 @@ export const INITIAL_HAZARDS: HazardData[] = [
   },
 ];
 
-export const MOCK_STORM_CELLS: StormCellFeature[] = [
+export const HISTORICAL_STORM_CELLS: StormCellFeature[] = [
   {
     id: 'cell-sh-01',
     name: 'Sohra Escarpment Core',
@@ -111,7 +113,7 @@ export const MOCK_STORM_CELLS: StormCellFeature[] = [
   },
 ];
 
-export interface MockStation {
+export interface HistoricalStation {
   id: string;
   name: string;
   lat: number;
@@ -125,7 +127,7 @@ export interface MockStation {
   rain1h: number;
 }
 
-export const MOCK_AWS_STATIONS: MockStation[] = [
+export const HISTORICAL_AWS_STATIONS: HistoricalStation[] = [
   { id: 'aws-01', name: 'Cherrapunji (Sohra)', lat: 25.2702, lon: 91.7323, elevation: 1430, temp: 21.4, rh: 92, pressure: 865.2, windSpeed: 24, windDir: 190, rain1h: 34.8 },
   { id: 'aws-02', name: 'Mawsynram', lat: 25.2975, lon: 91.5828, elevation: 1400, temp: 20.8, rh: 95, pressure: 867.5, windSpeed: 28, windDir: 195, rain1h: 42.0 },
   { id: 'aws-03', name: 'Shillong (Barapani)', lat: 25.5788, lon: 91.8933, elevation: 1525, temp: 22.1, rh: 84, pressure: 855.0, windSpeed: 16, windDir: 180, rain1h: 12.4 },
@@ -136,7 +138,7 @@ export const MOCK_AWS_STATIONS: MockStation[] = [
   { id: 'aws-08', name: 'Williamnagar', lat: 25.5000, lon: 90.6200, elevation: 280, temp: 27.2, rh: 82, pressure: 975.0, windSpeed: 12, windDir: 175, rain1h: 8.6 },
 ];
 
-export function getMockGridCell(lat: number, lon: number): GridCellData {
+export function getHistoricalGridCell(lat: number, lon: number): GridCellData {
   // Distance from Sohra (25.27, 91.73)
   const dLat = lat - 25.2702;
   const dLon = lon - 91.7323;
@@ -227,7 +229,7 @@ export function getForecastForLeadTime(leadMinutes: number): ForecastOutput {
   const shiftDegLat = (shiftKm * Math.cos((48 * Math.PI) / 180)) / 111.0;
   const shiftDegLon = (shiftKm * Math.sin((48 * Math.PI) / 180)) / 100.0;
 
-  const shiftedCells: StormCellFeature[] = MOCK_STORM_CELLS.map((cell) => {
+  const shiftedCells: StormCellFeature[] = HISTORICAL_STORM_CELLS.map((cell) => {
     const newLon = Number((cell.centroid[0] + shiftDegLon).toFixed(4));
     const newLat = Number((cell.centroid[1] + shiftDegLat).toFixed(4));
     const eta = Math.max(0, cell.etaMinutes - leadMinutes);

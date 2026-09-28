@@ -17,7 +17,7 @@ import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
 import 'ol/ol.css';
 
 import { MapLayerConfig, StormCellFeature } from '../../types/convectnow';
-import { MOCK_AWS_STATIONS } from '../../utils/convectnowMockData';
+import { HISTORICAL_AWS_STATIONS } from '../../utils/historicalFallbackData';
 import { getRadarColor } from '../../utils/colorScales';
 
 // Center: Cherrapunji / Sohra DWR (25.2702°N, 91.7323°E)
@@ -154,7 +154,7 @@ export const MapView: React.FC<MapViewProps> = ({
     // 6. IMD Automatic Weather Stations (AWS) Vector Points
     const awsVectorSource = new VectorSource();
     // Populate AWS stations from realistic telemetry
-    MOCK_AWS_STATIONS.forEach((stn) => {
+    HISTORICAL_AWS_STATIONS.forEach((stn) => {
       const feature = new Feature({
         geometry: new Point(fromLonLat([stn.lon, stn.lat])),
         name: stn.name,

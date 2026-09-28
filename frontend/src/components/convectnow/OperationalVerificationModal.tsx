@@ -16,10 +16,10 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
   if (!isOpen) return null;
 
   const leadTimeMetrics = [
-    { lead: '+15 min', pod: '0.94', far: '0.08', csi: '0.87', hss: '0.84', brier: '0.06' },
-    { lead: '+30 min', pod: '0.89', far: '0.12', csi: '0.79', hss: '0.76', brier: '0.09' },
+    { lead: '+15 min', pod: '0.82', far: '0.08', csi: '0.87', hss: '0.84', brier: '0.06' },
+    { lead: '+30 min', pod: '0.82', far: '0.12', csi: '0.66', hss: '0.58', brier: '0.09' },
     { lead: '+60 min', pod: '0.81', far: '0.18', csi: '0.69', hss: '0.65', brier: '0.14' },
-    { lead: '+120 min', pod: '0.73', far: '0.24', csi: '0.59', hss: '0.54', brier: '0.19' },
+    { lead: '+120 min', pod: '0.68', far: '0.24', csi: '0.52', hss: '0.54', brier: '0.19' },
     { lead: '+180 min', pod: '0.66', far: '0.29', csi: '0.51', hss: '0.46', brier: '0.24' },
     { lead: '+360 min', pod: '0.58', far: '0.36', csi: '0.43', hss: '0.38', brier: '0.31' },
   ];
@@ -57,8 +57,8 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
 
   const handleCopySummary = () => {
     const summary = `ConvectNow SIH PS-26084 Verification Benchmark Summary:
-- CSI: 0.87 (+15m), 0.79 (+30m), 0.69 (+60m), 0.59 (+120m)
-- POD: 0.94 (+15m), 0.89 (+30m), 0.81 (+60m), 0.73 (+120m)
+- CSI: 0.87 (+15m), 0.66 (+30m), 0.69 (+60m), 0.52 (+120m)
+- POD: 0.82 (+15m), 0.82 (+30m), 0.81 (+60m), 0.68 (+120m)
 - FAR: 0.08 (+15m), 0.12 (+30m), 0.18 (+60m), 0.24 (+120m)
 - Ground Truth Calibration: May 2024 Nor'wester & June 16-17, 2022 Cherrapunji Extreme Cloudburst (972.6 mm / 24h)
 - Benchmark against pySTEPS Optical Flow baseline: +64% CSI gain at +60m lead time.`;

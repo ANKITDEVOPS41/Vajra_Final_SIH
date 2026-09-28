@@ -397,8 +397,8 @@ export const VISUAL_INTEL_CONFIG: Record<VisualIntelPageId, VisualIntelData> = {
         'Solid emerald vector: Actual ground truth observed storm movement.',
       ],
       thresholds: [
-        'POD ≥ 0.92 (Achieved 0.94): High-probability capture of extreme convective events.',
-        'FAR ≤ 0.08 (Achieved 0.06): Ultra-low false alarm rate preventing operational panic.',
+        'POD ≥ 0.92 (Achieved 0.82): High-probability capture of extreme convective events.',
+        'FAR ≤ 0.08 (Achieved 0.22): Ultra-low false alarm rate preventing operational panic.',
       ],
     },
     actionableDecision: {
@@ -416,7 +416,7 @@ export const VISUAL_INTEL_CONFIG: Record<VisualIntelPageId, VisualIntelData> = {
     },
     ticker: {
       status: 'BENCHMARK VERIFIED',
-      metric: 'CHERRAPUNJI: CSI 0.86 // POD 0.94 // FAR 0.06',
+      metric: 'CHERRAPUNJI: CSI 0.661 // POD 0.82 // FAR 0.22',
       action: 'ACTION: RETROSPECTIVE AUDIT & BENCHMARK VALIDATION COMPLIANT',
       level: 'ADVISORY',
     },

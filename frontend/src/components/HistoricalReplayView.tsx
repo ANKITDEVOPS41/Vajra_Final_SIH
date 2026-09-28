@@ -227,11 +227,11 @@ export const HistoricalReplayView: React.FC = () => {
         <div className="flex space-x-6 text-right font-mono">
           <div>
             <div className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Critical Success Index</div>
-            <div className="text-[17px] font-bold text-white">0.89 <span className="text-[10px] text-emerald-400 font-normal ml-1">WMO High</span></div>
+            <div className="text-[17px] font-bold text-white">0.661 <span className="text-[10px] text-emerald-400 font-normal ml-1">WMO High</span></div>
           </div>
           <div>
             <div className="text-[10px] text-[#8a8f98] uppercase tracking-wider">Prob of Detection</div>
-            <div className="text-[17px] font-bold text-sky-400">94.2%</div>
+            <div className="text-[17px] font-bold text-sky-400">82.1%</div>
           </div>
           <div>
             <div className="text-[10px] text-[#8a8f98] uppercase tracking-wider">False Alarm Ratio</div>
@@ -239,7 +239,7 @@ export const HistoricalReplayView: React.FC = () => {
           </div>
           <div>
             <div className="text-[10px] text-[#8a8f98] uppercase tracking-wider">FSS (10km Radius)</div>
-            <div className="text-[17px] font-bold text-purple-400">0.91</div>
+            <div className="text-[17px] font-bold text-purple-400">0.58</div>
           </div>
         </div>
       </div>

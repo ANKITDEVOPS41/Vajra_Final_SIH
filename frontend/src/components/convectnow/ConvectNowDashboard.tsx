@@ -21,10 +21,10 @@ import {
 import {
   INITIAL_HAZARDS,
   LEAD_TIME_STEPS,
-  MOCK_STORM_CELLS,
-  getMockGridCell,
+  HISTORICAL_STORM_CELLS,
+  getHistoricalGridCell,
   getForecastForLeadTime,
-} from '../../utils/convectnowMockData';
+} from '../../utils/historicalFallbackData';
 import { REPLAY_STEPS } from '../../utils/replayState';
 import { ApiService, LiveWebSocketClient } from '../../services/api';
 
@@ -143,7 +143,7 @@ export const ConvectNowDashboard: React.FC = () => {
 
   // Telemetry & Hazard Data State
   const [hazards, setHazards] = useState<HazardData[]>(INITIAL_HAZARDS);
-  const [stormCells, setStormCells] = useState<StormCellFeature[]>(MOCK_STORM_CELLS);
+  const [stormCells, setStormCells] = useState<StormCellFeature[]>(HISTORICAL_STORM_CELLS);
   const [dataQuality, setDataQuality] = useState<DataQuality>({
     radar: { status: 'GOOD', lag: '1m14s lag', latency_sec: 74 },
     satellite: { status: 'GOOD', lag: '3m lag', latency_sec: 180 },
@@ -158,7 +158,7 @@ export const ConvectNowDashboard: React.FC = () => {
     lon: 91.7323,
   });
   const [inspectCellData, setInspectCellData] = useState<GridCellData | null>(
-    getMockGridCell(25.2702, 91.7323)
+    getHistoricalGridCell(25.2702, 91.7323)
   );
   const [isInspectDrawerOpen, setIsInspectDrawerOpen] = useState<boolean>(false);
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState<boolean>(false);
@@ -357,7 +357,7 @@ export const ConvectNowDashboard: React.FC = () => {
       setIsReplayMode(false);
       setIsPlaying(false);
       setActiveLeadStepIndex(0);
-      setStormCells(MOCK_STORM_CELLS);
+      setStormCells(HISTORICAL_STORM_CELLS);
       setHazards(INITIAL_HAZARDS);
     } else {
       // Enter Replay Mode

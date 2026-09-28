@@ -2897,8 +2897,8 @@ export default function HazardDashboard() {
               </div>
               <div className="p-3 bg-[#07090e] border border-[#1e2533] rounded-xl">
                 <span className="text-[10px] text-[#64748b] block">Prob. of Detection</span>
-                <span className="text-base font-bold text-emerald-400">0.892</span>
-                <span className="text-[9px] text-[#64748b] block">PySTEPS: 0.730</span>
+                <span className="text-base font-bold text-emerald-400">0.661</span>
+                <span className="text-[9px] text-[#64748b] block">PySTEPS: 0.654</span>
               </div>
               <div className="p-3 bg-[#07090e] border border-[#1e2533] rounded-xl">
                 <span className="text-[10px] text-[#64748b] block">False Alarm Ratio</span>

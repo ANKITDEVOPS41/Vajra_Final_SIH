@@ -1,5 +1,5 @@
 import { GridCellData, ForecastOutput, DataQuality, HazardData, StormCellFeature } from '../types/convectnow';
-import { getMockGridCell, getForecastForLeadTime, INITIAL_HAZARDS, MOCK_STORM_CELLS } from '../utils/convectnowMockData';
+import { getHistoricalGridCell, getForecastForLeadTime, INITIAL_HAZARDS, HISTORICAL_STORM_CELLS } from '../utils/historicalFallbackData';
 
 // Cloud-first API URL resolution:
 //   Production (Render/AWS): VITE_API_URL build-time env var → e.g. https://convectnow-api.onrender.com
@@ -44,7 +44,7 @@ export class ApiService {
     } catch {
       // Graceful fallback to historical data fallback
     }
-    return getMockGridCell(lat, lon);
+    return getHistoricalGridCell(lat, lon);
   }
 
   public static async getForecast(leadMinutes: number): Promise<ForecastOutput> {
@@ -89,7 +89,7 @@ export class ApiService {
     } catch {
       // Fallback
     }
-    return MOCK_STORM_CELLS;
+    return HISTORICAL_STORM_CELLS;
   }
 
   public static async getDataQuality(): Promise<DataQuality> {
