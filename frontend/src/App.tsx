@@ -1,7 +1,6 @@
-import { Circle } from "react-leaflet";
 import React, { useState, useEffect } from 'react';
 import { 
-  Radar, CloudLightning, MapPin, Activity, Info, ExternalLink, Cpu, ShieldCheck, Grid, Radio, Target
+  Radar, CloudLightning, MapPin, Activity, Info, ExternalLink, Cpu, ShieldCheck, Grid, Radio, Target, Compass
 } from 'lucide-react';
 import { ETACountdown } from './components/ETACountdown';
 import { CitizenWarningInterface } from './components/CitizenWarningInterface';
@@ -13,6 +12,7 @@ import { MicroburstSimulationView } from './components/MicroburstSimulationView'
 import { TacticalAirportMapEngine, VEBS_AIRPORT_CENTER } from './components/TacticalAirportMapEngine';
 import HazardDashboard from './components/HazardDashboard';
 import TacticalOperationsDashboard from './components/TacticalOperationsDashboard';
+import ConvectNowDashboard from './components/convectnow/ConvectNowDashboard';
 import { MissionBriefingModal } from './components/MissionBriefingModal';
 import { 
   DispatchedAlert, 
@@ -25,7 +25,7 @@ export default function App() {
   const [stormData, setStormData] = useState<any>(null);
   const [selectedCell, setSelectedCell] = useState<any>(null);
   const [dispatchedAlert, setDispatchedAlert] = useState<DispatchedAlert | null>(null);
-  const [viewMode, setViewMode] = useState<'hazard' | 'tactical' | 'inference' | 'public' | 'hyperlocal' | 'replay' | 'grid' | 'microburst'>('hazard');
+  const [viewMode, setViewMode] = useState<'hazard' | 'tactical' | 'convectnow' | 'inference' | 'public' | 'hyperlocal' | 'replay' | 'grid' | 'microburst'>('hazard');
   const [showMissionBriefing, setShowMissionBriefing] = useState<boolean>(false);
 
   useEffect(() => {
@@ -100,6 +100,16 @@ export default function App() {
                 Dashboard
              </button>
              <button 
+                onClick={() => setViewMode('convectnow')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 active:scale-[0.98] ${
+                  viewMode === 'convectnow' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                }`}
+                title="ConvectNow National 0–6h Operations Console (Sohra/Cherrapunji Escarpment)"
+             >
+                <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                <span>NE India Nowcast</span>
+             </button>
+             <button 
                 onClick={() => setViewMode('hyperlocal')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
                   viewMode === 'hyperlocal' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
@@ -167,8 +177,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Persistent 3x3 Domain & AWS Ground Truth Status Ribbon (Only shown outside Hazard & Tactical views) */}
-      {viewMode !== 'hazard' && viewMode !== 'tactical' && (
+      {/* Persistent 3x3 Domain & AWS Ground Truth Status Ribbon (Only shown outside Hazard & Tactical & ConvectNow views) */}
+      {viewMode !== 'hazard' && viewMode !== 'tactical' && viewMode !== 'convectnow' && (
         <div className="bg-[#0b101b] border-b border-[#1f293d] px-6 py-2 flex flex-wrap items-center justify-between text-xs font-mono text-[#94a3b8]">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1.5 text-sky-400 font-bold">
@@ -211,6 +221,12 @@ export default function App() {
               setViewMode('public');
             }}
           />
+        </main>
+      )}
+
+      {viewMode === 'convectnow' && (
+        <main className="w-full flex-1 overflow-hidden relative">
+          <ConvectNowDashboard />
         </main>
       )}
 

@@ -665,4 +665,85 @@ export const VISUAL_INTEL_CONFIG: Record<VisualIntelPageId, VisualIntelData> = {
     sopProtocol: 'SOP-08: Public Warning & Disaster Evacuation Protocol',
     problemStatementRef: 'MoES / NCMRWF PS-26084: Public Risk Communication & Warning',
   },
+  convectnow: {
+    pageId: 'convectnow',
+    pageTitle: 'ConvectNow NE India Operations Console',
+    subtitle: 'Sohra/Cherrapunji 0–6h Convective Nowcasting, Bhuvan WMS & NDMA CAP Gateway',
+    badge: 'SIH PS-26084 // 1–3 km NOWCAST',
+    whatYouSee: {
+      summary: 'National 0–6h convective nowcasting console centered on the Sohra / Cherrapunji escarpment (25.27°N, 91.73°E), merging NRSC Bhuvan State & River Basin boundaries, IMD INSAT-3DR Thermal IR, and RainViewer Doppler radar mosaics over 1–3 km operational grids.',
+      sensor: {
+        name: 'Bhuvan WMS + IMD INSAT-3DR Thermal IR + RainViewer Radar',
+        specs: '10.8 µm TIR-1 Band + S-Band DWR + Bhuvan 1:50,000 WMS Layers',
+        spatialDomain: 'Northeast India AOI (23.5°N–27.0°N, 89.5°E–94.0°E) • Sohra Escarpment Center',
+        resolution: '1.0 km × 1.0 km native grid resolution with 10 discrete forecast lead times (0–6 hours)',
+        cadence: '15-minute INSAT-3DR rapid scan + 10-minute radar volume scan + 60s AWS stream',
+        parameters: 'Convective Initiation (CI), Lightning density, Hail probability, Downburst velocity, Cloudburst rate',
+      },
+      points: [
+        'Multi-agency OGC WMS map canvas integrating ISRO NRSC Bhuvan administrative boundaries and Brahmaputra/Barak river basins.',
+        'Continuous 0–6 hour forecast lead-time timeline slider with 10 discrete intervals (NOW to +6h).',
+        'Interactive 1 km² cell inspection drawer displaying 12 in-situ observations and 5 neural hazard outputs.',
+        'Direct NDMA / SDMA Common Alerting Protocol (CAP v1.2) XML/JSON alert dispatch pipeline.',
+        'WMO standard verification scorecard modal (CSI: 0.68, POD: 0.88, FAR: 0.16, HSS: 0.72).'
+      ],
+    },
+    howToDecode: {
+      summary: 'Color-coded hazard probabilities ranging from green (<30% nominal) to amber (30–60% elevated) and red (>60% severe/critical), paired with Dvorak IR cloud-top thermal thresholds.',
+      items: [
+        {
+          color: '#22c55e',
+          label: 'Nominal / Low Convection',
+          range: '< 30% Probability',
+          meaning: 'Background atmospheric moisture; no severe convective initiation or cloudburst threat.',
+        },
+        {
+          color: '#eab308',
+          label: 'Elevated Convection Watch',
+          range: '30%–60% Probability',
+          meaning: 'Developing updraft; rapid cloud-top cooling (<-0.25 K/min); moderate lightning potential.',
+        },
+        {
+          color: '#ef4444',
+          label: 'Severe Cloudburst Warning',
+          range: '> 60% Probability',
+          meaning: 'Deep convection over steep terrain; extreme rainfall rate (>100 mm/h); flash flood potential.',
+        },
+        {
+          color: '#8b5cf6',
+          label: 'Deep Convective Overshooting Top',
+          range: '< 200 K IR BT',
+          meaning: 'Severe cloud-top penetrating tropopause into lower stratosphere; intense hail and downdrafts.',
+        },
+      ],
+      vectors: [
+        'Solid cyan vectors: Cell trajectory vectors displaying convective translation speed (km/h) and azimuth bearing towards downstream river catchments.',
+      ],
+      thresholds: [
+        'Cloudburst: Rainfall rate > 100 mm/h within 1 hour across a localized 10–30 km² area.',
+        'Schultz Lightning Jump: Flash rate increase > 2σ (typically >40 flashes/min) indicating impending severe downburst.',
+      ],
+    },
+    actionableDecision: {
+      level: 'CRITICAL',
+      primaryAction: 'ISSUE NDMA CAP v1.2 FLASH FLOOD EMERGENCY BROADCAST & PRE-ACTIVATE BASIN DRAINAGE',
+      protocol: 'MoES PS-26084 Severe Convection Standard Operating Procedure',
+      stakeholders: ['Meghalaya State Disaster Management Authority (SDMA)', 'Central Water Commission (CWC)', 'District Administration'],
+      triggerCondition: 'Cloudburst probability > 60% or rain rate > 100 mm/h projected within 30 minutes.',
+      actionChecklist: [
+        'Dispatch bilingual CAP v1.2 XML payload to NDMA Sachet National Disaster Alert Gateway.',
+        'Trigger local siren networks in vulnerable escarpment villages (Mawsynram, Sohra, Shella).',
+        'CWC: Issue immediate flash flood advisory for downstream Barak and Sylhet plain catchments.',
+        'District Police: Restrict vehicular movement on vulnerable NH-206 hill slopes prone to landslides.',
+      ],
+    },
+    ticker: {
+      status: 'NE INDIA NOWCAST ACTIVE',
+      metric: 'SOHRA SEVERE CLOUDBURST RISK 73%',
+      action: 'ACTION: NDMA CAP SIREN BROADCAST DISPATCHED • BASIN DRAINAGE PRE-ACTIVATED',
+      level: 'CRITICAL',
+    },
+    sopProtocol: 'SOP-09: Northeast India Convective Nowcasting & Flash Flood Protocol',
+    problemStatementRef: 'MoES / NCMRWF PS-26084: 0–6h Real-Time Convective Nowcasting System',
+  },
 };

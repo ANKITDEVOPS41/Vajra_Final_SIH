@@ -6,7 +6,8 @@ export type VisualIntelPageId =
   | 'replay' 
   | 'grid' 
   | 'microburst' 
-  | 'public';
+  | 'public'
+  | 'convectnow';
 
 export type AlertLevel = 'CRITICAL' | 'WARNING' | 'ADVISORY' | 'NOMINAL';
 
