@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 import h5py
 import numpy as np
-from convectnow.backend.data.projection import GridReprojector
+from backend.data.projection import GridReprojector
 
 # -------------------------------------------------------------------------
 # Radiation & Satellite Constants (ISRO SAC / MOSDAC INSAT-3D/3DR)

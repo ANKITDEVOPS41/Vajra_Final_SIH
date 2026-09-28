@@ -75,7 +75,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       mapRef.current = map;
 
       // Base Tile Layer (CartoDB Dark Matter default)
-      tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      tileLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd',
         maxZoom: 19,
         className: 'map-tiles-blue-tint'
@@ -132,9 +132,9 @@ export const HazardMap: React.FC<HazardMapProps> = ({
     // Otherwise use CartoDB Dark Matter (No API Key needed)
     if (tileLayerRef.current) {
       if (activeLayer === 'ir' || activeLayer === 'satellite') {
-        tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+        tileLayerRef.current.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
       } else {
-        tileLayerRef.current.setUrl('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}');
+        tileLayerRef.current.setUrl('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
       }
     }
 

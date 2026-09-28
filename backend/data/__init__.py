@@ -8,11 +8,11 @@ Integrates:
 - PyTorch Multi-Modal ConvectDataset & DataLoader yielding (B, C=4, T=12, H=128, W=128)
 """
 
-from convectnow.backend.data.dataset_sevir import (
+from backend.data.dataset_sevir import (
     ConvectDataset,
     create_convect_dataloader,
 )
-from convectnow.backend.data.ingester_imd import (
+from backend.data.ingester_imd import (
     REFLECTIVITY_PALETTE,
     REFLECTIVITY_VALUES,
     VELOCITY_PALETTE,
@@ -20,12 +20,12 @@ from convectnow.backend.data.ingester_imd import (
     IMDGeoServerWorker,
     IMDRadarProduct,
 )
-from convectnow.backend.data.ingester_mosdac import (
+from backend.data.ingester_mosdac import (
     CHANNEL_SPECS,
     MOSDACIngester,
     MOSDACProduct,
 )
-from convectnow.backend.data.projection import (
+from backend.data.projection import (
     GridReprojector,
     cartesian_to_latlon,
     geos_forward,
@@ -35,7 +35,7 @@ from convectnow.backend.data.projection import (
     latlon_to_cartesian,
     polar_to_cartesian,
 )
-from convectnow.backend.data.quality_control import QualityControlFilter
+from backend.data.quality_control import QualityControlFilter
 
 __all__ = [
     "CHANNEL_SPECS",

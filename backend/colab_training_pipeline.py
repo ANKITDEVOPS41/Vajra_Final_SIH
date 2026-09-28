@@ -19,7 +19,7 @@ import logging
 import os
 
 import torch
-from convectnow.backend.models.convectnet import ConvectNet
+from backend.models.convectnet import ConvectNet
 from torch import nn, optim
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset

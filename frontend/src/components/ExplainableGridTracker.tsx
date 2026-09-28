@@ -323,17 +323,17 @@ export const ExplainableGridTracker: React.FC = () => {
             {mapType === 'satellite' && (
               <>
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
                   maxZoom={19} 
                   attribution="Tiles &copy; Esri, Maxar, Earthstar Geographics" 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} 
                   opacity={0.85} 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} 
                   opacity={0.8} 
                 />
@@ -349,13 +349,13 @@ export const ExplainableGridTracker: React.FC = () => {
             {mapType === 'dark' && (
               <>
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} 
                   opacity={0.9} 
                   attribution="&copy; Esri" 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} 
                   opacity={0.85} 
                 />

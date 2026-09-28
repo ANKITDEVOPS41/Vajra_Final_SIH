@@ -720,14 +720,14 @@ export const InferencePipelineView: React.FC = () => {
 
             {tileMode === 'satellite' ? (
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
                 maxNativeZoom={19}
                 attribution="Tiles &copy; Esri, Maxar"
               />
             ) : (
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 maxZoom={19}
                 maxNativeZoom={19}
                 attribution="Tiles &copy; Esri"

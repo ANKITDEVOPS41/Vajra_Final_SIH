@@ -4,7 +4,7 @@ import os
 import torch
 
 # Import our model
-from convectnow.backend.models.convectnet import ConvectNet
+from backend.models.convectnet import ConvectNet
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm

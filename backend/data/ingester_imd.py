@@ -25,7 +25,7 @@ from PIL import Image, ImageFile
 # Ensure truncated GIF files from real-time feeds load without crashing
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-from convectnow.backend.data.projection import GridReprojector
+from backend.data.projection import GridReprojector
 
 # IMD Delhi DWR Station Constants (Mausam Bhawan / Palam)
 DEFAULT_STATION = "delhi"

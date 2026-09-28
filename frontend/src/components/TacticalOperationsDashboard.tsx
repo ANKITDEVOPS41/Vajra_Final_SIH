@@ -148,7 +148,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
   // Active State
   const [selectedCellId, setSelectedCellId] = useState<string>(stormCells[0]?.cell_id || 'CELL-805');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'EXTREME' | 'SEVERE' | 'MODERATE'>('ALL');
-  const [weatherFormat, setWeatherFormat] = useState<WeatherMapFormat>('ir_rainbow');
+  const [weatherFormat, setWeatherFormat] = useState<WeatherMapFormat>('dwr_radar');
   const [showGrid, setShowGrid] = useState<boolean>(true);
   const [showVectors, setShowVectors] = useState<boolean>(true);
   const [showInterceptRays, setShowInterceptRays] = useState<boolean>(true);
@@ -538,13 +538,13 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           {(weatherFormat === 'satellite' || weatherFormat === 'enhanced_cloud') && (
             <>
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 maxZoom={19}
                 maxNativeZoom={19}
                 attribution="Tiles &copy; Esri, Maxar, Earthstar Geographics"
               />
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
                 maxZoom={19}
                 opacity={0.85}
               />
@@ -553,14 +553,14 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           {(weatherFormat === 'dark' || weatherFormat === 'insat_ir' || weatherFormat === 'ir_rainbow' || weatherFormat === 'dwr_radar') && (
             <>
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 maxZoom={19}
                 maxNativeZoom={19}
                 opacity={0.92}
                 attribution="&copy; Esri"
               />
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
                 maxZoom={19}
                 opacity={0.85}
               />

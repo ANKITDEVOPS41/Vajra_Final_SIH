@@ -1,0 +1,43 @@
+# render.yaml — One-click Render.com deployment
+# Push this to GitHub, then: render.com → New → Blueprint → select repo
+# Render will auto-detect this file and create both services.
+
+services:
+  # ─── Backend: FastAPI + ConvectNet PyTorch API ───────────────────────────
+  - type: web
+    name: convectnow-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Render free tier — upgrade to "starter" ($7/mo) for persistent disk
+    plan: free
+    region: singapore  # Closest to India for low latency
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: MOSDAC_USERNAME
+        value: gaurav711        # Your real MOSDAC credential
+      - key: MOSDAC_PASSWORD
+        sync: false             # Set this as a secret in Render dashboard
+      - key: PYTHON_ENV
+        value: production
+    healthCheckPath: /api/data_quality
+    # Auto-deploy every time you push to main
+    autoDeploy: true
+
+  # ─── Frontend: Vite React App ────────────────────────────────────────────
+  - type: web
+    name: convectnow-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    plan: free
+    region: singapore
+    envVars:
+      # This tells the frontend where the backend lives.
+      # Render auto-generates the backend URL as: https://convectnow-api.onrender.com
+      - key: VITE_API_URL
+        value: https://convectnow-api.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

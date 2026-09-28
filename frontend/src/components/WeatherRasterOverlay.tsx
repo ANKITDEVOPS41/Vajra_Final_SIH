@@ -176,9 +176,10 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
       )}
 
       {/* ===================================================================== */}
-      {/* 3. THERMAL IR RAINBOW (Dvorak BD-Curve Continuous Raster Field)       */}
+      {/* 3. IR RAINBOW → now serves real INSAT-3DR WMS + RainViewer IR        */}
+      {/* (synthetic canvas blob removed — was causing the orange map fill)    */}
       {/* ===================================================================== */}
-      {format === 'ir_rainbow' && irRainbowRasterUrl && (
+      {format === 'ir_rainbow' && (
         <>
           {showLiveWms && (
             <WMSTileLayer
@@ -187,18 +188,21 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
               format="image/png"
               transparent={true}
               version="1.1.1"
-              opacity={0.35}
-              zIndex={340}
+              opacity={0.75}
+              zIndex={350}
             />
           )}
-          <ImageOverlay
-            bounds={RASTER_BOUNDS}
-            url={irRainbowRasterUrl}
-            opacity={opacity * 0.92}
-            zIndex={380}
-          />
+          {rainViewer.satelliteTileUrl && (
+            <TileLayer
+              url={rainViewer.satelliteTileUrl}
+              opacity={0.55}
+              zIndex={340}
+              maxZoom={18}
+            />
+          )}
         </>
       )}
+
 
       {/* ===================================================================== */}
       {/* 4. LIVE SURFACE 2M TEMPERATURE FIELD (Continuous Meteorological Raster) */}

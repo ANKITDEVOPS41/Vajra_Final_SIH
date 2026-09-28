@@ -23,12 +23,12 @@ from torch.utils.data import DataLoader
 # Allow running from project root or backend
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from convectnow.backend.data.real_nowcast_dataset import (
+from backend.data.real_nowcast_dataset import (
     get_real_nowcast_loaders,
 )
-from convectnow.backend.models.convectnet import ConvectNet
-from convectnow.backend.models.inference import ConvectNetInference
-from convectnow.backend.models.losses import ConvectNetLoss
+from backend.models.convectnet import ConvectNet
+from backend.models.inference import ConvectNetInference
+from backend.models.losses import ConvectNetLoss
 
 
 def compute_contingency_scores(pred: np.ndarray, target: np.ndarray, threshold: float = 0.35) -> dict:

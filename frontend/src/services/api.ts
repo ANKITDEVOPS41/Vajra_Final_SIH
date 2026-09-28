@@ -1,11 +1,16 @@
 import { GridCellData, ForecastOutput, DataQuality, HazardData, StormCellFeature } from '../types/convectnow';
 import { getMockGridCell, getForecastForLeadTime, INITIAL_HAZARDS, MOCK_STORM_CELLS } from '../utils/convectnowMockData';
 
-// In dev (Vite), hit the FastAPI backend directly.
-// In production (Vercel/same-origin), use relative /api path (proxied by vercel.json).
-const API_BASE = import.meta.env.DEV
+// Cloud-first API URL resolution:
+//   Production (Render/AWS): VITE_API_URL build-time env var → e.g. https://convectnow-api.onrender.com
+//   Local dev (Vite):        falls back to http://localhost:8000
+//   Same-origin (Vercel):    falls back to /api (proxy via vercel.json)
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : import.meta.env.DEV
   ? 'http://localhost:8000/api'
   : '/api';
+
 
 export class ApiService {
   private static isBackendAvailable: boolean | null = null;
