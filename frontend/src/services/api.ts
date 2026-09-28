@@ -1,5 +1,5 @@
-import { GridCellData, ForecastOutput, DataQuality, HazardData, StormCellFeature } from '../types';
-import { getMockGridCell, getForecastForLeadTime, INITIAL_HAZARDS, MOCK_STORM_CELLS } from '../utils/mockData';
+import { GridCellData, ForecastOutput, DataQuality, HazardData, StormCellFeature } from '../types/convectnow';
+import { getMockGridCell, getForecastForLeadTime, INITIAL_HAZARDS, MOCK_STORM_CELLS } from '../utils/convectnowMockData';
 
 const API_BASE = '/api';
 

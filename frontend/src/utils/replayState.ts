@@ -1,4 +1,4 @@
-import { ReplayStep } from '../types';
+import { ReplayStep } from '../types/convectnow';
 
 export const CHERRAPUNJI_HISTORICAL_EVENT = {
   id: 'cherrapunji-2022-cloudburst',
