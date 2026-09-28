@@ -824,15 +824,15 @@ export function calculateBattalionProximity(
 export const FALLBACK_STORM_CELLS: StormCell[] = [
   {
     cell_id: 'CELL-701',
-    centroid_lat: 22.6620,
-    centroid_lon: 88.4380,
+    centroid_lat: 20.2680,
+    centroid_lon: 85.8320,
     area_km2: 14.5,
     peak_dbz: 66.8,
     mean_dbz: 52.4,
     velocity_kmh: 46.0,
-    heading_deg: 193,
+    heading_deg: 195,
     severity: 'EXTREME',
-    eta_minutes: 8,
+    eta_minutes: 4,
     hazards: {
       rain_rate_mmh: 118.5,
       cloudburst_flag: true,
@@ -848,26 +848,26 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Runway 19L Touchdown Zone',
-        distance_km: 1.2,
-        eta_minutes: 4,
-        eta_window_min: '3–6 min',
+        target_name: 'VEBS Runway 19 Threshold',
+        distance_km: 1.8,
+        eta_minutes: 3,
+        eta_window_min: '2–4 min',
         threat_level: 'EMERGENCY',
         is_footprint_expanding: true
       },
       {
         target_name: 'Terminal 2 Apron & Stand 14',
         distance_km: 2.1,
-        eta_minutes: 8,
-        eta_window_min: '6–10 min',
+        eta_minutes: 4,
+        eta_window_min: '3–6 min',
         threat_level: 'WARNING',
         is_footprint_expanding: true
       },
       {
         target_name: 'Air Traffic Control Tower',
         distance_km: 2.4,
-        eta_minutes: 9,
-        eta_window_min: '8–12 min',
+        eta_minutes: 5,
+        eta_window_min: '4–7 min',
         threat_level: 'WARNING',
         is_footprint_expanding: true
       }
@@ -875,20 +875,20 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     evolution: {
       state: 'MICROBURST',
       footprint_expansion_factor: 1.32,
-      trend_summary: 'Severe convective cloudburst cell advancing at 46 km/h with heavy microburst signature over Runway 19L'
+      trend_summary: 'Severe convective cloudburst cell advancing at 46 km/h with heavy microburst signature over Runway 19'
     }
   },
   {
     cell_id: 'CELL-702',
-    centroid_lat: 22.6850,
-    centroid_lon: 88.4200,
+    centroid_lat: 20.2950,
+    centroid_lon: 85.8550,
     area_km2: 8.8,
     peak_dbz: 58.2,
     mean_dbz: 46.1,
     velocity_kmh: 38.0,
-    heading_deg: 165,
+    heading_deg: 215,
     severity: 'SEVERE',
-    eta_minutes: 18,
+    eta_minutes: 10,
     hazards: {
       rain_rate_mmh: 72.0,
       cloudburst_flag: false,
@@ -904,10 +904,10 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'North Approach Holding Sector',
-        distance_km: 4.8,
-        eta_minutes: 18,
-        eta_window_min: '15–22 min',
+        target_name: 'North Approach Corridor (Mancheswar)',
+        distance_km: 5.8,
+        eta_minutes: 10,
+        eta_window_min: '8–14 min',
         threat_level: 'WARNING',
         is_footprint_expanding: false
       }
@@ -920,15 +920,15 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
   },
   {
     cell_id: 'CELL-703',
-    centroid_lat: 22.6350,
-    centroid_lon: 88.4650,
+    centroid_lat: 20.2050,
+    centroid_lon: 85.8450,
     area_km2: 5.4,
     peak_dbz: 51.5,
     mean_dbz: 41.0,
     velocity_kmh: 32.0,
-    heading_deg: 45,
+    heading_deg: 320,
     severity: 'MODERATE',
-    eta_minutes: 35,
+    eta_minutes: 15,
     hazards: {
       rain_rate_mmh: 42.0,
       cloudburst_flag: false,
@@ -939,10 +939,10 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Runway 01R Departure Climb-out',
-        distance_km: 3.2,
-        eta_minutes: 35,
-        eta_window_min: '30–40 min',
+        target_name: 'Lingaraj / Old Town Approach',
+        distance_km: 4.2,
+        eta_minutes: 15,
+        eta_window_min: '12–18 min',
         threat_level: 'WATCH',
         is_footprint_expanding: false
       }

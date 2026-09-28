@@ -5,6 +5,7 @@ import {
   Rectangle, 
   Tooltip, 
   CircleMarker, 
+  Circle,
   Polyline, 
   Polygon,
   ImageOverlay,
@@ -17,6 +18,9 @@ import {
   AERODROME_3X3_KM_GRID, 
   AERODROME_CORE_SPECS 
 } from '../types/tacticalGrid';
+import { WeatherRasterOverlay, WeatherColorbarLegend, WeatherMapFormat } from './WeatherRasterOverlay';
+import WeatherFormatSelector from './WeatherFormatSelector';
+import { VisualIntelDecisionKey } from './VisualIntelDecisionKey';
 import { 
   Play, 
   Pause, 
@@ -688,13 +692,220 @@ export const ACTIVE_CELLS: StormCellTrack[] = [
   },
 ];
 
+export const HORIZON_STEPS = [0, 15, 30, 45, 60, 90, 120, 180];
+
+export interface ForecastedStormCell extends StormCellTrack {
+  baseLat: number;
+  baseLon: number;
+  baseRangeKm: number;
+  baseAzimuthDeg: number;
+  baseDbz: number;
+  baseRainRateMmh: number;
+  baseShearDeltaV: number;
+  baseEtaRunwayMin: number;
+  uncertaintyRadiusKm: number;
+  threatStatus: 'RUNWAY_IMPACT' | 'IMMINENT' | 'APPROACHING' | 'PASSED';
+  pastTrack: [number, number][];
+  futureTrack: [number, number][];
+}
+
+const KM_PER_LAT = 111.13;
+const KM_PER_LON = 104.3; // at lat 20.24°
+
+export function computeForecastedCells(cells: StormCellTrack[], leadMinutes: number, domainScope: DomainScope = 'aerodrome_3km'): ForecastedStormCell[] {
+  return cells.map(cell => {
+    let fLat = cell.lat;
+    let fLon = cell.lon;
+
+    if (domainScope === 'aerodrome_3km') {
+      // Aerodrome 3km scale: track moves along Runway 01/19 axis across the 3km terminal area
+      // Total terminal track distance ~3.5 km from SW approach (Lingaraj Vihar/Jatni) to NE departure (Palasuni)
+      const progress = Math.min(1.2, leadMinutes / 45); // 0 to 1 across 45 mins
+      if (cell.id === 'CELL-01') {
+        // Core downburst incursion across Runway 01 touchdown zone
+        const startLat = 20.2290; const startLon = 85.8080;
+        const endLat = 20.2580; const endLon = 85.8300;
+        fLat = +(startLat + progress * (endLat - startLat)).toFixed(4);
+        fLon = +(startLon + progress * (endLon - startLon)).toFixed(4);
+      } else if (cell.id === 'CELL-02') {
+        // Approaching Khurda multicell trailing SW
+        const startLat = 20.2180; const startLon = 85.7950;
+        const endLat = 20.2450; const endLon = 85.8180;
+        fLat = +(startLat + progress * (endLat - startLat)).toFixed(4);
+        fLon = +(startLon + progress * (endLon - startLon)).toFixed(4);
+      } else {
+        const startLat = 20.2400; const startLon = 85.8200;
+        const endLat = 20.2680; const endLon = 85.8420;
+        fLat = +(startLat + progress * (endLat - startLat)).toFixed(4);
+        fLon = +(startLon + progress * (endLon - startLon)).toFixed(4);
+      }
+    } else {
+      // Regional 60km scale: moves across Khurda, Bhubaneswar, Cuttack at full speed
+      const distKm = (cell.speedKmh / 60) * leadMinutes;
+      const motionRad = (cell.directionDeg * Math.PI) / 180;
+      const dNorthKm = distKm * Math.cos(motionRad);
+      const dEastKm = distKm * Math.sin(motionRad);
+
+      fLat = +(cell.lat + (dNorthKm / KM_PER_LAT)).toFixed(4);
+      fLon = +(cell.lon + (dEastKm / KM_PER_LON)).toFixed(4);
+    }
+
+    // 2. Polar coordinates relative to VEBS Radar site (20.2444, 85.8178)
+    const dRadarN = (fLat - 20.2444) * KM_PER_LAT;
+    const dRadarE = (fLon - 85.8178) * KM_PER_LON;
+    const fRangeKm = +(Math.sqrt(dRadarN * dRadarN + dRadarE * dRadarE)).toFixed(1);
+    const fAzimuthDeg = +(((Math.atan2(dRadarE, dRadarN) * 180 / Math.PI) + 360) % 360).toFixed(1);
+
+    // 3. Runway 01 Intercept & ETA Countdown
+    const dRwyN = (fLat - 20.2338) * KM_PER_LAT;
+    const dRwyE = (fLon - 85.8150) * KM_PER_LON;
+    const distToRwyKm = +(Math.sqrt(dRwyN * dRwyN + dRwyE * dRwyE)).toFixed(1);
+    
+    let fEta = 0;
+    let threatStatus: 'RUNWAY_IMPACT' | 'IMMINENT' | 'APPROACHING' | 'PASSED' = 'APPROACHING';
+
+    if (distToRwyKm <= 0.8 || (leadMinutes >= 10 && leadMinutes <= 25 && cell.id === 'CELL-01')) {
+      threatStatus = 'RUNWAY_IMPACT';
+      fEta = 0;
+    } else if (distToRwyKm <= 2.5 && leadMinutes < 15) {
+      threatStatus = 'IMMINENT';
+      fEta = Math.max(1, Math.round(distToRwyKm / 0.5));
+    } else if (leadMinutes > 35) {
+      threatStatus = 'PASSED';
+      fEta = 0;
+    } else {
+      threatStatus = 'APPROACHING';
+      fEta = Math.max(0, cell.etaRunwayMin - leadMinutes);
+    }
+
+    // 4. Physical Lifecycle Evolution (reflectivity, rain rate, LLWS shear)
+    let fDbz = cell.maxDbz;
+    let fRain = cell.rainRateMmh;
+    let fShear = cell.shearDeltaV;
+
+    if (cell.id === 'CELL-01') {
+      if (leadMinutes === 0) {
+        fDbz = 64.5; fRain = 174.5; fShear = 48.0;
+      } else if (leadMinutes <= 15) {
+        fDbz = 66.8; fRain = 195.0; fShear = 54.0; // Peak downburst touchdown on RWY 01
+      } else if (leadMinutes <= 30) {
+        fDbz = 58.5; fRain = 118.0; fShear = 38.0; // Divergent gust front
+      } else if (leadMinutes <= 45) {
+        fDbz = 50.0; fRain = 62.0; fShear = 24.0;
+      } else if (leadMinutes <= 60) {
+        fDbz = 42.0; fRain = 28.0; fShear = 16.0;
+      } else if (leadMinutes <= 90) {
+        fDbz = 34.0; fRain = 10.0; fShear = 8.0;
+      } else if (leadMinutes <= 120) {
+        fDbz = 26.0; fRain = 2.5; fShear = 4.0;
+      } else {
+        fDbz = 18.0; fRain = 0.5; fShear = 2.0;
+      }
+    } else if (cell.id === 'CELL-02') {
+      if (leadMinutes === 0) {
+        fDbz = 56.0; fRain = 94.2; fShear = 26.5;
+      } else if (leadMinutes <= 15) {
+        fDbz = 63.5; fRain = 150.0; fShear = 42.0; // Intensifying approach
+      } else if (leadMinutes <= 30) {
+        fDbz = 65.2; fRain = 180.0; fShear = 51.0; // Direct hit at T+30
+      } else if (leadMinutes <= 45) {
+        fDbz = 59.0; fRain = 120.0; fShear = 36.0;
+      } else if (leadMinutes <= 60) {
+        fDbz = 48.0; fRain = 55.0; fShear = 22.0;
+      } else if (leadMinutes <= 90) {
+        fDbz = 38.0; fRain = 18.0; fShear = 12.0;
+      } else if (leadMinutes <= 120) {
+        fDbz = 28.0; fRain = 4.0; fShear = 5.0;
+      } else {
+        fDbz = 19.0; fRain = 0.8; fShear = 2.0;
+      }
+    } else {
+      if (leadMinutes === 0) {
+        fDbz = 48.5; fRain = 55.0; fShear = 18.0;
+      } else if (leadMinutes <= 15) {
+        fDbz = 55.0; fRain = 90.0; fShear = 26.0;
+      } else if (leadMinutes <= 30) {
+        fDbz = 62.0; fRain = 142.0; fShear = 40.0;
+      } else if (leadMinutes <= 45) {
+        fDbz = 64.5; fRain = 172.0; fShear = 49.0; // Cuttack severe peak
+      } else if (leadMinutes <= 60) {
+        fDbz = 58.0; fRain = 110.0; fShear = 33.0;
+      } else if (leadMinutes <= 90) {
+        fDbz = 44.0; fRain = 38.0; fShear = 16.0;
+      } else if (leadMinutes <= 120) {
+        fDbz = 32.0; fRain = 10.0; fShear = 8.0;
+      } else {
+        fDbz = 21.0; fRain = 1.5; fShear = 3.0;
+      }
+    }
+
+    // 5. Forecast Uncertainty dispersion radius (km)
+    const uncertaintyRadiusKm = leadMinutes === 0 ? 0.4 : +(0.6 + Math.sqrt(leadMinutes) * 0.45).toFixed(1);
+
+    // 6. Breadcrumbs: pastTrack and futureTrack
+    const pastTrack: [number, number][] = [];
+    for (let m = 0; m <= leadMinutes; m += 15) {
+      if (domainScope === 'aerodrome_3km') {
+        const prog = Math.min(1.2, m / 45);
+        if (cell.id === 'CELL-01') {
+          pastTrack.push([+(20.2290 + prog * (20.2580 - 20.2290)).toFixed(4), +(85.8080 + prog * (85.8300 - 85.8080)).toFixed(4)]);
+        }
+      } else {
+        const pDist = (cell.speedKmh / 60) * m;
+        const pNorth = pDist * Math.cos((cell.directionDeg * Math.PI) / 180);
+        const pEast = pDist * Math.sin((cell.directionDeg * Math.PI) / 180);
+        pastTrack.push([+(cell.lat + (pNorth / KM_PER_LAT)).toFixed(4), +(cell.lon + (pEast / KM_PER_LON)).toFixed(4)]);
+      }
+    }
+
+    const futureTrack: [number, number][] = [];
+    for (let m = leadMinutes; m <= leadMinutes + 60; m += 15) {
+      if (domainScope === 'aerodrome_3km') {
+        const prog = Math.min(1.4, m / 45);
+        if (cell.id === 'CELL-01') {
+          futureTrack.push([+(20.2290 + prog * (20.2580 - 20.2290)).toFixed(4), +(85.8080 + prog * (85.8300 - 85.8080)).toFixed(4)]);
+        }
+      } else {
+        const fwdDist = (cell.speedKmh / 60) * m;
+        const fwdNorth = fwdDist * Math.cos((cell.directionDeg * Math.PI) / 180);
+        const fwdEast = fwdDist * Math.sin((cell.directionDeg * Math.PI) / 180);
+        futureTrack.push([+(cell.lat + (fwdNorth / KM_PER_LAT)).toFixed(4), +(cell.lon + (fwdEast / KM_PER_LON)).toFixed(4)]);
+      }
+    }
+
+    return {
+      ...cell,
+      lat: fLat,
+      lon: fLon,
+      rangeKm: distToRwyKm,
+      azimuthDeg: fAzimuthDeg,
+      maxDbz: fDbz,
+      rainRateMmh: fRain,
+      shearDeltaV: fShear,
+      etaRunwayMin: fEta,
+      baseLat: cell.lat,
+      baseLon: cell.lon,
+      baseRangeKm: cell.rangeKm,
+      baseAzimuthDeg: cell.azimuthDeg,
+      baseDbz: cell.maxDbz,
+      baseRainRateMmh: cell.rainRateMmh,
+      baseShearDeltaV: cell.shearDeltaV,
+      baseEtaRunwayMin: cell.etaRunwayMin,
+      uncertaintyRadiusKm,
+      threatStatus,
+      pastTrack,
+      futureTrack
+    };
+  });
+}
+
 // ============================================================================
 // 4. MAIN WORKSTATION COMPONENT
 // ============================================================================
 export default function HazardDashboard() {
   const [product, setProduct] = useState<RadarProduct>('reflectivity');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('gis_basemap'); // Default to GIS Basemap so user immediately sees high-res map
-  const [mapType, setMapType] = useState<'satellite' | 'streets' | 'dark'>('satellite'); // Default to high-res satellite
+  const [weatherFormat, setWeatherFormat] = useState<WeatherMapFormat>('ir_rainbow'); // Default to Thermal IR Rainbow (BT K)
   const [domainScope, setDomainScope] = useState<DomainScope>('aerodrome_3km');
   const [activeCellId, setActiveCellId] = useState<string>('CELL-01');
   const [selectedSectorId, setSelectedSectorId] = useState<string>('T-C2');
@@ -733,12 +944,16 @@ export default function HazardDashboard() {
   const animFrameRef = useRef<number | null>(null);
   const sweepAngleRef = useRef<number>(0);
 
-  // Time navigation loop
+  // Time navigation loop using official horizon steps
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      setLeadTimeMin(prev => (prev >= 180 ? 0 : prev + 15));
-    }, 2400);
+      setLeadTimeMin(prev => {
+        const idx = HORIZON_STEPS.indexOf(prev);
+        const nextIdx = (idx + 1) % HORIZON_STEPS.length;
+        return HORIZON_STEPS[nextIdx];
+      });
+    }, 2200);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -746,8 +961,50 @@ export default function HazardDashboard() {
     return domainScope === 'aerodrome_3km' ? AERODROME_3X3_KM_GRID : TACTICAL_3X3_GRID;
   }, [domainScope]);
 
-  const activeCell = ACTIVE_CELLS.find(c => c.id === activeCellId) || ACTIVE_CELLS[0];
-  const activeSector = currentGrid.find(s => s.id === selectedSectorId) || currentGrid[domainScope === 'aerodrome_3km' ? 7 : 4];
+  // Compute all storm cells advected and forecasted for the active leadTimeMin and domainScope
+  const forecastedCells = useMemo(() => {
+    return computeForecastedCells(ACTIVE_CELLS, leadTimeMin, domainScope);
+  }, [leadTimeMin, domainScope]);
+
+  // Dynamic Grid Sectors adapting reflectivity based on forecasted storm positions
+  const dynamicGrid = useMemo(() => {
+    const influenceRadiusKm = domainScope === 'aerodrome_3km' ? 1.5 : 6.5;
+    return currentGrid.map(sec => {
+      let maxDbz = domainScope === 'aerodrome_3km' ? 24.0 : sec.radarDbz;
+      forecastedCells.forEach(fCell => {
+        const secCenterLat = (sec.latMin + sec.latMax) / 2;
+        const secCenterLon = (sec.lonMin + sec.lonMax) / 2;
+        const dLat = (fCell.lat - secCenterLat) * KM_PER_LAT;
+        const dLon = (fCell.lon - secCenterLon) * KM_PER_LON;
+        const distKm = Math.sqrt(dLat * dLat + dLon * dLon);
+        if (distKm < influenceRadiusKm) {
+          const proximityFactor = Math.max(0, 1 - distKm / influenceRadiusKm);
+          const cellDbz = fCell.maxDbz * proximityFactor;
+          if (cellDbz > maxDbz) maxDbz = Math.round(cellDbz * 10) / 10;
+        }
+      });
+
+      // At T=0, preserve baseline high reflectivity in approach sectors
+      if (leadTimeMin === 0 && (sec.id === 'T-C2' || sec.id === 'T-C1' || sec.id === 'SEC-C')) {
+        maxDbz = Math.max(maxDbz, sec.radarDbz);
+      }
+
+      if (leadTimeMin >= 60 && maxDbz > 35) {
+        maxDbz = Math.max(20, Math.round(maxDbz - (leadTimeMin - 60) * 0.18));
+      }
+
+      const isExtreme = maxDbz >= 60;
+      return {
+        ...sec,
+        radarDbz: maxDbz,
+        rainRateMmh: +(Math.pow(10, (maxDbz - 16) / 16)).toFixed(1),
+        cloudburstFlag: maxDbz >= 62,
+      };
+    });
+  }, [currentGrid, forecastedCells, leadTimeMin, domainScope]);
+
+  const activeCell = forecastedCells.find(c => c.id === activeCellId) || forecastedCells[0];
+  const activeSector = dynamicGrid.find(s => s.id === selectedSectorId) || dynamicGrid[domainScope === 'aerodrome_3km' ? 7 : 4];
   const activeAws = SURROUNDING_AWS_STATIONS.find(a => a.id === selectedAwsId) || SURROUNDING_AWS_STATIONS[0];
 
   // Clocks
@@ -867,7 +1124,7 @@ export default function HazardDashboard() {
       const numGates = 120;
       const gateSizeKm = radarRangeKm / numGates;
 
-      const stormCores = ACTIVE_CELLS.map(cell => ({
+      const stormCores = forecastedCells.map(cell => ({
         az: cell.azimuthDeg,
         rng: cell.rangeKm,
         dbz: cell.maxDbz,
@@ -1126,7 +1383,7 @@ export default function HazardDashboard() {
       // 7. Storm Cell Vectors & Centroid Brackets (SCIT)
       if (showCellVectors) {
         ctx.save();
-        ACTIVE_CELLS.forEach(cell => {
+        forecastedCells.forEach(cell => {
           const [cellX, cellY] = polarToPixel(cell.rangeKm, cell.azimuthDeg, cx, cy, maxRadiusPx);
           const isSelected = cell.id === activeCellId;
 
@@ -1387,7 +1644,9 @@ export default function HazardDashboard() {
     product, 
     radarRangeKm, 
     domainScope,
-    currentGrid,
+    dynamicGrid,
+    forecastedCells,
+    leadTimeMin,
     show3x3Grid,
     showAwsStations,
     showAirways, 
@@ -1828,38 +2087,44 @@ export default function HazardDashboard() {
         {/* =============================================================== */}
         {displayMode === 'gis_basemap' && (
           <div className="relative flex-1 w-full h-full">
-            {/* Top-Right Basemap Switcher */}
-            <div className="absolute top-3 right-3 z-[400] flex bg-[#08090a]/92 border border-[#34343a] rounded-lg p-1 shadow-xl backdrop-blur-md gap-1">
-              <button
-                onClick={() => setMapType('satellite')}
-                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
-                  mapType === 'satellite'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🛰️ Satellite HD
-              </button>
-              <button
-                onClick={() => setMapType('streets')}
-                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
-                  mapType === 'streets'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🗺️ Streets
-              </button>
-              <button
-                onClick={() => setMapType('dark')}
-                className={`px-2.5 py-1 text-xs rounded font-medium transition-all ${
-                  mapType === 'dark'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                🌑 Dark
-              </button>
+            {/* Top-Right Weather Map Format Selector */}
+            <div className="absolute top-3 right-3 z-[400]">
+              <WeatherFormatSelector
+                currentFormat={weatherFormat}
+                onSelectFormat={setWeatherFormat}
+              />
+            </div>
+
+            {/* Real-Time / Nowcast Forecast Horizon Indicator HUD */}
+            <div className="absolute top-3 left-14 z-[400] bg-[#090d15]/95 border border-sky-500/50 px-3.5 py-1.5 rounded-lg backdrop-blur-md shadow-2xl flex items-center space-x-3 pointer-events-auto">
+              <div className="flex items-center space-x-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${leadTimeMin === 0 ? 'bg-emerald-400 animate-pulse' : 'bg-sky-400 animate-ping'}`} />
+                <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                  {leadTimeMin === 0 ? 'LIVE VOLUMETRIC SCAN (T+0)' : `AI NOWCAST: T+${leadTimeMin}m`}
+                </span>
+              </div>
+              <span className="text-slate-600 hidden md:inline">|</span>
+              <span className="text-[11px] font-mono text-slate-300 hidden md:inline">
+                {leadTimeMin === 0 
+                  ? 'DWR Bhubaneswar (PAR-Doppler) • 0.5° Elevation' 
+                  : leadTimeMin <= 60 
+                    ? 'ConvectNet Optical Flow + Dual-Pol Advection (1km Grid)' 
+                    : 'NCMRWF NWP Ensemble Blended Advection'}
+              </span>
+              <span className="text-slate-600">|</span>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                activeCell.threatStatus === 'RUNWAY_IMPACT' 
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/40 animate-pulse' 
+                  : activeCell.threatStatus === 'IMMINENT'
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                    : 'bg-emerald-500/20 text-emerald-400'
+              }`}>
+                {activeCell.threatStatus === 'RUNWAY_IMPACT' 
+                  ? '⚠️ RUNWAY 01 IMPACT' 
+                  : activeCell.threatStatus === 'IMMINENT'
+                    ? `⚠️ RWY INTERCEPT IN ${activeCell.etaRunwayMin}m`
+                    : `RWY DIST: ${activeCell.rangeKm}km`}
+              </span>
             </div>
 
             <MapContainer
@@ -1875,7 +2140,7 @@ export default function HazardDashboard() {
               <ScaleControl position="bottomleft" metric={true} imperial={false} />
 
               {/* High-Resolution Basemap Tiles */}
-              {mapType === 'satellite' && (
+              {(weatherFormat === 'satellite' || weatherFormat === 'enhanced_cloud') && (
                 <>
                   <TileLayer
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -1894,19 +2159,12 @@ export default function HazardDashboard() {
                   />
                 </>
               )}
-              {mapType === 'streets' && (
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  maxZoom={19}
-                  attribution="&copy; OpenStreetMap contributors"
-                />
-              )}
-              {mapType === 'dark' && (
+              {(weatherFormat === 'dark' || weatherFormat === 'insat_ir' || weatherFormat === 'ir_rainbow' || weatherFormat === 'dwr_radar') && (
                 <>
                   <TileLayer
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
                     maxZoom={19}
-                    opacity={0.9}
+                    opacity={0.92}
                     attribution="&copy; Esri"
                   />
                   <TileLayer
@@ -1917,41 +2175,117 @@ export default function HazardDashboard() {
                 </>
               )}
 
-              {/* Doppler Radar Convective Storm Cells & Microburst Footprint Overlay */}
-              {ACTIVE_CELLS.map(cell => (
+              {/* Meteorological / Base Weather Raster Imagery Layer (Live IMD WMS & High-Res Convective Field) */}
+              <WeatherRasterOverlay 
+                format={weatherFormat} 
+                leadTimeMin={leadTimeMin} 
+                cells={forecastedCells.map(c => ({
+                  cell_id: c.id,
+                  lat: c.lat,
+                  lon: c.lon,
+                  peak_dbz: c.maxDbz,
+                  area_km2: 14.5,
+                  heading_deg: c.directionDeg,
+                  velocity_kmh: c.speedKmh
+                }))} 
+              />
+
+              {/* Doppler Radar Convective Storm Cells & Microburst Footprint Overlay (Forecasted by Lead Time) */}
+              {forecastedCells.map(cell => (
                 <React.Fragment key={cell.id}>
-                  {/* Outer Outflow & Wind Shear Halo */}
+                  {/* Past Track Trail (Dashed Breadcrumb Line) */}
+                  {cell.pastTrack.length > 1 && (
+                    <Polyline
+                      positions={cell.pastTrack}
+                      pathOptions={{
+                        color: '#94a3b8',
+                        weight: 2,
+                        dashArray: '3, 4',
+                        opacity: 0.65
+                      }}
+                    />
+                  )}
+
+                  {/* Future Forecasted Motion Vector */}
+                  {cell.futureTrack.length > 1 && (
+                    <Polyline
+                      positions={cell.futureTrack}
+                      pathOptions={{
+                        color: '#38bdf8',
+                        weight: 2.5,
+                        opacity: 0.85
+                      }}
+                    />
+                  )}
+
+                  {/* Forecast Uncertainty Envelope Circle (widens with lead time) */}
+                  {leadTimeMin > 0 && (
+                    <Circle
+                      center={[cell.lat, cell.lon]}
+                      radius={cell.uncertaintyRadiusKm * 1000}
+                      pathOptions={{
+                        color: cell.maxDbz >= 60 ? '#ef4444' : '#38bdf8',
+                        fillColor: cell.maxDbz >= 60 ? '#ef4444' : '#38bdf8',
+                        fillOpacity: 0.10,
+                        weight: 1.2,
+                        dashArray: '4, 4'
+                      }}
+                    >
+                      <Tooltip direction="bottom" className="!bg-black/90 !text-sky-300 !font-mono !text-[9px]">
+                        Uncertainty Cone: ±{cell.uncertaintyRadiusKm} km (T+{leadTimeMin}m)
+                      </Tooltip>
+                    </Circle>
+                  )}
+
+                  {/* Authentic Smoothed Radar Reflectivity Footprint Contour */}
+                  {(() => {
+                    const footprintRadiusM = (domainScope === 'aerodrome_3km' ? 1200 : 3500) * (cell.maxDbz / 55);
+                    const rLat = footprintRadiusM / 111320;
+                    const rLon = footprintRadiusM / (111320 * Math.cos(cell.lat * (Math.PI / 180)));
+                    const footprintPoints: [number, number][] = [];
+                    const headingRad = ((cell.directionDeg || 0) * Math.PI) / 180;
+                    for (let i = 0; i < 14; i++) {
+                      const angle = (i / 14) * 2 * Math.PI;
+                      const perturb = 1 + 0.14 * Math.sin(3 * angle) + 0.08 * Math.cos(4 * angle);
+                      const elongation = 1 + 0.25 * Math.pow(Math.cos(angle - headingRad), 2);
+                      footprintPoints.push([
+                        cell.lat + rLat * perturb * elongation * Math.sin(angle),
+                        cell.lon + rLon * perturb * elongation * Math.cos(angle)
+                      ]);
+                    }
+                    return (
+                      <Polygon
+                        positions={footprintPoints}
+                        pathOptions={{
+                          color: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
+                          fillColor: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
+                          fillOpacity: 0.26,
+                          weight: 1.5,
+                        }}
+                      />
+                    );
+                  })()}
+
+                  {/* Clean Radar Storm Centroid Marker */}
                   <CircleMarker
                     center={[cell.lat, cell.lon]}
-                    radius={domainScope === 'aerodrome_3km' ? 36 : 24}
-                    pathOptions={{
-                      color: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
-                      fillColor: cell.maxDbz >= 60 ? '#ef4444' : '#f59e0b',
-                      fillOpacity: 0.28,
-                      weight: 1.5,
-                      dashArray: '3, 3'
-                    }}
-                  />
-                  {/* High-Reflectivity Precipitation Core */}
-                  <CircleMarker
-                    center={[cell.lat, cell.lon]}
-                    radius={domainScope === 'aerodrome_3km' ? 16 : 10}
+                    radius={domainScope === 'aerodrome_3km' ? 6 : 4}
                     pathOptions={{
                       color: '#ffffff',
                       fillColor: cell.maxDbz >= 60 ? '#dc2626' : '#d97706',
-                      fillOpacity: 0.92,
-                      weight: 2,
+                      fillOpacity: 0.95,
+                      weight: 1.5,
                     }}
                   >
-                    <Tooltip permanent direction="top" offset={[0, -12]} className="!bg-red-950/95 !text-white !font-mono !text-[10px] !border !border-red-500 !shadow-lg">
-                      🔴 {cell.name.split(' / ')[0]} ({cell.maxDbz} dBZ)
+                    <Tooltip permanent direction="top" offset={[0, -8]} className="!bg-red-950/95 !text-white !font-mono !text-[10px] !border !border-red-500 !shadow-lg">
+                      🔴 {cell.name.split(' / ')[0]} ({cell.maxDbz} dBZ) • T+{leadTimeMin}m
                     </Tooltip>
                   </CircleMarker>
                 </React.Fragment>
               ))}
 
-              {/* 3×3 Grid — switches between aerodrome 3km and regional 60km domains */}
-              {show3x3Grid && currentGrid.map(sec => {
+              {/* 3×3 Grid — switches between aerodrome 3km and regional 60km domains (dynamic reflectivity) */}
+              {show3x3Grid && dynamicGrid.map(sec => {
                 const isSelected = sec.id === selectedSectorId;
                 const isExtreme = sec.cloudburstFlag || sec.radarDbz >= 60;
                 const color = isExtreme ? '#ef4444' : isSelected ? '#f59e0b' : '#38bdf8';
@@ -2040,6 +2374,9 @@ export default function HazardDashboard() {
                 pathOptions={{ color: '#f59e0b', weight: 2, dashArray: '5, 5', opacity: 0.7 }} 
               />
             </MapContainer>
+
+            {/* Floating Colorbar Legend for Thermal IR Brightness Temperature / Doppler Radar dBZ */}
+            <WeatherColorbarLegend format={weatherFormat} />
           </div>
         )}
 
@@ -2091,7 +2428,7 @@ export default function HazardDashboard() {
                 
                 {/* 3x3 Matrix Quick Matrix Buttons */}
                 <div className="grid grid-cols-3 gap-1 p-1 bg-[#070a10] border border-[#161f2e] rounded-xl">
-                  {currentGrid.map(sec => {
+                  {dynamicGrid.map(sec => {
                     const isSelected = sec.id === selectedSectorId;
                     return (
                       <button
@@ -2247,7 +2584,7 @@ export default function HazardDashboard() {
                   TRACKED CONVECTIVE CELLS (SCIT)
                 </span>
                 <div className="flex flex-col space-y-1.5">
-                  {ACTIVE_CELLS.map(cell => {
+                  {forecastedCells.map(cell => {
                     const isSelected = cell.id === activeCellId;
                     return (
                       <button
@@ -2262,15 +2599,21 @@ export default function HazardDashboard() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-mono font-bold text-[#38bdf8]">{cell.id}</span>
                           <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
-                            cell.severity === 'CRITICAL' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-amber-500/20 text-amber-400'
+                            cell.threatStatus === 'RUNWAY_IMPACT' 
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse' 
+                              : cell.severity === 'CRITICAL' 
+                                ? 'bg-rose-500/20 text-rose-400' 
+                                : 'bg-amber-500/20 text-amber-400'
                           }`}>
-                            {cell.severity}
+                            {cell.threatStatus === 'RUNWAY_IMPACT' ? 'RWY IMPACT' : cell.severity}
                           </span>
                         </div>
                         <div className="text-[11px] font-medium text-[#cbd5e1] truncate mt-0.5">{cell.name}</div>
                         <div className="flex items-center justify-between text-[10px] font-mono text-[#64748b] mt-1">
                           <span>{cell.maxDbz} dBZ @ {cell.coreHeightKm}km</span>
-                          <span className="text-amber-400 font-bold">ETA {cell.etaRunwayMin}m to RWY</span>
+                          <span className={`font-bold ${cell.etaRunwayMin === 0 ? 'text-rose-400' : 'text-amber-400'}`}>
+                            {cell.etaRunwayMin === 0 ? '⚠️ ON AIRFIELD' : `ETA ${cell.etaRunwayMin}m to RWY`}
+                          </span>
                         </div>
                       </button>
                     );
@@ -2399,44 +2742,68 @@ export default function HazardDashboard() {
       <div className="h-12 border-t border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-30">
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setLeadTimeMin(prev => Math.max(0, prev - 15))}
-            className="p-1 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
+            onClick={() => {
+              setLeadTimeMin(prev => {
+                const idx = HORIZON_STEPS.indexOf(prev);
+                const nextIdx = idx <= 0 ? HORIZON_STEPS.length - 1 : idx - 1;
+                return HORIZON_STEPS[nextIdx];
+              });
+            }}
+            className="p-1.5 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
+            title="Step Back 15m"
           >
             <SkipBack className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="p-1.5 rounded-md bg-[#162234] hover:bg-[#1e2f47] border border-sky-500/40 text-sky-300 font-medium active:scale-95 transition shadow-sm"
+            className={`p-1.5 rounded-md border font-medium active:scale-95 transition shadow-sm flex items-center space-x-1 ${
+              isPlaying
+                ? 'bg-sky-500/20 border-sky-400 text-sky-300 animate-pulse'
+                : 'bg-[#162234] hover:bg-[#1e2f47] border-sky-500/40 text-sky-300'
+            }`}
+            title={isPlaying ? "Pause Forecast Loop" : "Play Forecast Loop"}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
           </button>
           <button
-            onClick={() => setLeadTimeMin(prev => Math.min(180, prev + 15))}
-            className="p-1 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
+            onClick={() => {
+              setLeadTimeMin(prev => {
+                const idx = HORIZON_STEPS.indexOf(prev);
+                const nextIdx = (idx + 1) % HORIZON_STEPS.length;
+                return HORIZON_STEPS[nextIdx];
+              });
+            }}
+            className="p-1.5 rounded bg-[#0e1420] hover:bg-[#151e2e] border border-[#1a2332] text-slate-400 hover:text-white transition active:scale-95"
+            title="Step Forward 15m"
           >
             <SkipForward className="w-3.5 h-3.5" />
           </button>
 
-          <span className="text-xs font-mono text-white pl-2">
-            <span className="font-bold">T+{leadTimeMin}m</span> <span className="text-slate-400">({leadTimeMin === 0 ? 'Live Volumetric' : leadTimeMin <= 60 ? 'ConvectNet AI' : 'NWP Hybrid'})</span>
+          <span className="text-xs font-mono text-white pl-2 flex items-center space-x-1.5">
+            <span className="font-bold text-sky-300">T+{leadTimeMin}m</span> 
+            <span className="text-slate-400">({leadTimeMin === 0 ? 'Live Volumetric' : leadTimeMin <= 60 ? 'ConvectNet AI' : 'NWP Hybrid'})</span>
           </span>
         </div>
 
         {/* Timeline Horizon Buttons */}
-        <div className="flex space-x-1">
-          {[0, 15, 30, 45, 60, 90, 120, 180].map(m => (
-            <button
-              key={m}
-              onClick={() => setLeadTimeMin(m)}
-              className={`px-2.5 py-0.5 rounded text-xs font-mono font-medium transition active:scale-[0.98] border ${
-                leadTimeMin === m
-                  ? 'bg-[#182336] border-sky-500/50 text-sky-300 font-bold shadow-sm'
-                  : 'bg-[#0c1017] border-[#161f2e] text-[#8a99ad] hover:text-white hover:bg-white/5'
-              }`}
-            >
-              +{m}m
-            </button>
-          ))}
+        <div className="flex space-x-1.5 items-center">
+          {HORIZON_STEPS.map(m => {
+            const isSelected = leadTimeMin === m;
+            return (
+              <button
+                key={m}
+                onClick={() => setLeadTimeMin(m)}
+                className={`px-3 py-1 rounded text-xs font-mono font-medium transition active:scale-[0.98] border flex items-center space-x-1.5 ${
+                  isSelected
+                    ? 'bg-sky-500/25 border-sky-400 text-sky-300 font-bold shadow-lg shadow-sky-500/20'
+                    : 'bg-[#0c1017] border-[#161f2e] text-[#8a99ad] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>}
+                <span>+{m}m</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -2553,6 +2920,8 @@ export default function HazardDashboard() {
         </div>
       )}
 
+      {/* Visual Intel & Decision Key */}
+      <VisualIntelDecisionKey page="hazard" />
     </div>
   );
 }

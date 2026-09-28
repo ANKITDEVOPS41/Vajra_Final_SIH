@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Circle, Polyline, Tooltip, Rectangle, Marker, Popup } from 'react-leaflet';
-import { CloudLightning, Wind, Droplets, AlertOctagon, Play, Pause, Activity, ShieldAlert, Crosshair, Radio } from 'lucide-react';
+import { Polygon, Polyline, Tooltip, Rectangle, CircleMarker, Popup } from 'react-leaflet';
+import { CloudLightning, Wind, Droplets, AlertOctagon, Play, Pause, Activity, ShieldAlert, Crosshair, Radio, Info } from 'lucide-react';
 import { 
   TacticalAirportMapEngine, 
   VEBS_AIRPORT_CENTER, 
@@ -12,6 +12,7 @@ import {
   SURROUNDING_AWS_STATIONS, 
   VEBS_AIRPORT_SPECS 
 } from '../types/tacticalGrid';
+import { VisualIntelDecisionKey } from './VisualIntelDecisionKey';
 
 // Biju Patnaik International Airport (VEBS) Runway 01/19 Coordinates
 const LAT = VEBS_AIRPORT_CENTER[0]; // 20.2444
@@ -65,7 +66,7 @@ export const MicroburstSimulationView: React.FC = () => {
   const storm = getStormCore(timeStep);
 
   return (
-    <div className="w-full min-h-[820px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans">
+    <div className="w-full min-h-[860px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans shadow-2xl">
       
       {/* Header */}
       <div className="px-6 py-4 border-b border-[#23252a] bg-[#0f1011] flex justify-between items-center shadow-lg relative overflow-hidden">
@@ -91,6 +92,29 @@ export const MicroburstSimulationView: React.FC = () => {
         </div>
       </div>
 
+      {/* Clear Purpose & Operational Intent Explainer Bar */}
+      <div className="px-6 py-2.5 bg-[#0e131d] border-b border-[#1e2533] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex items-center space-x-2 text-slate-200">
+          <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold text-[11px]">
+            WHAT THIS VIEW REVEALS
+          </span>
+          <span className="text-slate-300">
+            Real-time simulation of a severe convective downdraft impacting Runway 01 touchdown zone.
+          </span>
+        </div>
+        <div className="flex items-center space-x-4 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+            <span className="text-red-400 font-semibold">LLWS Shear &gt;15 m/s: Mandatory Go-Around</span>
+          </span>
+          <span>•</span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span className="text-amber-300 font-semibold">Surface Gust &gt;50 kt: Airfield Closed</span>
+          </span>
+        </div>
+      </div>
+
       <div className="flex-1 flex p-6 gap-6">
         
         {/* Left: The High-Res Map */}
@@ -112,46 +136,83 @@ export const MicroburstSimulationView: React.FC = () => {
               maxZoom={18}
               scrollWheelZoom={true} 
               className="w-full h-full bg-[#0a0d15]"
-              showTacticalGrid={true}
+              showTacticalGrid={false}
               showAwsStations={true}
               showProviderToggle={true}
               providerTogglePosition="top-right"
            >
-              {/* Divergent Outflow Ring (Yellow/Orange) */}
-              <Circle 
-                center={[storm.lat, storm.lon]} 
-                radius={storm.outerRadius} 
-                pathOptions={{ 
-                  color: '#f59e0b', 
-                  fillColor: '#f59e0b', 
-                  fillOpacity: 0.18, 
-                  weight: 1.5,
-                  dashArray: '6, 6'
-                }} 
-              >
-                <Tooltip direction="top" className="bg-slate-900 text-amber-300 font-mono text-[10px]">
-                  Outflow Boundary: Gust {storm.windGust} km/h (ΔT {storm.coldPoolDelta}°C)
-                </Tooltip>
-              </Circle>
+              {/* Aerodynamic Divergent Outflow Boundary (Expanding Cold Pool Front) */}
+              {(() => {
+                const rOutLat = storm.outerRadius / 111320;
+                const rOutLon = storm.outerRadius / (111320 * Math.cos(storm.lat * (Math.PI / 180)));
+                const outflowPoints: [number, number][] = [];
+                for (let i = 0; i < 20; i++) {
+                  const angle = (i / 20) * 2 * Math.PI;
+                  const perturb = 1 + 0.16 * Math.sin(5 * angle) + 0.08 * Math.cos(3 * angle);
+                  outflowPoints.push([
+                    storm.lat + rOutLat * perturb * Math.sin(angle),
+                    storm.lon + rOutLon * perturb * Math.cos(angle)
+                  ]);
+                }
+                return (
+                  <Polygon 
+                    positions={outflowPoints} 
+                    pathOptions={{ 
+                      color: '#f59e0b', 
+                      fillColor: '#f59e0b', 
+                      fillOpacity: 0.18, 
+                      weight: 1.5,
+                      dashArray: '6, 6'
+                    }} 
+                  >
+                    <Tooltip direction="top" className="bg-slate-900 text-amber-300 font-mono text-[10px]">
+                      Outflow Boundary: Gust {storm.windGust} km/h (ΔT {storm.coldPoolDelta}°C)
+                    </Tooltip>
+                  </Polygon>
+                );
+              })()}
 
-              {/* Severe Microburst Downdraft Core (Deep Red) */}
-              <Circle 
-                center={[storm.lat, storm.lon]} 
-                radius={storm.coreRadius} 
-                pathOptions={{ 
-                  color: '#ef4444', 
-                  fillColor: '#ef4444', 
-                  fillOpacity: storm.isPeak ? 0.65 : 0.40, 
-                  weight: 2 
-                }} 
-              >
-                <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono font-bold text-white drop-shadow">
-                  {storm.coreDbz} dBZ
-                </Tooltip>
-              </Circle>
+              {/* Severe Microburst Downdraft Shaft Footprint */}
+              {(() => {
+                const rCoreLat = storm.coreRadius / 111320;
+                const rCoreLon = storm.coreRadius / (111320 * Math.cos(storm.lat * (Math.PI / 180)));
+                const corePoints: [number, number][] = [];
+                for (let i = 0; i < 16; i++) {
+                  const angle = (i / 16) * 2 * Math.PI;
+                  const perturb = 1 + 0.10 * Math.sin(3 * angle);
+                  corePoints.push([
+                    storm.lat + rCoreLat * perturb * Math.sin(angle),
+                    storm.lon + rCoreLon * perturb * Math.cos(angle)
+                  ]);
+                }
+                return (
+                  <Polygon 
+                    positions={corePoints} 
+                    pathOptions={{ 
+                      color: '#ef4444', 
+                      fillColor: '#ef4444', 
+                      fillOpacity: storm.isPeak ? 0.65 : 0.40, 
+                      weight: 2 
+                    }} 
+                  >
+                    <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono font-bold text-white drop-shadow">
+                      {storm.coreDbz} dBZ
+                    </Tooltip>
+                  </Polygon>
+                );
+              })()}
 
-              {/* Center Touchdown Point */}
-              <Marker position={[storm.lat, storm.lon]}>
+              {/* Center Touchdown Point - Sleek Pulsing Target */}
+              <CircleMarker 
+                center={[storm.lat, storm.lon]}
+                radius={5}
+                pathOptions={{
+                  color: '#ffffff',
+                  fillColor: '#ef4444',
+                  fillOpacity: 1.0,
+                  weight: 2
+                }}
+              >
                 <Popup className="dark-gis-popup">
                   <div className="p-2 text-xs font-mono bg-slate-950 text-slate-100 rounded space-y-1">
                     <strong className="text-red-400">Microburst Downdraft Footprint</strong><br/>
@@ -161,7 +222,7 @@ export const MicroburstSimulationView: React.FC = () => {
                     <div>Peak Surface Gust: <span className="text-white font-bold">{storm.windGust} km/h</span></div>
                   </div>
                 </Popup>
-              </Marker>
+              </CircleMarker>
            </TacticalAirportMapEngine>
 
            {/* Timeline Controls */}
@@ -282,6 +343,9 @@ export const MicroburstSimulationView: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Visual Intel & Decision Key */}
+      <VisualIntelDecisionKey page="microburst" />
     </div>
   );
 };

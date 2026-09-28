@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Rectangle, Tooltip, CircleMarker, Polyline, Popup, ScaleControl, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Rectangle, Tooltip, CircleMarker, Polyline, Popup, Marker, ScaleControl, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import { 
   Brain, Wind, Thermometer, CloudLightning, Activity, AlertTriangle, 
   Crosshair, Radar, Maximize2, Minimize2, RotateCcw, ShieldAlert,
@@ -13,6 +14,7 @@ import {
   VEBS_AIRPORT_SPECS,
   VEBS_DOMAIN_BOUNDS
 } from '../types/tacticalGrid';
+import { VisualIntelDecisionKey } from './VisualIntelDecisionKey';
 
 // Component to handle map view updates dynamically
 function ChangeView({ center, zoom, isExpanded }: { center: [number, number]; zoom: number; isExpanded?: boolean }) {
@@ -500,26 +502,32 @@ export const ExplainableGridTracker: React.FC = () => {
               pathOptions={{ color: '#ef4444', weight: 2, dashArray: '5, 5', opacity: 0.6 }} 
             />
 
-            {/* Current Storm Footprint & Convective Core Marker (The Red Dot) */}
-            <CircleMarker 
-              center={[currentTrack.lat, currentTrack.lon]}
-              radius={22}
-              pathOptions={{ 
-                color: '#ff0055', 
-                weight: 2, 
-                fillColor: '#ef4444', 
-                fillOpacity: 0.28 
+            {/* XAI Attribution Spatial Bounding Box & Feature Activation Envelope */}
+            <Rectangle
+              bounds={[
+                [currentTrack.lat - 0.015, currentTrack.lon - 0.018],
+                [currentTrack.lat + 0.015, currentTrack.lon + 0.018]
+              ]}
+              pathOptions={{
+                color: '#ef4444',
+                weight: 1.5,
+                dashArray: '4, 4',
+                fillColor: '#ef4444',
+                fillOpacity: 0.16
               }}
             />
-            <CircleMarker 
-              center={[currentTrack.lat, currentTrack.lon]}
-              radius={10}
-              pathOptions={{ 
-                color: '#ffffff', 
-                weight: 2.5, 
-                fillColor: '#dc2626', 
-                fillOpacity: 0.95 
-              }}
+
+            {/* Clean Tactical Storm Centroid Marker */}
+            <Marker
+              position={[currentTrack.lat, currentTrack.lon]}
+              icon={L.divIcon({
+                className: 'xai-storm-centroid',
+                html: `
+                  <div style="transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 14px; height: 14px; transform: rotate(45deg); background: #dc2626; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(220,38,38,0.9);"></div>
+                  </div>
+                `
+              })}
             >
               <Tooltip 
                 permanent 
@@ -529,7 +537,7 @@ export const ExplainableGridTracker: React.FC = () => {
               >
                 🔴 Storm Core: {currentTrack.dbz} dBZ (T+{currentTrack.timeOffset}m)
               </Tooltip>
-            </CircleMarker>
+            </Marker>
           </MapContainer>
 
           {/* Timeline Scrubber */}
@@ -683,6 +691,9 @@ export const ExplainableGridTracker: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Visual Intel & Decision Key */}
+      <VisualIntelDecisionKey page="grid" />
     </div>
   );
 };

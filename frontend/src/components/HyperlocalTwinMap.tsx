@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Rectangle, Marker, Popup, Circle } from 'react-leaflet';
+import { Rectangle, Marker, Popup, Polygon } from 'react-leaflet';
 import { ShieldAlert, Crosshair, Thermometer, Wind, Grid, Radio, AlertTriangle } from 'lucide-react';
 import { 
   TacticalAirportMapEngine, 
@@ -12,6 +12,7 @@ import {
   TacticalSector, 
   SurfaceAwsStation 
 } from '../types/tacticalGrid';
+import { VisualIntelDecisionKey } from './VisualIntelDecisionKey';
 
 // Biju Patnaik International Airport (VEBS), Bhubaneswar
 const LAT = VEBS_AIRPORT_CENTER[0];
@@ -378,16 +379,26 @@ export const HyperlocalTwinMap: React.FC = () => {
             pathOptions={{ color: '#38bdf8', weight: 1.5, dashArray: '6 6', fillOpacity: 0.02 }} 
           />
 
-          {/* Active Severe Convective Cell Core (Simulated S-Band DWR Feed) */}
-          <Circle 
-            center={[20.2444, 85.8178]} 
-            radius={2800} 
-            pathOptions={{ color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.35, weight: 1.5 }}
-          />
-          <Circle 
-            center={[20.2444, 85.8178]} 
-            radius={1400} 
-            pathOptions={{ color: '#b91c1c', fillColor: '#b91c1c', fillOpacity: 0.60, weight: 2 }}
+          {/* Active Severe Convective Cell Core (Authentic Smoothed Radar Footprint) */}
+          <Polygon 
+            positions={[
+              [20.2640, 85.8150],
+              [20.2610, 85.8320],
+              [20.2520, 85.8410],
+              [20.2370, 85.8380],
+              [20.2260, 85.8260],
+              [20.2240, 85.8080],
+              [20.2320, 85.7980],
+              [20.2480, 85.7950],
+              [20.2590, 85.8030],
+            ]}
+            pathOptions={{ 
+              color: '#ef4444', 
+              fillColor: '#ef4444', 
+              fillOpacity: 0.28, 
+              weight: 1.5,
+              dashArray: '4, 4'
+            }} 
           />
 
           {/* Marker for VEBS Operations Center */}
@@ -412,6 +423,9 @@ export const HyperlocalTwinMap: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Visual Intel & Decision Key */}
+      <VisualIntelDecisionKey page="hyperlocal" />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Rectangle, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Rectangle, Popup, useMap, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import { Layers, Grid, Radio } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
@@ -70,32 +70,31 @@ export interface TileProviderConfig {
 }
 
 export const TILE_PROVIDERS: Record<TileProviderId, TileProviderConfig> = {
-  cartoDark: {
-    id: 'cartoDark',
-    name: 'Esri Dark Canvas',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    subdomains: 'abc',
-    maxZoom: 19,
-    maxNativeZoom: 19,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ',
-  },
   esriSatellite: {
     id: 'esriSatellite',
-    name: 'Esri Satellite',
+    name: 'Satellite HD',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     subdomains: 'abc',
     maxZoom: 19,
     maxNativeZoom: 19,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye',
+    attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
   },
-  osmStandard: {
-    id: 'osmStandard',
-    name: 'OSM Standard',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  cartoDark: {
+    id: 'cartoDark',
+    name: 'Dark Canvas',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     subdomains: 'abc',
     maxZoom: 19,
     maxNativeZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution: 'Tiles &copy; Esri',
+  },
+  osmStandard: {
+    id: 'osmStandard',
+    name: 'OpenStreetMap',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    maxZoom: 19,
+    maxNativeZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors',
   },
 };
 
@@ -246,7 +245,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
   onSelectAws,
   showProviderToggle = true,
   providerTogglePosition = 'top-right',
-  initialProvider = 'cartoDark',
+  initialProvider = 'esriSatellite',
   className = 'w-full h-full',
   style = { height: '100%', width: '100%', zIndex: 1, backgroundColor: '#08090a' },
   onMapReady,
@@ -459,18 +458,46 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
               }}
             />
 
-            {/* Runway Threshold Markers */}
-            <Marker position={RUNWAY_01_19[0]} icon={badge01} />
-            <Marker position={RUNWAY_01_19[1]} icon={badge19} />
+            {/* Runway Threshold Markers - subtle, clean and non-colliding */}
+            <CircleMarker
+              center={RUNWAY_01_19[0]}
+              radius={5}
+              pathOptions={{ color: '#00e5ff', fillColor: '#00e5ff', fillOpacity: 0.9, weight: 2 }}
+            >
+              <Tooltip direction="top" className="!bg-black/90 !text-cyan-300 !font-mono !text-[10px] !font-bold">
+                ✈️ RWY 01 Touchdown (011°)
+              </Tooltip>
+            </CircleMarker>
+            <CircleMarker
+              center={RUNWAY_01_19[1]}
+              radius={5}
+              pathOptions={{ color: '#00e5ff', fillColor: '#00e5ff', fillOpacity: 0.9, weight: 2 }}
+            >
+              <Tooltip direction="top" className="!bg-black/90 !text-cyan-300 !font-mono !text-[10px] !font-bold">
+                ✈️ RWY 19 Threshold (191°)
+              </Tooltip>
+            </CircleMarker>
           </>
         )}
 
-        {/* Airport Infrastructure Markers */}
+        {/* Airport Infrastructure Markers - subtle dots with tooltip on hover */}
         {showInfrastructure && (
           <>
-            <Marker position={VEBS_TERMINAL_1_2} icon={badgeT1} />
-            <Marker position={VEBS_ATC_TOWER} icon={badgeATC} />
-            <Marker position={VEBS_MAIN_APRON} icon={badgeApron} />
+            <CircleMarker center={VEBS_TERMINAL_1_2} radius={6} pathOptions={{ color: '#ffffff', fillColor: '#38bdf8', fillOpacity: 0.9, weight: 1.5 }}>
+              <Tooltip direction="top" className="!bg-black/90 !text-white !font-mono !text-[10px]">
+                🏢 VEBS Passenger Terminals 1 &amp; 2
+              </Tooltip>
+            </CircleMarker>
+            <CircleMarker center={VEBS_ATC_TOWER} radius={6} pathOptions={{ color: '#ffffff', fillColor: '#eab308', fillOpacity: 0.9, weight: 1.5 }}>
+              <Tooltip direction="top" className="!bg-black/90 !text-amber-300 !font-mono !text-[10px]">
+                📡 VEBS ATC Tower (118.1 MHz)
+              </Tooltip>
+            </CircleMarker>
+            <CircleMarker center={VEBS_MAIN_APRON} radius={5} pathOptions={{ color: '#ffffff', fillColor: '#94a3b8', fillOpacity: 0.8, weight: 1.5 }}>
+              <Tooltip direction="top" className="!bg-black/90 !text-slate-300 !font-mono !text-[10px]">
+                🅿️ Main Apron (Bays 1–8)
+              </Tooltip>
+            </CircleMarker>
           </>
         )}
 

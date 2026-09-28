@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, Rectangle, CircleMarker, ScaleControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, Rectangle, CircleMarker, ScaleControl, useMap } from 'react-leaflet';
+import L from 'leaflet';
 import { Play, Pause, RotateCcw, ShieldCheck, History, Activity, Radio, Grid, MapPin, Mountain, Plane, Layers } from 'lucide-react';
 import { 
   TACTICAL_3X3_GRID, 
@@ -8,6 +9,7 @@ import {
   VEBS_AIRPORT_SPECS,
   VEBS_DOMAIN_BOUNDS
 } from '../types/tacticalGrid';
+import { VisualIntelDecisionKey } from './VisualIntelDecisionKey';
 
 // Synchronized Map View Controller
 function SyncMapView({ center, zoom }: { center: [number, number]; zoom: number }) {
@@ -336,16 +338,44 @@ export const HistoricalReplayView: React.FC = () => {
               </CircleMarker>
             ))}
 
-            {/* AI Predicted Storm Outflow & Core */}
-            <Circle 
-              center={[predicted.lat, predicted.lon]} 
-              radius={predicted.outerRadius} 
-              pathOptions={{ color: '#38bdf8', weight: 1.5, fillColor: '#0284c7', fillOpacity: 0.28, dashArray: '4, 4' }} 
-            />
-            <Circle 
-              center={[predicted.lat, predicted.lon]} 
-              radius={predicted.coreRadius} 
-              pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#dc2626', fillOpacity: 0.85 }} 
+            {/* AI Predicted Continuous Radar Reflectivity Contour */}
+            {(() => {
+              const rLat = predicted.outerRadius / 111320;
+              const rLon = predicted.outerRadius / (111320 * Math.cos(predicted.lat * (Math.PI / 180)));
+              const points: [number, number][] = [];
+              for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * 2 * Math.PI;
+                const perturb = 1 + 0.14 * Math.sin(3 * angle) + 0.08 * Math.cos(5 * angle);
+                points.push([
+                  predicted.lat + rLat * perturb * Math.sin(angle),
+                  predicted.lon + rLon * perturb * Math.cos(angle)
+                ]);
+              }
+              return (
+                <Polygon
+                  positions={points}
+                  pathOptions={{
+                    color: '#38bdf8',
+                    weight: 1.8,
+                    fillColor: predicted.dbz >= 55 ? '#dc2626' : '#0284c7',
+                    fillOpacity: 0.35,
+                    dashArray: '4, 4'
+                  }}
+                />
+              );
+            })()}
+
+            {/* AI Predicted Storm Centroid Marker */}
+            <Marker
+              position={[predicted.lat, predicted.lon]}
+              icon={L.divIcon({
+                className: 'predicted-storm-centroid',
+                html: `
+                  <div style="transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 14px; height: 14px; transform: rotate(45deg); background: #38bdf8; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(56,189,248,0.8);"></div>
+                  </div>
+                `
+              })}
             />
             <Polyline positions={predictedPath} pathOptions={{ color: '#38bdf8', weight: 3, dashArray: '5, 5' }} />
           </MapContainer>
@@ -440,16 +470,43 @@ export const HistoricalReplayView: React.FC = () => {
               </CircleMarker>
             ))}
 
-            {/* Actual Observed Radar Storm */}
-            <Circle 
-              center={[actual.lat, actual.lon]} 
-              radius={actual.outerRadius} 
-              pathOptions={{ color: '#f59e0b', weight: 1.5, fillColor: '#d97706', fillOpacity: 0.28 }} 
-            />
-            <Circle 
-              center={[actual.lat, actual.lon]} 
-              radius={actual.coreRadius} 
-              pathOptions={{ color: '#ffffff', weight: 2, fillColor: '#b91c1c', fillOpacity: 0.9 }} 
+            {/* Actual Observed Radar Reflectivity Contour */}
+            {(() => {
+              const rLat = actual.outerRadius / 111320;
+              const rLon = actual.outerRadius / (111320 * Math.cos(actual.lat * (Math.PI / 180)));
+              const points: [number, number][] = [];
+              for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * 2 * Math.PI;
+                const perturb = 1 + 0.15 * Math.sin(4 * angle) + 0.09 * Math.cos(2 * angle);
+                points.push([
+                  actual.lat + rLat * perturb * Math.sin(angle),
+                  actual.lon + rLon * perturb * Math.cos(angle)
+                ]);
+              }
+              return (
+                <Polygon
+                  positions={points}
+                  pathOptions={{
+                    color: '#f59e0b',
+                    weight: 2,
+                    fillColor: actual.dbz >= 55 ? '#b91c1c' : '#d97706',
+                    fillOpacity: 0.38
+                  }}
+                />
+              );
+            })()}
+
+            {/* Observed Storm Centroid Marker */}
+            <Marker
+              position={[actual.lat, actual.lon]}
+              icon={L.divIcon({
+                className: 'actual-storm-centroid',
+                html: `
+                  <div style="transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center;">
+                    <div style="width: 14px; height: 14px; transform: rotate(45deg); background: #ef4444; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(239,68,68,0.8);"></div>
+                  </div>
+                `
+              })}
             />
             <Polyline positions={actualPath} pathOptions={{ color: '#f59e0b', weight: 3, dashArray: '2, 4' }} />
           </MapContainer>
@@ -505,6 +562,9 @@ export const HistoricalReplayView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Visual Intel & Decision Key */}
+      <VisualIntelDecisionKey page="replay" />
     </div>
   );
 };
