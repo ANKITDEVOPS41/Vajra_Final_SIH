@@ -522,6 +522,29 @@ async def get_replay_sequence(event_id: str = "may_2024") -> Dict[str, Any]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+
+@app.get("/ws/live/info", tags=["WebSockets"])
+async def websocket_info():
+    """
+    ### 🔌 Live Telemetry WebSocket
+    **Note**: Swagger UI does not natively support testing WebSockets.
+    
+    To connect to the live hazard stream, use a WebSocket client (like Postman or a browser) and connect to:
+    
+    `ws://localhost:8008/ws/live`
+    
+    **Payload (JSON)**:
+    - `timestamp`: ISO-8601 string
+    - `update_type`: "periodic" or "instant"
+    - `grid_nowcast`: Real-time 3x3 hazard matrix
+    - `storm_cells`: Active tracked convective cells
+    """
+    return {
+        "status": "active",
+        "connection_url": "ws://localhost:8008/ws/live",
+        "description": "Connect via WebSocket protocol to receive live meteorological telemetry."
+    }
+
 # WebSocket — Live Push Feed
 # ─────────────────────────────────────────────────────────────────────────────
 
