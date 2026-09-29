@@ -545,7 +545,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               />
               <TileLayer
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
+                maxZoom={19} maxNativeZoom={16}
                 opacity={0.85}
               />
             </>
@@ -561,7 +561,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               />
               <TileLayer
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
+                maxZoom={19} maxNativeZoom={16}
                 opacity={0.85}
               />
             </>

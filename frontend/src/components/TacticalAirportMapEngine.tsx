@@ -76,7 +76,7 @@ export const TILE_PROVIDERS: Record<TileProviderId, TileProviderConfig> = {
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     subdomains: 'abc',
     maxZoom: 19,
-    maxNativeZoom: 19,
+    maxNativeZoom: 16,
     attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
   },
   cartoDark: {
@@ -85,7 +85,7 @@ export const TILE_PROVIDERS: Record<TileProviderId, TileProviderConfig> = {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     subdomains: 'abc',
     maxZoom: 19,
-    maxNativeZoom: 19,
+    maxNativeZoom: 16,
     attribution: 'Tiles &copy; Esri',
   },
   osmStandard: {
@@ -93,7 +93,7 @@ export const TILE_PROVIDERS: Record<TileProviderId, TileProviderConfig> = {
     name: 'OpenStreetMap',
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     maxZoom: 19,
-    maxNativeZoom: 19,
+    maxNativeZoom: 16,
     attribution: '&copy; OpenStreetMap contributors',
   },
 };

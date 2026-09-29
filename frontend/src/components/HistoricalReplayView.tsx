@@ -281,12 +281,12 @@ export const HistoricalReplayView: React.FC = () => {
                 />
                 <TileLayer 
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
-                  maxZoom={19} 
+                  maxZoom={19} maxNativeZoom={16} 
                   opacity={0.85} 
                 />
                 <TileLayer 
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
-                  maxZoom={19} 
+                  maxZoom={19} maxNativeZoom={16} 
                   opacity={0.8} 
                 />
               </>
@@ -301,7 +301,7 @@ export const HistoricalReplayView: React.FC = () => {
             {mapType === 'dark' && (
               <TileLayer 
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
-                maxZoom={19} 
+                maxZoom={19} maxNativeZoom={16} 
                 opacity={0.9} 
               />
             )}
@@ -415,12 +415,12 @@ export const HistoricalReplayView: React.FC = () => {
                 />
                 <TileLayer 
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
-                  maxZoom={19} 
+                  maxZoom={19} maxNativeZoom={16} 
                   opacity={0.85} 
                 />
                 <TileLayer 
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
-                  maxZoom={19} 
+                  maxZoom={19} maxNativeZoom={16} 
                   opacity={0.8} 
                 />
               </>
@@ -435,7 +435,7 @@ export const HistoricalReplayView: React.FC = () => {
             {mapType === 'dark' && (
               <TileLayer 
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
-                maxZoom={19} 
+                maxZoom={19} maxNativeZoom={16} 
                 opacity={0.9} 
               />
             )}
