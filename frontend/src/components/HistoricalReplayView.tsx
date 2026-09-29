@@ -110,7 +110,7 @@ export const HistoricalReplayView: React.FC = () => {
     
     let baseLat = currentSpecs.center[0] - 0.18 + progress * 0.325 + noiseLat;
     let baseLon = currentSpecs.center[1] - 0.22 + progress * 0.375 + noiseLon;
-    const intensity = Math.sin(progress * Math.PI) * (0.88 + Math.random() * 0.24); 
+    const intensity = Math.sin(progress * Math.PI) * 1.0; 
     
     return {
       lat: baseLat,

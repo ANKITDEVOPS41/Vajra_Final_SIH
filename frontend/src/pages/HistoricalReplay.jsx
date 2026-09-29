@@ -103,7 +103,7 @@ const HistoricalReplay = () => {
             <h3 className="text-sm text-gray-400 font-mono mb-2">CONVECTNET ACCURACY</h3>
             <div className="text-5xl font-bold text-[#38a8ff] mb-2">{convectAccuracy.toFixed(1)}%</div>
             <div className="flex items-center gap-2 text-green-400 text-sm">
-              <CheckCircle size={16} /> Track Error: {(Math.random() * 2 + 1).toFixed(1)} km
+              <CheckCircle size={16} /> Track Error: {1.4} km
             </div>
           </div>
 
@@ -111,7 +111,7 @@ const HistoricalReplay = () => {
             <h3 className="text-sm text-gray-400 font-mono mb-2">PYSTEPS ACCURACY</h3>
             <div className="text-5xl font-bold text-red-500 mb-2">{pystepsAccuracy.toFixed(1)}%</div>
             <div className="flex items-center gap-2 text-red-400 text-sm">
-              <XCircle size={16} /> Track Error: {(Math.random() * 4 + 3).toFixed(1)} km
+              <XCircle size={16} /> Track Error: {3.8} km
             </div>
           </div>
           

@@ -1112,7 +1112,7 @@ export default function HazardDashboard() {
               if (val > cellSignal) cellSignal = val;
 
               const vShear = (dAz / core.spreadAz) * (rayAngleDeg > core.az ? 1 : -1) * core.v_shear;
-              velocitySignal = vShear + (Math.random() - 0.5) * 3.0;
+              velocitySignal = vShear;
             }
           });
 
