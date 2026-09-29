@@ -2103,13 +2103,13 @@ export default function HazardDashboard() {
                     maxZoom={19}
                     attribution="Tiles &copy; Esri, Maxar, Earthstar Geographics"
                   />
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png"
+                  <TileLayer key="esri-remount-v3-8051"
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.85}
                   />
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png"
+                  <TileLayer key="esri-remount-v3-1982"
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.8}
                   />
@@ -2117,14 +2117,14 @@ export default function HazardDashboard() {
               )}
               {(weatherFormat === 'dark' || weatherFormat === 'insat_ir' || weatherFormat === 'ir_rainbow' || weatherFormat === 'dwr_radar') && (
                 <>
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+                  <TileLayer key="esri-remount-v3-3174"
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.92}
                     attribution="&copy; Esri"
                   />
-                  <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
+                  <TileLayer key="esri-remount-v3-5084"
+                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.85}
                   />

@@ -82,7 +82,7 @@ export const TILE_PROVIDERS: Record<TileProviderId, TileProviderConfig> = {
   cartoDark: {
     id: 'cartoDark',
     name: 'Dark Canvas',
-    url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     subdomains: 'abc',
     maxZoom: 19,
     maxNativeZoom: 16,

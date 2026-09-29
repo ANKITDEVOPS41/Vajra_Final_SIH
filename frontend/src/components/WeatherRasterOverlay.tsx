@@ -145,6 +145,7 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
           opacity={Math.min(1.0, opacity * 1.05)}
           zIndex={400}
           maxZoom={18}
+          maxNativeZoom={7}
           tileSize={256}
         />
       )}
@@ -171,6 +172,7 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
           opacity={format === 'insat_ir' ? opacity * 0.65 : opacity * 0.40}
           zIndex={340}
           maxZoom={18}
+          maxNativeZoom={7}
           tileSize={256}
         />
       )}
@@ -198,6 +200,7 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
               opacity={0.55}
               zIndex={340}
               maxZoom={18}
+              maxNativeZoom={7}
             />
           )}
         </>
