@@ -15,48 +15,53 @@ ConvectNow solves this by fusing live satellite telemetry (ISRO MOSDAC) and Dopp
 
 ## System Architecture
 
-Our architecture is designed for high availability, real-time telemetry processing, and immediate visual intelligence.
+Our system is built on a strict Data Source Adapter pattern feeding into a 5-Stage Hybrid AI Pipeline, specifically engineered for Northeast India's complex topography.
+
+### 1. Grid & Spatial Architecture
+* **Grid A (AI Analysis):** 1 km x 1 km internal resolution for tensor convolutions.
+* **Grid B (Operational View):** 3 km x 3 km blocks (comprising nine 1-km cells) for tactical visualization.
+* **Resilience:** Cell schemas handle unpredictable data availability using `[value, mask]` tensors to prevent pipeline failure when a specific government data feed drops.
+
+### 2. The 5-Stage Hybrid AI Pipeline
+We avoid the "giant LSTM" anti-pattern in favor of a physics-guided hybrid pipeline:
 
 ```mermaid
 flowchart TD
-    %% External Data Sources
-    subgraph Data Sources
-        IMD[IMD Doppler Radar]
-        MOSDAC[ISRO INSAT-3DR]
-        SEVIR[WMO NWP Data]
+    %% Ingestion
+    subgraph Data Source Adapters
+        R[RadarAdapter]
+        S[SatelliteAdapter]
+        L[LightningAdapter]
+        N[Surface/NWPAdapter]
     end
 
-    %% Backend Engine
-    subgraph Backend [FastAPI Python Server]
-        DSM[Data Source Manager]
-        CB{Circuit Breaker}
-        CACHE[(Historical Cherrapunji Cache)]
-        
-        AI[ConvectNet 3D-CNN / ConvLSTM]
-        PHYSICS[Meteorological Hazard Engine]
+    %% Pipeline Stages
+    subgraph Hybrid AI Pipeline
+        S1[1. Storm Detection<br>Reflectivity & Morphology]
+        S2[2. Storm Tracking<br>Optical Flow + Kalman]
+        S3[3. Convective Initiation<br>IR + CAPE/CIN]
+        S4[4. 0-60 Min Nowcast<br>ConvLSTM / U-Net]
+        S5[5. 1-6 Hour Fusion<br>State & Trajectory Fusion]
     end
 
-    %% Frontend App
-    subgraph Frontend [React 19 WebGIS Dashboard]
-        MAP[Leaflet Interactive Map]
-        UI[Hazard Telemetry & ETA]
+    %% Hazard Output
+    subgraph Output
+        H[Hazard Prediction Outputs<br>Hail, Wind, Cloudburst, Lightning]
     end
 
-    %% Data Flow
-    IMD --> DSM
-    MOSDAC --> DSM
-    SEVIR --> DSM
-    
-    DSM --> CB
-    CB -- "Live API Failed/Timeout" --> CACHE
-    CB -- "Live Data OK" --> AI
-    CACHE --> AI
-    
-    AI -- "Raw Tensors" --> PHYSICS
-    PHYSICS -- "Rain mm/h, POSH %, Shear Kt" --> Frontend
+    R & S & L & N --> S1 & S2 & S3
+    S1 --> S2
+    S2 --> S4
+    S3 --> S4
+    S4 --> S5
+    S5 --> H
 ```
 
----
+1. **Storm Detection:** Radar reflectivity thresholding and morphology to identify connected storm cells.
+2. **Storm Tracking:** Optical flow and Kalman association to derive motion, growth, and merging vectors.
+3. **Early Convective Initiation (CI):** Fuses radar growth, IR cooling, lightning trends, and CAPE/CIN for CI probability fields.
+4. **0-60 Minute Radar Nowcast:** Spatiotemporal ConvLSTM / U-Net generates +10m to +60m reflectivity fields.
+5. **1-6 Hour Evolution Fusion:** Fuses storm state, trajectory, satellite, lightning, and NWP fields to evolve probabilities up to 6 hours.
 
 ## Key Technical Innovations
 
