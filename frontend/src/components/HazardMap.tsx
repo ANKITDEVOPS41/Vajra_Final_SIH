@@ -77,7 +77,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       // Base Tile Layer (CartoDB Dark Matter default)
       tileLayerRef.current = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         subdomains: 'abcd',
-        maxZoom: 19,
+        maxZoom: 19, maxNativeZoom: 16,
         className: 'map-tiles-blue-tint'
       }).addTo(map);
 
