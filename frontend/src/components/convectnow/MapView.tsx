@@ -61,7 +61,7 @@ export const MapView: React.FC<MapViewProps> = ({
       source: new XYZ({
         url: 'https://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
         crossOrigin: 'anonymous',
-        attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+        attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://www.esri.com/">Esri</a>',
       }),
     });
 
