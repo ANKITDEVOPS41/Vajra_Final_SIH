@@ -1713,7 +1713,7 @@ export default function HazardDashboard() {
       {/* ================================================================== */}
       {/* 1. UNIFIED DWR STATION CONSOLE & OBSERVATION HEADER                */}
       {/* ================================================================== */}
-      <div className="h-12 border-b border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-30">
+      <div className="h-12 border-b border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-[1000]">
         
         {/* Left: Station Identity & Polarimetric Radar Specs */}
         <div className="flex items-center space-x-2.5">
@@ -1839,7 +1839,7 @@ export default function HazardDashboard() {
       <div className="relative flex-1 w-full h-full flex overflow-hidden">
         
         {/* Left Floating Tool Palette: Doppler Product & Overlays */}
-        <div className="absolute top-3 left-3 z-20 bg-[#090d15]/95 border border-[#1b2434] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-2.5 w-[215px]">
+        <div className="absolute top-3 left-3 z-[1000] bg-[#090d15]/95 border border-[#1b2434] p-3 rounded-xl backdrop-blur-md shadow-2xl flex flex-col space-y-2.5 w-[215px]">
           <div>
             <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#64748b] block mb-1.5">
               DOPPLER PRODUCT
@@ -1984,7 +1984,7 @@ export default function HazardDashboard() {
 
             {/* Scientific Polar Cursor Readout HUD (Bottom-Left) */}
             {cursorHud && (
-              <div className="absolute bottom-24 left-4 z-20 bg-[#0e131d]/90 border border-[#2b374a] p-2.5 rounded-xl font-mono text-[11px] text-[#cbd5e1] space-y-0.5 shadow-xl pointer-events-none">
+              <div className="absolute bottom-24 left-4 z-[1000] bg-[#0e131d]/90 border border-[#2b374a] p-2.5 rounded-xl font-mono text-[11px] text-[#cbd5e1] space-y-0.5 shadow-xl pointer-events-none">
                 <div className="text-[#38bdf8] font-bold">
                   AZ: {cursorHud.azimuth.toFixed(1)}° • RNG: {cursorHud.rangeKm.toFixed(1)} KM ({(cursorHud.rangeKm * 0.5399).toFixed(1)} NM)
                 </div>
@@ -2004,7 +2004,7 @@ export default function HazardDashboard() {
             )}
 
             {/* WMO / NWS Radar Palette Color Bar (Bottom Center) */}
-            <div className="absolute bottom-24 z-20 bg-[#0c1017]/90 border border-[#1e2533] px-3 py-1.5 rounded-xl backdrop-blur-md flex flex-col space-y-1 shadow-2xl">
+            <div className="absolute bottom-24 z-[1000] bg-[#0c1017]/90 border border-[#1e2533] px-3 py-1.5 rounded-xl backdrop-blur-md flex flex-col space-y-1 shadow-2xl">
               <div className="flex items-center justify-between text-[10px] font-mono text-[#94a3b8]">
                 <span>{product === 'reflectivity' ? 'REFLECTIVITY (dBZ)' : product === 'velocity' ? 'RADIAL VELOCITY (m/s)' : 'VIL (kg/m²)'}</span>
                 <span>WMO CALIBRATION</span>
@@ -2339,7 +2339,7 @@ export default function HazardDashboard() {
         {/* =============================================================== */}
         {/* RIGHT SIDEBAR: 3X3 GRID TELEMETRY + AWS NETWORK OBSERVATIONS    */}
         {/* =============================================================== */}
-        <aside className="w-[380px] bg-[#090d15] border-l border-[#182130] p-4 flex flex-col space-y-4 shrink-0 overflow-y-auto z-20">
+        <aside className="w-[380px] bg-[#090d15] border-l border-[#182130] p-4 flex flex-col space-y-4 shrink-0 overflow-y-auto z-[1000]">
           
           {/* Tri-View Sidebar Navigation Switcher */}
           <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-[#070a10] border border-[#161f2e] rounded-lg">
@@ -2650,7 +2650,7 @@ export default function HazardDashboard() {
       {/* 4. RHI VERTICAL CROSS-SECTION DRAWER (0–16 KM COLUMN CUT)         */}
       {/* ================================================================== */}
       {showRhiDrawer && (
-        <div className="absolute bottom-16 left-4 right-4 z-40 bg-[#0d121c]/95 border border-[#222e42] p-4 rounded-xl backdrop-blur-xl shadow-2xl flex flex-col space-y-2 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-200">
+        <div className="absolute bottom-16 left-4 right-4 z-[1000] bg-[#0d121c]/95 border border-[#222e42] p-4 rounded-xl backdrop-blur-xl shadow-2xl flex flex-col space-y-2 max-w-4xl mx-auto animate-in slide-in-from-bottom duration-200">
           <div className="flex justify-between items-center border-b border-[#1e2533] pb-2 font-mono">
             <div className="flex items-center space-x-2">
               <Activity className="w-4 h-4 text-[#38bdf8]" />
@@ -2695,7 +2695,7 @@ export default function HazardDashboard() {
       {/* ================================================================== */}
       {/* 5. BOTTOM TIMELINE CONTROLLER (0 TO 3 HOURS LEAD TIME)             */}
       {/* ================================================================== */}
-      <div className="h-12 border-t border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-30">
+      <div className="h-12 border-t border-[#182130] bg-[#090d15] px-4 flex items-center justify-between shrink-0 z-[1000]">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => {

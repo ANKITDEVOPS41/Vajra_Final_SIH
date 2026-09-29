@@ -30,7 +30,7 @@ export const IMDOfficialFeaturesMenu: React.FC = () => {
   ];
 
   return (
-    <div className="absolute top-20 left-4 z-40 flex flex-col items-start pointer-events-auto">
+    <div className="absolute top-20 left-4 z-[1000] flex flex-col items-start pointer-events-auto">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 bg-[#090d15]/95 border border-indigo-500/50 hover:bg-[#111723] text-indigo-300 px-4 py-2 rounded-lg shadow-2xl backdrop-blur transition-all font-mono text-xs uppercase font-bold tracking-wider"
