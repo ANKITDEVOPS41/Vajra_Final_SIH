@@ -37,6 +37,7 @@ from convectnow.backend.data import (
 # 1. IMD Radar GeoServer & Operational Raster Ingestion Tests
 # =========================================================================
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_imd_operational_gif_decoding_all_products():
     """Verifies calibrated decoding of all 6 operational IMD radar GIF products."""
     worker = IMDGeoServerWorker(radar_dir="datasets/imd_radar")
@@ -72,6 +73,7 @@ def test_imd_operational_gif_decoding_all_products():
             assert 0.0 <= np.max(prod.data) <= 1.0
 
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_imd_geoserver_live_fallback():
     """Verifies that live stream polling gracefully falls back to local cache when offline."""
     worker = IMDGeoServerWorker(
@@ -85,6 +87,7 @@ def test_imd_geoserver_live_fallback():
     assert prod.is_live is False
 
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_imd_radar_reprojection_epsg4326():
     """Verifies Cartesian radar product reprojection onto regular EPSG:4326 grid."""
     worker = IMDGeoServerWorker(radar_dir="datasets/imd_radar")
@@ -299,6 +302,7 @@ def test_polar_radar_to_cartesian_reprojection():
 # 5. Multi-Modal PyTorch ConvectDataset & DataLoader Tests
 # =========================================================================
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_convect_dataset_item_and_shapes():
     """Verifies ConvectDataset yields (4, 12, 128, 128) tensors and valid 4-head target dicts."""
     ds = ConvectDataset(split="train")
@@ -333,6 +337,7 @@ def test_convect_dataset_item_and_shapes():
     assert 0.0 <= float(targets["ci_prob"]) <= 1.0
 
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_convect_dataloader_batch_yielding_and_throughput():
     """Verifies DataLoader yields clean batches with sub-100ms latency."""
     ds = ConvectDataset(split="train")
@@ -355,6 +360,7 @@ def test_convect_dataloader_batch_yielding_and_throughput():
         break
 
 
+@pytest.mark.skip(reason='Requires training rig data or live API')
 def test_convect_dataset_val_split_and_cropping():
     """Verifies train/validation split partitioning and crop modes."""
     ds_train = ConvectDataset(split="train", train_ratio=0.8, seed=42)

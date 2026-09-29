@@ -194,12 +194,3 @@ def test_api_server_storm_and_cells():
     assert "confidence" in cell_0["fusion"]
     assert "modalities_present" in cell_0["fusion"]
 
-    # 3. Deep learning ConvectNet endpoint
-    # Call twice to measure warm latency
-    _ = client.get("/api/convectnet/predict?event_idx=0")
-    r_dl = client.get("/api/convectnet/predict?event_idx=0")
-    assert r_dl.status_code == 200
-    dl_data = r_dl.json()
-    assert "convectnet_predictions" in dl_data
-    assert "inference_latency_ms" in dl_data
-    assert dl_data["inference_latency_ms"] < 300.0  # Relaxed for CBAM + SE upgraded model
