@@ -25,6 +25,8 @@ const SOHRA_COORDS = [91.7323, 25.2702];
 const SOHRA_WEB_MERCATOR = fromLonLat(SOHRA_COORDS);
 
 interface MapViewProps {
+  mapBaseStyle?: 'tactical' | 'satellite';
+  mapBaseStyle?: 'tactical' | 'satellite';
   layersConfig: MapLayerConfig[];
   activeLeadTimeMin: number;
   isReplayMode: boolean;
@@ -35,6 +37,8 @@ interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = ({
+  mapBaseStyle = 'tactical',
+  mapBaseStyle = 'tactical',
   layersConfig,
   activeLeadTimeMin,
   isReplayMode,
@@ -55,6 +59,18 @@ export const MapView: React.FC<MapViewProps> = ({
   // Initialize Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
+
+    
+    // Satellite Weather Base (RainViewer as robust global fallback for IMD WMS)
+    const rainviewerSatLayer = new TileLayer({
+      source: new XYZ({
+        url: 'https://tilecache.rainviewer.com/v2/satellite/b48bb11de17/512/{z}/{x}/{y}/0/1_1.png',
+        attributions: '© RainViewer / EUMETSAT / IMD',
+        crossOrigin: 'anonymous',
+      }),
+      opacity: 0, // Hidden by default, toggled via mapBaseStyle
+      zIndex: 1,
+    });
 
     // 0. Base Dark Cartography (CartoDB Dark — no API key, never blocked)
     const baseCartoLayer = new TileLayer({
@@ -367,8 +383,7 @@ export const MapView: React.FC<MapViewProps> = ({
     // Instantiate OpenLayers Map
     const map = new Map({
       target: mapContainerRef.current,
-      layers: [
-        baseCartoLayer,
+      layers: [baseCartoLayer, rainviewerSatLayer,
         baseReferenceLayer,
         bhuvanStateLayer,
         bhuvanTerrainLayer,

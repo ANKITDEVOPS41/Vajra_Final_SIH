@@ -135,6 +135,8 @@ export const ConvectNowDashboard: React.FC = () => {
 
   // Forecast Time Slider & Animation State
   const [activeLeadStepIndex, setActiveLeadStepIndex] = useState<number>(0);
+  const [mapBaseStyle, setMapBaseStyle] = useState<'tactical' | 'satellite'>('satellite');
+  const [mapBaseStyle, setMapBaseStyle] = useState<'tactical' | 'satellite'>('satellite');
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   // Historical Event Replay Mode State
@@ -393,6 +395,8 @@ export const ConvectNowDashboard: React.FC = () => {
       {/* Main Map Canvas Area */}
       <main className="relative flex-1 w-full overflow-hidden">
         <MapView
+          mapBaseStyle={mapBaseStyle}
+          mapBaseStyle={mapBaseStyle}
           layersConfig={layersConfig}
           activeLeadTimeMin={LEAD_TIME_STEPS[activeLeadStepIndex]?.minutes || 0}
           isReplayMode={isReplayMode}
@@ -426,7 +430,19 @@ export const ConvectNowDashboard: React.FC = () => {
           />
         </div>
 
+        
+        {/* Map Style Toggle */}
+        <div className="absolute top-20 right-4 z-20">
+          <button
+            onClick={() => setMapBaseStyle(prev => prev === 'tactical' ? 'satellite' : 'tactical')}
+            className="flex items-center gap-2 px-3 py-2 bg-[#131928]/95 border border-blue-500/40 rounded shadow-lg backdrop-blur text-[11px] font-bold tracking-wider font-mono text-blue-300 hover:bg-[#1e293b] hover:text-white transition-colors"
+          >
+            {mapBaseStyle === 'tactical' ? '🌍 ENABLE LIVE SATELLITE (IMD/MOSDAC)' : '🗺️ ENABLE TACTICAL MAP'}
+          </button>
+        </div>
+        
         {/* Slide-out Layer Controller Drawer */}
+
         <LayerControlDrawer
           layers={layersConfig}
           onToggleLayer={handleToggleLayer}
