@@ -136,7 +136,6 @@ export const ConvectNowDashboard: React.FC = () => {
   // Forecast Time Slider & Animation State
   const [activeLeadStepIndex, setActiveLeadStepIndex] = useState<number>(0);
   const [mapBaseStyle, setMapBaseStyle] = useState<'tactical' | 'satellite'>('satellite');
-  const [mapBaseStyle, setMapBaseStyle] = useState<'tactical' | 'satellite'>('satellite');
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   // Historical Event Replay Mode State
@@ -395,7 +394,6 @@ export const ConvectNowDashboard: React.FC = () => {
       {/* Main Map Canvas Area */}
       <main className="relative flex-1 w-full overflow-hidden">
         <MapView
-          mapBaseStyle={mapBaseStyle}
           mapBaseStyle={mapBaseStyle}
           layersConfig={layersConfig}
           activeLeadTimeMin={LEAD_TIME_STEPS[activeLeadStepIndex]?.minutes || 0}

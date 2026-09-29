@@ -26,7 +26,6 @@ const SOHRA_WEB_MERCATOR = fromLonLat(SOHRA_COORDS);
 
 interface MapViewProps {
   mapBaseStyle?: 'tactical' | 'satellite';
-  mapBaseStyle?: 'tactical' | 'satellite';
   layersConfig: MapLayerConfig[];
   activeLeadTimeMin: number;
   isReplayMode: boolean;
@@ -37,7 +36,6 @@ interface MapViewProps {
 }
 
 export const MapView: React.FC<MapViewProps> = ({
-  mapBaseStyle = 'tactical',
   mapBaseStyle = 'tactical',
   layersConfig,
   activeLeadTimeMin,
@@ -60,7 +58,7 @@ export const MapView: React.FC<MapViewProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    
+
     // Satellite Weather Base (RainViewer as robust global fallback for IMD WMS)
     const rainviewerSatLayer = new TileLayer({
       source: new XYZ({
@@ -383,7 +381,8 @@ export const MapView: React.FC<MapViewProps> = ({
     // Instantiate OpenLayers Map
     const map = new Map({
       target: mapContainerRef.current,
-      layers: [baseCartoLayer, rainviewerSatLayer,
+      layers: [
+        baseCartoLayer,
         baseReferenceLayer,
         bhuvanStateLayer,
         bhuvanTerrainLayer,
