@@ -494,7 +494,7 @@ export const MapView: React.FC<MapViewProps> = ({
           (0.85 + 0.15 * acrossMotion * acrossMotion) *
           (1.0 - 0.15 * Math.max(0, alongMotion));
         const seed = (cell.name?.charCodeAt(0) ?? 65) + i;
-        const noise = 0.12 * Math.sin(seed * 2.3 + i * 0.7) * shapeRadius;
+        const noise = 0; // Removed fake jagged noise. Use smooth SCIT boundaries.
 
         polyCoords.push([
           baseMercator[0] + (shapeRadius + noise) * Math.sin(angle),

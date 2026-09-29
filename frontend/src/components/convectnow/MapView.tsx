@@ -502,7 +502,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
         // Add natural meteorological irregularity (seed from cell name for repeatability)
         const seed = (cell.name?.charCodeAt(0) ?? 65) + i;
-        const noise = 0.12 * Math.sin(seed * 2.3 + i * 0.7) * shapeRadius;
+        const noise = 0; // Removed fake jagged noise. Use smooth SCIT boundaries.
 
         polyCoords.push([
           baseMercator[0] + (shapeRadius + noise) * Math.sin(angle),
