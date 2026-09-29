@@ -1,3 +1,4 @@
+
 """ConvectNow — Centralised Data Source Manager
 =================================================
 Single point of control for ALL data in the system.
@@ -20,6 +21,10 @@ ENV VARS (set in Render / AWS ECS / .env):
 """
 
 from __future__ import annotations
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 import logging
 import os
