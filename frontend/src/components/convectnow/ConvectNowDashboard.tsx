@@ -10,6 +10,7 @@ import { ReplayBanner } from './ReplayBanner';
 import { OperationalVerificationModal } from './OperationalVerificationModal';
 import { CapAlertModal } from './CapAlertModal';
 import { VisualIntelDecisionKey } from '../VisualIntelDecisionKey';
+import { IMDOfficialFeaturesMenu } from '../IMDOfficialFeaturesMenu';
 
 import {
   MapLayerConfig,
