@@ -29,6 +29,7 @@ from ..core.schemas import (
     ForecastOutputSchema,
     GridCellSchema,
 )
+from ..meteorology import derive_cell_hazard_factors
 from .grid import CoordinateGrid, default_grid
 
 
@@ -539,6 +540,60 @@ class SyntheticConvectiveEngine:
             [c2_lon - 0.05, c2_lat - 0.04],
         ]
 
+        props1 = {
+            "cell_id": "CELL_01_SOHRA",
+            "name": "Sohra Severe Convective Core",
+            "peak_dbz": 62.4,
+            "max_reflectivity_dbz": 62.4,
+            "centroid_lat": round(c1_lat, 4),
+            "centroid_lon": round(c1_lon, 4),
+            "area_km2": 24.5,
+            "echo_top_km": 16.5,
+            "vil_kg_m2": 58.2,
+            "min_ir_bt_k": 202.1,
+            "flash_rate_per_min": 35,
+            "schultz_jump_detected": True,
+            "motion_vector": {"speed_kmh": 42.0, "heading_deg": 45.0},
+            "velocity_kmh": 42.0,
+            "heading_deg": 45.0,
+            "eta_cherrapunji_min": max(0, 15 - lead_time_min),
+            "eta_minutes": max(0, 15 - lead_time_min),
+            "severity": "CRITICAL",
+        }
+        props1.update(derive_cell_hazard_factors(
+            peak_dbz=props1["peak_dbz"],
+            area_km2=props1["area_km2"],
+            vil_kg_m2=props1["vil_kg_m2"],
+            echo_top_km=props1["echo_top_km"],
+        ))
+
+        props2 = {
+            "cell_id": "CELL_02_MAWSYNRAM",
+            "name": "Mawsynram Orographic Feeder Cell",
+            "peak_dbz": 53.1,
+            "max_reflectivity_dbz": 53.1,
+            "centroid_lat": round(c2_lat, 4),
+            "centroid_lon": round(c2_lon, 4),
+            "area_km2": 16.8,
+            "echo_top_km": 13.8,
+            "vil_kg_m2": 38.0,
+            "min_ir_bt_k": 218.4,
+            "flash_rate_per_min": 18,
+            "schultz_jump_detected": False,
+            "motion_vector": {"speed_kmh": 36.0, "heading_deg": 48.0},
+            "velocity_kmh": 36.0,
+            "heading_deg": 48.0,
+            "eta_cherrapunji_min": max(0, 32 - lead_time_min),
+            "eta_minutes": max(0, 32 - lead_time_min),
+            "severity": "HIGH",
+        }
+        props2.update(derive_cell_hazard_factors(
+            peak_dbz=props2["peak_dbz"],
+            area_km2=props2["area_km2"],
+            vil_kg_m2=props2["vil_kg_m2"],
+            echo_top_km=props2["echo_top_km"],
+        ))
+
         return {
             "type": "FeatureCollection",
             "features": [
@@ -546,37 +601,13 @@ class SyntheticConvectiveEngine:
                     "type": "Feature",
                     "id": "CELL_01_SOHRA",
                     "geometry": {"type": "Polygon", "coordinates": [poly1]},
-                    "properties": {
-                        "cell_id": "CELL_01_SOHRA",
-                        "name": "Sohra Severe Convective Core",
-                        "max_reflectivity_dbz": 62.4,
-                        "echo_top_km": 16.5,
-                        "vil_kg_m2": 58.2,
-                        "min_ir_bt_k": 202.1,
-                        "flash_rate_per_min": 35,
-                        "schultz_jump_detected": True,
-                        "motion_vector": {"speed_kmh": 42.0, "heading_deg": 45.0},
-                        "eta_cherrapunji_min": max(0, 15 - lead_time_min),
-                        "severity": "CRITICAL",
-                    },
+                    "properties": props1,
                 },
                 {
                     "type": "Feature",
                     "id": "CELL_02_MAWSYNRAM",
                     "geometry": {"type": "Polygon", "coordinates": [poly2]},
-                    "properties": {
-                        "cell_id": "CELL_02_MAWSYNRAM",
-                        "name": "Mawsynram Orographic Feeder Cell",
-                        "max_reflectivity_dbz": 53.1,
-                        "echo_top_km": 13.8,
-                        "vil_kg_m2": 38.0,
-                        "min_ir_bt_k": 218.4,
-                        "flash_rate_per_min": 18,
-                        "schultz_jump_detected": False,
-                        "motion_vector": {"speed_kmh": 36.0, "heading_deg": 48.0},
-                        "eta_cherrapunji_min": max(0, 32 - lead_time_min),
-                        "severity": "HIGH",
-                    },
+                    "properties": props2,
                 },
             ],
         }
@@ -636,3 +667,4 @@ class SyntheticConvectiveEngine:
 
 # Global default synthetic engine
 synthetic_engine = SyntheticConvectiveEngine()
+HistoricalCherrapunjiEngine = SyntheticConvectiveEngine

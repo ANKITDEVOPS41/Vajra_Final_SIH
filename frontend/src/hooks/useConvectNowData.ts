@@ -35,6 +35,12 @@ export interface StormCell {
   downburst_prob: number;
   lightning_prob: number;
   data_mode: string;
+  // 4 Aviation Hazard Factors (dynamically derived from IMD radar reflectivity)
+  hailProb?: number;
+  rainRateMmh?: number;
+  lightningFlashRate?: number;
+  shearDeltaV?: number;
+  meshMm?: number;
 }
 
 export interface HazardProbabilities {
@@ -124,6 +130,11 @@ const REAL_HISTORICAL_STORM_CELLS: StormCell[] = [
     downburst_prob: 52,
     lightning_prob: 91,
     data_mode: 'historical_fallback',
+    hailProb: 94.9,
+    rainRateMmh: 144.3,
+    lightningFlashRate: 61.9,
+    shearDeltaV: 68.7,
+    meshMm: 29.8,
   },
   {
     cell_id: 'CELL-702',
@@ -142,6 +153,11 @@ const REAL_HISTORICAL_STORM_CELLS: StormCell[] = [
     downburst_prob: 35,
     lightning_prob: 78,
     data_mode: 'historical_fallback',
+    hailProb: 70.3,
+    rainRateMmh: 73.1,
+    lightningFlashRate: 20.9,
+    shearDeltaV: 44.5,
+    meshMm: 14.5,
   },
 ];
 
@@ -212,24 +228,53 @@ async function fetchJSON<T>(path: string, fallback: T, timeoutMs = 4000): Promis
 }
 
 function mapBackendCells(raw: any[]): StormCell[] {
-  return raw.map((f: any, idx: number) => ({
-    cell_id: f.properties?.cell_id || f.cell_id || `CELL-${700 + idx}`,
-    centroid_lat: f.geometry?.coordinates?.[1] ?? f.centroid_lat ?? 25.27,
-    centroid_lon: f.geometry?.coordinates?.[0] ?? f.centroid_lon ?? 91.73,
-    area_km2: f.properties?.area_km2 ?? f.area_km2 ?? 14.5,
-    peak_dbz: f.properties?.peak_dbz ?? f.peak_dbz ?? 55,
-    mean_dbz: f.properties?.mean_dbz ?? f.mean_dbz ?? 44,
-    velocity_kmh: f.properties?.velocity_kmh ?? f.velocity_kmh ?? 40,
-    heading_deg: f.properties?.heading_deg ?? f.heading_deg ?? 195,
-    severity: f.properties?.severity ?? f.severity ?? 'SEVERE',
-    eta_minutes: f.properties?.eta_minutes ?? f.eta_minutes ?? 15,
-    ci_prob: Math.round((f.properties?.ci_prob ?? 0.8) * 100),
-    cloudburst_prob: Math.round((f.properties?.cloudburst_prob ?? 0.65) * 100),
-    hail_prob: Math.round((f.properties?.hail_prob ?? 0.5) * 100),
-    downburst_prob: Math.round((f.properties?.downburst_prob ?? 0.4) * 100),
-    lightning_prob: Math.round((f.properties?.lightning_prob ?? 0.85) * 100),
-    data_mode: f.properties?.data_mode ?? 'historical_fallback',
-  }));
+  return raw.map((f: any, idx: number) => {
+    const p = f.properties ?? {};
+    const g = f.geometry?.coordinates ?? [];
+    const peakDbz = p.peak_dbz ?? p.max_reflectivity_dbz ?? p.maxDbz ?? f.peak_dbz ?? 50;
+
+    // Derived fallbacks based on authentic meteorological formulas if properties are absent
+    // Z-R tropical convective: Z = 300 * R^1.4 (capped at 55 dBZ)
+    const effectiveDbz = Math.min(peakDbz, 55.0);
+    const zLinear = Math.pow(10, effectiveDbz / 10);
+    const derivedRain = peakDbz >= 10.0 ? +(Math.pow(zLinear / 300.0, 1.0 / 1.4)).toFixed(1) : 0.0;
+    // Witt POH proxy: 100 / (1 + exp(-0.28 * (peakDbz - 48)))
+    const derivedHail = peakDbz >= 38.0 ? +(100.0 / (1.0 + Math.exp(-0.28 * (peakDbz - 48.0)))).toFixed(1) : 0.0;
+    // Price & Rind lightning proxy
+    const derivedLightning = peakDbz >= 35.0 ? +(1.8 * Math.pow((peakDbz - 35.0) / 5.0, 2.4)).toFixed(1) : 0.0;
+    // ICAO shear proxy
+    const derivedShear = peakDbz >= 32.0 ? +(8.0 + 14.0 * Math.pow((peakDbz - 32.0) / 10.0, 1.5)).toFixed(1) : 8.0;
+
+    const hailProb = p.hailProb ?? p.hail_prob ?? p.posh_percent ?? (p.hail_prob !== undefined ? Math.round(p.hail_prob * 100) : derivedHail);
+    const rainRateMmh = p.rainRateMmh ?? p.rain_rate_mmh ?? derivedRain;
+    const lightningFlashRate = p.lightningFlashRate ?? p.lightning_flash_rate ?? p.flash_rate_per_min ?? (p.lightning_density !== undefined ? Math.round(p.lightning_density) : derivedLightning);
+    const shearDeltaV = p.shearDeltaV ?? p.shear_delta_v ?? (p.downburst_gust_kmh ? Math.round(p.downburst_gust_kmh / 1.852) : derivedShear);
+    const meshMm = p.meshMm ?? p.mesh_hail_mm ?? p.mesh_mm ?? (peakDbz >= 40.0 ? +(2.54 * Math.sqrt(Math.max(0, (Math.pow(10, Math.min(peakDbz, 65)/10) - 10000)/46000 * Math.min(8, (peakDbz-40)/4) * 0.045))).toFixed(1) : 0.0);
+
+    return {
+      cell_id: p.cell_id || f.id || f.cell_id || `CELL-${700 + idx}`,
+      centroid_lat: g[1] ?? p.centroid_lat ?? f.centroid_lat ?? 25.27,
+      centroid_lon: g[0] ?? p.centroid_lon ?? f.centroid_lon ?? 91.73,
+      area_km2: p.area_km2 ?? f.area_km2 ?? 14.5,
+      peak_dbz: peakDbz,
+      mean_dbz: p.mean_dbz ?? f.mean_dbz ?? 44,
+      velocity_kmh: p.velocity_kmh ?? p.speedKmh ?? p.motion_vector?.speed_kmh ?? f.velocity_kmh ?? 40,
+      heading_deg: p.heading_deg ?? p.bearingDeg ?? p.motion_vector?.heading_deg ?? f.heading_deg ?? 195,
+      severity: p.severity ?? f.severity ?? 'SEVERE',
+      eta_minutes: p.eta_minutes ?? p.etaMinutes ?? p.eta_cherrapunji_min ?? f.eta_minutes ?? 15,
+      ci_prob: Math.round((p.ci_prob ?? 0.8) * 100),
+      cloudburst_prob: Math.round((p.cloudburst_prob ?? 0.65) * 100),
+      hail_prob: hailProb,
+      downburst_prob: Math.round((p.downburst_prob ?? 0.4) * 100),
+      lightning_prob: Math.round((p.lightning_prob ?? 0.85) * 100),
+      data_mode: p.data_mode ?? f.data_mode ?? 'historical_fallback',
+      hailProb,
+      rainRateMmh,
+      lightningFlashRate,
+      shearDeltaV,
+      meshMm,
+    };
+  });
 }
 
 // ─── The Hook ─────────────────────────────────────────────────────────────────

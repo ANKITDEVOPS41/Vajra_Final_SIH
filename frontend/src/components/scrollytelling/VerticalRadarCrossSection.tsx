@@ -59,15 +59,15 @@ export const VerticalRadarCrossSection: React.FC<VerticalRadarCrossSectionProps>
     const initialParticles: Hydrometeor[] = [];
     const count = 120;
     for (let i = 0; i < count; i++) {
-      const isHail = Math.random() < 0.35;
+      const isHail = false;
       initialParticles.push({
-        x: (Math.random() - 0.5) * 16,
-        y: isHail ? 5.0 + Math.random() * 6.0 : 0.5 + Math.random() * 10.0,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: isHail ? (Math.random() - 0.5) * 0.8 : -1.5 - Math.random() * 2.0,
+        x: 0,
+        y: 5.0,
+        vx: 0,
+        vy: -1.5,
         type: isHail ? 'hail' : 'rain',
-        size: isHail ? 2.5 + Math.random() * 3.5 : 1.0 + Math.random() * 1.5,
-        alpha: 0.4 + Math.random() * 0.6
+        size: 2.0,
+        alpha: 0.7
       });
     }
     particlesRef.current = initialParticles;
@@ -500,27 +500,27 @@ export const VerticalRadarCrossSection: React.FC<VerticalRadarCrossSectionProps>
         if (p.type === 'hail') {
           if (isHailAloftPhase) {
             // Suspended aloft: oscillating violently in the 7-10 km hail growth zone
-            p.y += (Math.random() - 0.5) * 0.25;
-            p.x += (Math.random() - 0.5) * 0.15;
+            p.y += 0;
+            p.x += 0;
             // Kept within hail growth box (between 0°C and -40°C: 6 to 11 km)
-            if (p.y < 6.0) p.y = 6.2 + Math.random() * 2.0;
-            if (p.y > 11.0) p.y = 10.5 - Math.random() * 2.0;
-            if (Math.abs(p.x) > 4.5) p.x = (Math.random() - 0.5) * 4.0;
+            if (p.y < 6.0) p.y = 7.0;
+            if (p.y > 11.0) p.y = 9.5;
+            if (Math.abs(p.x) > 4.5) p.x = 0;
           } else if (isCollapsePhase) {
             // Plunging downburst cascade!
-            p.y -= (dt * 18.0 + Math.random() * 0.4);
+            p.y -= (dt * 18.0);
             if (p.y <= 0.2) {
               p.y = 0.2;
               p.type = 'splash';
               p.life = 0;
               p.maxLife = 12;
-              p.vx = (Math.random() - 0.5) * 8.0;
-              p.vy = 2.0 + Math.random() * 4.0;
+              p.vx = 0;
+              p.vy = 4.0;
             }
           } else {
             // Normal decay / formation
             p.y -= dt * 4.0;
-            if (p.y < 0.2) p.y = 7.0 + Math.random() * 3.0;
+            if (p.y < 0.2) p.y = 8.5;
           }
         } else if (p.type === 'rain') {
           // Rain falls downward

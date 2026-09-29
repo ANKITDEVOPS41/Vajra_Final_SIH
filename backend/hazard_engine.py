@@ -140,6 +140,13 @@ class ConvectiveHazardEngine:
         wind = self.compute_downburst_velocity(dbz_arr, vil_arr)
         lght = self.compute_lightning_density(dbz_arr, vil_arr)
 
+        try:
+            from .meteorology import derive_cell_hazard_factors
+        except ImportError:
+            from meteorology import derive_cell_hazard_factors
+
+        derived = derive_cell_hazard_factors(peak_dbz=cell_dbz, vil_kg_m2=cell_vil)
+
         return {
             "rain_rate_mmh": round(float(rain), 1),
             "cloudburst_flag": bool(rain >= 100.0),
@@ -147,6 +154,13 @@ class ConvectiveHazardEngine:
             "mesh_hail_mm": hail["max_hail_size_mm"],
             "downburst_gust_kmh": wind["peak_gust_kmh"],
             "lightning_density": lght["peak_density_flashes_km2_hr"],
+            "rainRateMmh": derived["rainRateMmh"],
+            "hailProb": derived["hailProb"],
+            "lightningFlashRate": derived["lightningFlashRate"],
+            "shearDeltaV": derived["shearDeltaV"],
+            "poh": derived["poh"],
+            "meshMm": derived["meshMm"],
+            "citations": derived["citations"],
             "explainability": {
                 "radar_core_driver": f"Column reflectivity reached {cell_dbz:.1f} dBZ",
                 "vil_liquid_driver": f"Vertically Integrated Liquid at {cell_vil:.1f} kg/m²",

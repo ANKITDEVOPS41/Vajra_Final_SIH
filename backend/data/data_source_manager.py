@@ -196,9 +196,9 @@ class DataSourceManager:
         # ── Tier 3: Historical cache (real, verified, NOT synthetic) ──────
         from .historical_cache import get_historical_grid_cell
         cell = get_historical_grid_cell(lat=lat, lon=lon, lead_time_min=lead_time_min)
-        # Tag with actual mode
+        # Tag with actual fallback mode
         result = cell.model_dump() if hasattr(cell, "model_dump") else dict(cell)
-        result["data_mode"] = mode
+        result["data_mode"] = "historical_fallback"
         return result
 
     async def get_aws_stations(self) -> Dict[str, Any]:

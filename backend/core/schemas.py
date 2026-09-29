@@ -168,6 +168,8 @@ class GridCellSchema(BaseModel):
     lightning_quality: str = "GOOD"
     aws_quality: str = "GOOD"
     data_mode: Literal["live", "historical_fallback"] = "historical_fallback"
+    synthetic_data: bool = False
+    inference_latency_ms: float = Field(default=0.0, description="PyTorch model inference latency in ms")
 
     @model_validator(mode="after")
     def populate_cell_id(self) -> "GridCellSchema":
@@ -384,6 +386,8 @@ class ForecastOutputSchema(BaseModel):
     )
     ai_model: str = "ConvectNet v1 (HistoricalMode)"
     data_mode: Literal["live", "historical_fallback"] = "historical_fallback"
+    synthetic_data: bool = False
+    inference_latency_ms: float = Field(default=0.0, description="PyTorch model inference latency in ms")
 
     @model_validator(mode="after")
     def sync_hazard_dict_and_fields(self) -> "ForecastOutputSchema":

@@ -1,3 +1,5 @@
+import { useConvectNowData } from "../hooks/useConvectNowData";
+
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   MapContainer, 
@@ -98,6 +100,12 @@ export interface StormCellTrack {
   lightningFlashRate: number; // strokes/min
   etaRunwayMin: number;
   severity: 'WARNING' | 'CRITICAL' | 'ADVISORY';
+  hailProb?: number;
+  mdbzElevKm?: number;
+  severityIndex?: number;
+  stormType?: string;
+  status?: string;
+  posH?: number;
 }
 
 export interface TacticalSector {
@@ -626,71 +634,6 @@ export function getVelocityColorRgb(v: number): [number, number, number] {
   return v < -40 ? [0, 77, 64] : [153, 27, 27];
 }
 
-export const ACTIVE_CELLS: StormCellTrack[] = [
-  {
-    id: 'CELL-01',
-    name: 'Bhubaneswar Core / Downburst Incursion',
-    lat: 20.248,
-    lon: 85.812,
-    azimuthDeg: 218.4,
-    rangeKm: 2.8,
-    maxDbz: 64.5,
-    coreHeightKm: 6.8,
-    vilKgM2: 58.2,
-    topHeightKm: 15.2,
-    speedKmh: 42,
-    directionDeg: 45,
-    poh: 92,
-    meshMm: 48,
-    rainRateMmh: 174.5,
-    shearDeltaV: 48.0,
-    lightningFlashRate: 34,
-    etaRunwayMin: 2,
-    severity: 'CRITICAL',
-  },
-  {
-    id: 'CELL-02',
-    name: 'Khurda Highway Severe Multicell',
-    lat: 20.180,
-    lon: 85.690,
-    azimuthDeg: 242.1,
-    rangeKm: 16.4,
-    maxDbz: 56.0,
-    coreHeightKm: 5.4,
-    vilKgM2: 44.0,
-    topHeightKm: 13.8,
-    speedKmh: 36,
-    directionDeg: 50,
-    poh: 75,
-    meshMm: 28,
-    rainRateMmh: 94.2,
-    shearDeltaV: 26.5,
-    lightningFlashRate: 18,
-    etaRunwayMin: 22,
-    severity: 'WARNING',
-  },
-  {
-    id: 'CELL-03',
-    name: 'Cuttack-Mahanadi Squall Feeder',
-    lat: 20.440,
-    lon: 85.860,
-    azimuthDeg: 12.8,
-    rangeKm: 22.1,
-    maxDbz: 48.5,
-    coreHeightKm: 4.8,
-    vilKgM2: 32.0,
-    topHeightKm: 11.5,
-    speedKmh: 30,
-    directionDeg: 60,
-    poh: 40,
-    meshMm: 12,
-    rainRateMmh: 52.8,
-    shearDeltaV: 18.0,
-    lightningFlashRate: 9,
-    etaRunwayMin: 45,
-    severity: 'ADVISORY',
-  },
-];
 
 export const HORIZON_STEPS = [0, 15, 30, 45, 60, 90, 120, 180];
 
@@ -783,60 +726,17 @@ export function computeForecastedCells(cells: StormCellTrack[], leadMinutes: num
     let fRain = cell.rainRateMmh;
     let fShear = cell.shearDeltaV;
 
-    if (cell.id === 'CELL-01') {
-      if (leadMinutes === 0) {
-        fDbz = 64.5; fRain = 174.5; fShear = 48.0;
-      } else if (leadMinutes <= 15) {
-        fDbz = 66.8; fRain = 195.0; fShear = 54.0; // Peak downburst touchdown on RWY 01
-      } else if (leadMinutes <= 30) {
-        fDbz = 58.5; fRain = 118.0; fShear = 38.0; // Divergent gust front
-      } else if (leadMinutes <= 45) {
-        fDbz = 50.0; fRain = 62.0; fShear = 24.0;
-      } else if (leadMinutes <= 60) {
-        fDbz = 42.0; fRain = 28.0; fShear = 16.0;
-      } else if (leadMinutes <= 90) {
-        fDbz = 34.0; fRain = 10.0; fShear = 8.0;
-      } else if (leadMinutes <= 120) {
-        fDbz = 26.0; fRain = 2.5; fShear = 4.0;
-      } else {
-        fDbz = 18.0; fRain = 0.5; fShear = 2.0;
-      }
-    } else if (cell.id === 'CELL-02') {
-      if (leadMinutes === 0) {
-        fDbz = 56.0; fRain = 94.2; fShear = 26.5;
-      } else if (leadMinutes <= 15) {
-        fDbz = 63.5; fRain = 150.0; fShear = 42.0; // Intensifying approach
-      } else if (leadMinutes <= 30) {
-        fDbz = 65.2; fRain = 180.0; fShear = 51.0; // Direct hit at T+30
-      } else if (leadMinutes <= 45) {
-        fDbz = 59.0; fRain = 120.0; fShear = 36.0;
-      } else if (leadMinutes <= 60) {
-        fDbz = 48.0; fRain = 55.0; fShear = 22.0;
-      } else if (leadMinutes <= 90) {
-        fDbz = 38.0; fRain = 18.0; fShear = 12.0;
-      } else if (leadMinutes <= 120) {
-        fDbz = 28.0; fRain = 4.0; fShear = 5.0;
-      } else {
-        fDbz = 19.0; fRain = 0.8; fShear = 2.0;
-      }
+    if (leadMinutes === 0) {
+      // At T=0, preserve exact dynamic values from backend telemetry
+      fDbz = cell.maxDbz;
+      fRain = cell.rainRateMmh;
+      fShear = cell.shearDeltaV;
     } else {
-      if (leadMinutes === 0) {
-        fDbz = 48.5; fRain = 55.0; fShear = 18.0;
-      } else if (leadMinutes <= 15) {
-        fDbz = 55.0; fRain = 90.0; fShear = 26.0;
-      } else if (leadMinutes <= 30) {
-        fDbz = 62.0; fRain = 142.0; fShear = 40.0;
-      } else if (leadMinutes <= 45) {
-        fDbz = 64.5; fRain = 172.0; fShear = 49.0; // Cuttack severe peak
-      } else if (leadMinutes <= 60) {
-        fDbz = 58.0; fRain = 110.0; fShear = 33.0;
-      } else if (leadMinutes <= 90) {
-        fDbz = 44.0; fRain = 38.0; fShear = 16.0;
-      } else if (leadMinutes <= 120) {
-        fDbz = 32.0; fRain = 10.0; fShear = 8.0;
-      } else {
-        fDbz = 21.0; fRain = 1.5; fShear = 3.0;
-      }
+      // Forecast decay / evolution proportional to baseline
+      const decayRatio = Math.max(0.2, 1 - (leadMinutes / 120));
+      fDbz = Math.max(15, +(cell.maxDbz * decayRatio).toFixed(1));
+      fRain = Math.max(0, +(cell.rainRateMmh * Math.pow(decayRatio, 1.6)).toFixed(1));
+      fShear = Math.max(0, +(cell.shearDeltaV * decayRatio).toFixed(1));
     }
 
     // 5. Forecast Uncertainty dispersion radius (km)
@@ -903,6 +803,60 @@ export function computeForecastedCells(cells: StormCellTrack[], leadMinutes: num
 // 4. MAIN WORKSTATION COMPONENT
 // ============================================================================
 export default function HazardDashboard() {
+  const { stormCells } = useConvectNowData();
+  const ACTIVE_CELLS: StormCellTrack[] = stormCells.map((c, i) => {
+    const maxDbz = c.peak_dbz ?? 40;
+    const effectiveDbz = Math.min(maxDbz, 55.0);
+    const zLinear = Math.pow(10, effectiveDbz / 10);
+    const derivedRain = maxDbz >= 10.0 ? +(Math.pow(zLinear / 300.0, 1.0 / 1.4)).toFixed(1) : 0.0;
+    const derivedHail = maxDbz >= 38.0 ? +(100.0 / (1.0 + Math.exp(-0.28 * (maxDbz - 48.0)))).toFixed(1) : 0.0;
+    const derivedLightning = maxDbz >= 35.0 ? +(1.8 * Math.pow((maxDbz - 35.0) / 5.0, 2.4)).toFixed(1) : 0.0;
+    const derivedShear = maxDbz >= 32.0 ? +(8.0 + 14.0 * Math.pow((maxDbz - 32.0) / 10.0, 1.5)).toFixed(1) : 8.0;
+
+    const rainRate = c.rainRateMmh ?? (c as any).rain_rate_mmh ?? derivedRain;
+    const hail = c.hailProb ?? c.hail_prob ?? (c as any).posh_percent ?? derivedHail;
+    const shear = c.shearDeltaV ?? (c as any).shear_delta_v ?? derivedShear;
+    const lightning = c.lightningFlashRate ?? (c as any).lightning_flash_rate ?? derivedLightning;
+    const mesh = c.meshMm ?? (c as any).mesh_hail_mm ?? (maxDbz >= 40.0 ? +(2.54 * Math.sqrt(Math.max(0, (Math.pow(10, Math.min(maxDbz, 65)/10) - 10000)/46000 * Math.min(8, (maxDbz-40)/4) * 0.045))).toFixed(1) : 0.0);
+    const eta = c.eta_minutes ?? (c as any).etaMinutes ?? 15;
+    const sev = (c.severity === 'EXTREME' || (c.severity as string) === 'CRITICAL' ? 'CRITICAL' : c.severity === 'SEVERE' ? 'WARNING' : 'ADVISORY') as 'WARNING' | 'CRITICAL' | 'ADVISORY';
+
+    // Derive polar coordinates from radar station if not explicitly provided
+    const lat = c.centroid_lat || 20.2444;
+    const lon = c.centroid_lon || 85.8178;
+    const dN = (lat - RADAR_STATION.lat) * 111.13;
+    const dE = (lon - RADAR_STATION.lon) * 104.3;
+    const rangeKm = +(Math.sqrt(dN * dN + dE * dE)).toFixed(1) || 5.0;
+    const azDeg = +(((Math.atan2(dE, dN) * 180 / Math.PI) + 360) % 360).toFixed(1);
+
+    return {
+      id: c.cell_id || `CELL-0${i + 1}`,
+      name: c.cell_id ? `Convective Core ${c.cell_id}` : `Core ${i + 1}`,
+      lat,
+      lon,
+      azimuthDeg: c.heading_deg || azDeg,
+      rangeKm,
+      maxDbz,
+      coreHeightKm: +(Math.min(16, 4.0 + (maxDbz / 65) * 8.0)).toFixed(1),
+      vilKgM2: +(Math.min(75, Math.pow(10, (maxDbz - 18) / 22))).toFixed(1),
+      hailProb: hail,
+      mdbzElevKm: 5.0,
+      shearDeltaV: shear,
+      topHeightKm: +(Math.min(18, 6.0 + (maxDbz / 60) * 9.0)).toFixed(1),
+      speedKmh: c.velocity_kmh || 25,
+      directionDeg: c.heading_deg || 45,
+      poh: hail,
+      posH: +(hail / 100).toFixed(2),
+      meshMm: mesh,
+      severityIndex: maxDbz >= 60 ? 4 : maxDbz >= 50 ? 3 : 2,
+      stormType: maxDbz >= 60 ? "Supercell" : maxDbz >= 50 ? "Multicell" : "Single Cell",
+      status: "Active",
+      rainRateMmh: rainRate,
+      lightningFlashRate: lightning,
+      etaRunwayMin: eta,
+      severity: sev,
+    };
+  });
   const [product, setProduct] = useState<RadarProduct>('reflectivity');
   const [displayMode, setDisplayMode] = useState<DisplayMode>('gis_basemap'); // Default to GIS Basemap so user immediately sees high-res map
   const [weatherFormat, setWeatherFormat] = useState<WeatherMapFormat>('dwr_radar'); // Default to real live Doppler radar tiles
@@ -997,8 +951,10 @@ export default function HazardDashboard() {
       return {
         ...sec,
         radarDbz: maxDbz,
-        rainRateMmh: +(Math.pow(10, (maxDbz - 16) / 16)).toFixed(1),
-        cloudburstFlag: maxDbz >= 62,
+        rainRateMmh: maxDbz >= 10 ? +(Math.pow(Math.pow(10, Math.min(maxDbz, 55) / 10) / 300, 1 / 1.4)).toFixed(1) : 0,
+        cloudburstFlag: maxDbz >= 55,
+        lightningStrokesMin: maxDbz > 35 ? Math.round(Math.max(sec.lightningStrokesMin || 0, 1.8 * Math.pow((maxDbz - 35) / 5, 2.4))) : (sec.lightningStrokesMin || 0),
+        hailRisk: maxDbz >= 60 ? 'EXTREME (>85%)' : maxDbz >= 52 ? 'HIGH (60-85%)' : maxDbz >= 42 ? 'MODERATE (20-50%)' : 'LOW (<10%)',
       };
     });
   }, [currentGrid, forecastedCells, leadTimeMin, domainScope]);
@@ -1785,7 +1741,7 @@ export default function HazardDashboard() {
           <div className="flex items-center space-x-2 bg-rose-950/80 border border-rose-500/40 px-3 py-1 rounded-md text-xs font-mono text-rose-200 shadow-sm animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
             <span className="font-bold text-white uppercase tracking-wider">CRITICAL LLWS:</span>
-            <span>Microburst touchdown 1.2 NM S of RWY 01 • ΔV {activeCell.shearDeltaV} m/s (93 kt) • ETA {activeCell.etaRunwayMin}m</span>
+            <span>Microburst touchdown 1.2 NM S of RWY 01 • ΔV {activeCell.shearDeltaV} m/s ({Math.round(activeCell.shearDeltaV * 1.94)} kt) • ETA {activeCell.etaRunwayMin}m</span>
           </div>
         ) : (
           <div className="hidden xl:flex items-center space-x-2 bg-[#0c111a] border border-[#1b2434] px-3 py-1 rounded-md max-w-xl">
