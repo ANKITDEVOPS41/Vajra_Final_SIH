@@ -280,12 +280,12 @@ export const HistoricalReplayView: React.FC = () => {
                   attribution="Tiles &copy; Esri, Maxar" 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} maxNativeZoom={16} 
                   opacity={0.85} 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} maxNativeZoom={16} 
                   opacity={0.8} 
                 />
@@ -300,7 +300,7 @@ export const HistoricalReplayView: React.FC = () => {
             )}
             {mapType === 'dark' && (
               <TileLayer 
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
+                url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" 
                 maxZoom={19} maxNativeZoom={16} 
                 opacity={0.9} 
               />
@@ -414,12 +414,12 @@ export const HistoricalReplayView: React.FC = () => {
                   attribution="Tiles &copy; Esri, Maxar" 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} maxNativeZoom={16} 
                   opacity={0.85} 
                 />
                 <TileLayer 
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" 
+                  url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png" 
                   maxZoom={19} maxNativeZoom={16} 
                   opacity={0.8} 
                 />
@@ -434,7 +434,7 @@ export const HistoricalReplayView: React.FC = () => {
             )}
             {mapType === 'dark' && (
               <TileLayer 
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}" 
+                url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" 
                 maxZoom={19} maxNativeZoom={16} 
                 opacity={0.9} 
               />

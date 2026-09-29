@@ -727,7 +727,7 @@ export const InferencePipelineView: React.FC = () => {
               />
             ) : (
               <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
                 maxZoom={19}
                 maxNativeZoom={16}
                 attribution="Tiles &copy; Esri"

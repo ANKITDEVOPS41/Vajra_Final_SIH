@@ -319,7 +319,7 @@ export const HyperlocalTwinMap: React.FC = () => {
                         
                         return (
                           <div key={idx} className="flex flex-col items-center flex-1 group relative">
-                            <div className="absolute -top-8 bg-[#08090a] border border-[#34343a] text-[9px] font-mono text-[#f7f8f8] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none transition-opacity">
+                            <div className="absolute -top-8 bg-[#08090a] border border-[#34343a] text-[9px] font-mono text-[#f7f8f8] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-[2000] pointer-events-none transition-opacity">
                               {precip}mm | {cape} J/kg
                             </div>
                             <span className="text-[9px] font-mono text-[#8a8f98] mb-1">{hour.precip > 0 ? `${hour.precip}m` : ''}</span>

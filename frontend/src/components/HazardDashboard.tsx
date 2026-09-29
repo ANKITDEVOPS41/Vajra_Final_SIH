@@ -2104,12 +2104,12 @@ export default function HazardDashboard() {
                     attribution="Tiles &copy; Esri, Maxar, Earthstar Geographics"
                   />
                   <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                    url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.85}
                   />
                   <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                    url="https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.8}
                   />
@@ -2118,13 +2118,13 @@ export default function HazardDashboard() {
               {(weatherFormat === 'dark' || weatherFormat === 'insat_ir' || weatherFormat === 'ir_rainbow' || weatherFormat === 'dwr_radar') && (
                 <>
                   <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                    url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.92}
                     attribution="&copy; Esri"
                   />
                   <TileLayer
-                    url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+                    url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png"
                     maxZoom={19} maxNativeZoom={16}
                     opacity={0.85}
                   />
@@ -2767,7 +2767,7 @@ export default function HazardDashboard() {
       {/* 6. NDMA CAP v1.2 DISPATCH MODAL                                    */}
       {/* ================================================================== */}
       {showCapModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0e131d] border border-[#222c3d] rounded-2xl max-w-2xl w-full p-5 shadow-2xl flex flex-col space-y-3 font-mono">
             <div className="flex justify-between items-center border-b border-[#1e2533] pb-2">
               <div className="flex items-center space-x-2">
@@ -2827,7 +2827,7 @@ export default function HazardDashboard() {
       {/* 7. WMO VERIFICATION BENCHMARK SKILL MODAL                          */}
       {/* ================================================================== */}
       {showMetricsModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#0e131d] border border-[#222c3d] rounded-2xl max-w-lg w-full p-5 shadow-2xl flex flex-col space-y-3 font-mono">
             <div className="flex justify-between items-center border-b border-[#1e2533] pb-2">
               <div className="flex items-center space-x-2">

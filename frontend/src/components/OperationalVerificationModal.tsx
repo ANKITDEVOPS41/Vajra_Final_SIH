@@ -68,7 +68,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
       <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0c1220] border border-[#1e293b] rounded-xl shadow-2xl flex flex-col overflow-hidden text-slate-200">
         {/* Header */}
         <div className="p-4 border-b border-[#1e293b] bg-[#131928] flex items-center justify-between">

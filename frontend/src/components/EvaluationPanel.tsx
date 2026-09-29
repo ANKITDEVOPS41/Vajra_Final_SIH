@@ -19,7 +19,7 @@ export const EvaluationPanel: React.FC<EvaluationPanelProps> = ({
   const leadTimes = evalData?.lead_time_scores || [];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[2000] bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
       <div className="card-blizzard w-full max-w-3xl border border-[#38a8ff]/25 rounded-3xl shadow-[0_20px_60px_rgba(56,168,255,0.1)] overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="bg-[#111729]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">

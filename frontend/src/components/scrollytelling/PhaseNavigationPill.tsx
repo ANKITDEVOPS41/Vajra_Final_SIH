@@ -56,7 +56,7 @@ export const PhaseNavigationPill: React.FC<PhaseNavigationPillProps> = ({
               </button>
 
               {/* Hover Tooltip */}
-              <div className="absolute left-9 px-3 py-1.5 bg-ocean-900/95 border border-steel-700/80 rounded-lg text-xs whitespace-nowrap shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 backdrop-blur-md">
+              <div className="absolute left-9 px-3 py-1.5 bg-ocean-900/95 border border-steel-700/80 rounded-lg text-xs whitespace-nowrap shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[2000] backdrop-blur-md">
                 <div className="flex items-center space-x-1.5">
                   <span className="font-mono text-[10px] text-ice-500 font-bold">{phase.timeLabel}</span>
                   <span className="text-steel-600">·</span>
