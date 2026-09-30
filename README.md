@@ -172,7 +172,7 @@ git clone https://github.com/Gaurav711cgu/convect.git
 cd convect
 
 # Setup Environment Variables
-echo "IMD_API_KEY=f88dc614a4ff64dce67a8f267f54435829a3c22590195bbe175917bb1d8ac406" > .env
+echo "IMD_API_KEY=" > .env
 ```
 
 ### 2. Boot the AI Backend (FastAPI)
