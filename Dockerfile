@@ -1,48 +1,40 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# ConvectNow Backend — Dockerfile
-# Optimised for Render / AWS ECS / any container platform
-#
-# Build:  docker build -t convectnow-api .
-# Run:    docker run -p 8000:8000 convectnow-api
-# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1: Build & Requirements
+FROM python:3.11-slim AS builder
 
-# Use official slim Python image (smaller attack surface, faster pulls)
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY backend/requirements.txt .
+
+# Install dependencies (use CPU-only PyTorch for AWS Fargate)
+RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+
+# Stage 2: Runtime
 FROM python:3.11-slim
 
-# Prevent Python from writing .pyc files and enable stdout buffering
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    # Torch CPU-only — saves ~2 GB image size on cloud (model is only 11 MB)
-    # Override with PIP_EXTRA_INDEX_URL if you want CUDA on AWS GPU instances
-    PIP_NO_CACHE_DIR=1
+# Create a non-root user
+RUN addgroup --system appgroup && adduser --system --group appuser
 
 WORKDIR /app
 
-# Install OS deps needed by torch / scipy / h5py
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libhdf5-dev \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
+# Copy built wheels from builder
+COPY --from=builder /app/wheels /wheels
+COPY --from=builder /app/requirements.txt .
 
-# Install CPU-only PyTorch FIRST (much smaller than default CUDA build)
-# This resolves before requirements.txt so torch isn't re-downloaded
-RUN pip install torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
+# Install wheels
+RUN pip install --no-cache /wheels/*
 
-# Copy and install the rest of the Python dependencies
-COPY backend/requirements.txt .
-RUN pip install -r requirements.txt
+# Copy backend code
+COPY backend/ /app/backend/
 
-# Copy the entire project (model weights, backend code, evaluation report)
-COPY . .
+# Ensure non-root ownership
+RUN chown -R appuser:appgroup /app
 
-# Expose port
+USER appuser
+
 EXPOSE 8000
 
-# Health check — Render / ECS uses this to know when the container is ready
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/data_quality')"
-
-# Start the FastAPI server
-# "convectnow.backend.api.main:app" — matches your existing package structure
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "backend.server:app", "--host", "0.0.0.0", "--port", "8000"]

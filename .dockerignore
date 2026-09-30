@@ -1,0 +1,34 @@
+# Ignore git
+.git
+.gitignore
+
+# Environment variables
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Large Datasets / ML Weights (Let AWS S3 handle these)
+datasets/
+*.h5
+*.hdf5
+*.pth
+*.pt
+*.npy
+*.gif
+*.png
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/

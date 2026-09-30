@@ -87,6 +87,10 @@ DEFAULT_TARGETS = [
 ]
 
 
+@app.get("/health")
+def aws_health_check():
+    return {"status": "ok", "version": "1.0.0", "geospatial_engine": "ready"}
+
 @app.get("/api/health")
 def health_check():
     return {

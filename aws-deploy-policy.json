@@ -1,0 +1,63 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowECRLogin",
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetAuthorizationToken"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowECRPush",
+            "Effect": "Allow",
+            "Action": [
+                "ecr:CompleteLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:InitiateLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage"
+            ],
+            "Resource": "arn:aws:ecr:REGION:ACCOUNT_ID:repository/vajra-backend"
+        },
+        {
+            "Sid": "AllowECSTaskUpdate",
+            "Effect": "Allow",
+            "Action": [
+                "ecs:UpdateService",
+                "ecs:DescribeServices",
+                "ecs:DescribeTaskDefinition",
+                "ecs:RegisterTaskDefinition"
+            ],
+            "Resource": [
+                "arn:aws:ecs:REGION:ACCOUNT_ID:service/VajraCluster/VajraBackendService",
+                "arn:aws:ecs:REGION:ACCOUNT_ID:task-definition/vajra-backend-task:*"
+            ]
+        },
+        {
+            "Sid": "AllowPassRoleToECS",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole"
+            ],
+            "Condition": {
+                "StringLike": {
+                    "iam:PassedToService": "ecs-tasks.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Sid": "AllowAmplifyDeploy",
+            "Effect": "Allow",
+            "Action": [
+                "amplify:StartJob",
+                "amplify:GetJob"
+            ],
+            "Resource": "arn:aws:amplify:REGION:ACCOUNT_ID:apps/APP_ID/branches/main/*"
+        }
+    ]
+}
