@@ -49,20 +49,20 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-[#0a0d15]/95 border-b border-[#1e293b] backdrop-blur-md px-4 flex items-center justify-between z-30 select-none">
+    <header className="h-14 bg-[#08090a]/95 border-b border-[#1e293b] backdrop-blur-md px-4 flex items-center justify-between z-30 select-none">
       {/* Brand & Mission Badge */}
       <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#1888ef] to-[#0055c4] flex items-center justify-center shadow-lg shadow-blue-500/20 ring-1 ring-blue-400/30">
-          <Radar className="w-5 h-5 text-white" />
+        <div className="w-9 h-9 rounded-xl    flex items-center justify-center  shadow-blue-500/20 ring-1 ring-blue-400/30">
+          <Radar className="w-5 h-5 text-[#f7f8f8]" />
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-wider text-white font-mono">CONVECTNOW</span>
+            <span className="text-base font-bold tracking-wider text-[#f7f8f8] font-mono">CONVECTNOW</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-950/80 border border-blue-500/40 text-blue-400 font-mono font-medium">
               SIH PS-26084
             </span>
           </div>
-          <p className="text-[10px] text-slate-400 font-mono tracking-tight">
+          <p className="text-[10px] text-[#d0d6e0] font-mono tracking-tight">
             0–6h NORTHEAST CONVECTIVE NOWCASTING · SOHRA RADAR 25.27°N 91.73°E
           </p>
         </div>
@@ -71,7 +71,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
       {/* Center: System Status & Data Mode & Latencies */}
       <div className="hidden xl:flex items-center gap-2.5 flex-shrink min-w-0">
         {/* System Beacon */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex-shrink-0">
+        <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full rounded-full bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex-shrink-0">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -84,7 +84,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-mono transition-colors flex-shrink-0 ${
             isLiveMode
               ? 'bg-blue-950/40 border-blue-500/40 text-blue-300'
-              : 'bg-slate-800/60 border-slate-500/40 text-slate-300'
+              : 'bg-[#08090a]/60 border-slate-500/40 text-[#f7f8f8]'
           }`}
         >
           <Database className="w-3.5 h-3.5" />
@@ -92,25 +92,25 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         </div>
 
         {/* Latency Tickers */}
-        <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400 bg-[#131928]/80 px-2.5 py-1 rounded border border-[#1e293b] flex-shrink-0">
+        <div className="flex items-center gap-2 text-[11px] font-mono text-[#d0d6e0] bg-[#131928]/80 px-4 py-1.5 rounded-full.5 rounded-full rounded border border-[#1e293b] flex-shrink-0">
           <span className="flex items-center gap-1">
             <Radio className="w-3 h-3 text-emerald-400" />
-            <span className="text-slate-300 font-medium">Radar:</span>
+            <span className="text-[#f7f8f8] font-medium">Radar:</span>
             <span className="text-emerald-400">{dataQuality.radar.lag}</span>
           </span>
           <span className="text-slate-600">|</span>
           <span className="flex items-center gap-1">
-            <span className="text-slate-300 font-medium">INSAT:</span>
+            <span className="text-[#f7f8f8] font-medium">INSAT:</span>
             <span className="text-emerald-400">{dataQuality.satellite.lag}</span>
           </span>
           <span className="text-slate-600">|</span>
           <span className="flex items-center gap-1">
-            <span className="text-slate-300 font-medium">Ltg:</span>
+            <span className="text-[#f7f8f8] font-medium">Ltg:</span>
             <span className="text-emerald-400">{dataQuality.lightning.lag}</span>
           </span>
           <span className="text-slate-600">|</span>
           <span className="flex items-center gap-1">
-            <span className="text-slate-300 font-medium">AWS:</span>
+            <span className="text-[#f7f8f8] font-medium">AWS:</span>
             <span className="text-amber-400">{dataQuality.aws.lag}</span>
           </span>
         </div>
@@ -119,12 +119,12 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
       {/* Right Controls: Dual Clock, Replay Button, Layers Drawer Button */}
       <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
         {/* Dual UTC / IST Real-Time Clock */}
-        <div className="flex-shrink-0 bg-[#131928] border border-[#1e293b] rounded-md px-2.5 py-1 text-right font-mono whitespace-nowrap shadow-sm flex flex-col justify-center">
-          <div className="text-[11px] font-semibold text-slate-200 tracking-wider flex items-center justify-end gap-1.5 leading-none">
-            <span className="text-[9px] px-1 py-0.5 rounded bg-sky-950/80 border border-sky-500/40 text-sky-400 font-bold">UTC</span>
+        <div className="flex-shrink-0 bg-[#131928] border border-[#1e293b] rounded-xl px-4 py-1.5 rounded-full.5 rounded-full text-right font-mono whitespace-nowrap  flex flex-col justify-center">
+          <div className="text-[11px] font-semibold text-[#f7f8f8] tracking-wider flex items-center justify-end gap-1.5 leading-none">
+            <span className="text-[9px] px-1 py-0.5 rounded bg-sky-950/80 border border-[#5e6ad2]/40 text-[#5e6ad2] font-bold">UTC</span>
             <span className="tabular-nums">{utcTime || '--:--:-- Z'}</span>
           </div>
-          <div className="text-[10px] text-slate-300 tracking-tight flex items-center justify-end gap-1.5 leading-none mt-1">
+          <div className="text-[10px] text-[#f7f8f8] tracking-tight flex items-center justify-end gap-1.5 leading-none mt-1">
             <span className="text-[9px] px-1 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-400 font-bold">IST</span>
             <span className="tabular-nums">{istTime || '--:--:--'}</span>
           </div>
@@ -135,12 +135,12 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
           onClick={onToggleReplay}
           className={`flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-all ${
             isReplayActive
-              ? 'bg-rose-600/30 border border-rose-500 text-rose-200 ring-2 ring-rose-500/30 shadow-lg shadow-rose-900/40 animate-pulse'
-              : 'bg-[#131928] hover:bg-[#1a2236] border border-[#1e293b] text-slate-300 hover:text-white'
+              ? 'bg-rose-600/30 border border-rose-500 text-rose-200 ring-2 ring-rose-500/30  shadow-rose-900/40 animate-pulse'
+              : 'bg-[#131928] hover:bg-[#1a2236] border border-[#1e293b] text-[#f7f8f8] hover:text-[#f7f8f8]'
           }`}
           title="Toggle June 16–17, 2022 Cherrapunji Extreme Cloudburst Historical Replay"
         >
-          <History className={`w-3.5 h-3.5 ${isReplayActive ? 'text-rose-400' : 'text-slate-400'}`} />
+          <History className={`w-3.5 h-3.5 ${isReplayActive ? 'text-rose-400' : 'text-[#d0d6e0]'}`} />
           <span>{isReplayActive ? 'REPLAY: Active (972mm)' : 'REPLAY: Inactive'}</span>
         </button>
 
@@ -148,7 +148,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         {onOpenVerification && (
           <button
             onClick={onOpenVerification}
-            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-[#131928] hover:bg-[#1a2236] text-blue-300 hover:text-white border border-[#1e293b] hover:border-blue-500/50"
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full.5 rounded text-xs font-mono font-medium transition-colors bg-[#131928] hover:bg-[#1a2236] text-blue-300 hover:text-[#f7f8f8] border border-[#1e293b] hover:border-blue-500/50"
             title="WMO Operational Verification Benchmark (POD, FAR, CSI vs pySTEPS)"
           >
             <Award className="w-3.5 h-3.5 text-blue-400" />
@@ -160,7 +160,7 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
         {onOpenCapModal && (
           <button
             onClick={onOpenCapModal}
-            className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-mono font-medium transition-colors bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 hover:text-white border border-rose-800/40 hover:border-rose-500/60"
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full.5 rounded text-xs font-mono font-medium transition-colors bg-rose-950/30 hover:bg-rose-900/40 text-rose-300 hover:text-[#f7f8f8] border border-rose-800/40 hover:border-rose-500/60"
             title="Generate & Dispatch WMO/NDMA CAP v1.2 Warning Alert"
           >
             <Send className="w-3.5 h-3.5 text-rose-400" />
@@ -173,8 +173,8 @@ export const TopOperationalBar: React.FC<TopOperationalBarProps> = ({
           onClick={onToggleLayers}
           className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors border ${
             isLayerDrawerOpen
-              ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30'
-              : 'bg-[#131928] hover:bg-[#1a2236] text-slate-300 hover:text-white border-[#1e293b]'
+              ? 'bg-blue-600 text-[#f7f8f8] border-blue-500  shadow-blue-600/30'
+              : 'bg-[#131928] hover:bg-[#1a2236] text-[#f7f8f8] hover:text-[#f7f8f8] border-[#1e293b]'
           }`}
           title="Toggle Government & Operational Map Layers"
         >

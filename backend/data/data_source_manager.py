@@ -58,6 +58,51 @@ def data_mode() -> str:
     return "historical_fallback"
 
 
+
+class CircuitBreaker:
+    def __init__(self, failure_threshold: int = 3, recovery_timeout_sec: int = 300):
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout_sec = recovery_timeout_sec
+        
+        self.failures = 0
+        self.last_failure_time: Optional[datetime] = None
+        self.is_open = False
+        
+    def record_failure(self):
+        self.failures += 1
+        self.last_failure_time = datetime.now(timezone.utc)
+        if self.failures >= self.failure_threshold:
+            self.is_open = True
+            logger.warning(f"Circuit Breaker OPENED! Waiting {self.recovery_timeout_sec}s before retry.")
+            
+    def record_success(self):
+        self.failures = 0
+        self.is_open = False
+        
+    def can_execute(self) -> bool:
+        if not self.is_open:
+            return True
+            
+        # If open, check if recovery timeout has elapsed
+        if self.last_failure_time:
+            elapsed = (datetime.now(timezone.utc) - self.last_failure_time).total_seconds()
+            if elapsed > self.recovery_timeout_sec:
+                # Half-open state - allow one test request
+                logger.info("Circuit Breaker HALF-OPEN - testing connection...")
+                return True
+                
+        return False
+
+# Global singletons for connection pooling and circuit breaking
+_http_client: Optional[httpx.AsyncClient] = None
+_imd_circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_sec=60) # 60s for testing/SIH
+
+def get_http_client() -> httpx.AsyncClient:
+    global _http_client
+    if _http_client is None:
+        _http_client = httpx.AsyncClient(timeout=10.0, limits=httpx.Limits(max_keepalive_connections=50, max_connections=100))
+    return _http_client
+
 class IMDLiveAdapter:
     """
     Plug-and-play IMD OpenData Hub adapter.
@@ -98,39 +143,50 @@ class IMDLiveAdapter:
         Stations: 42515 (Sohra/Cherrapunji), 42516 (Shillong), 42517 (Mawsynram),
                   42501 (Guwahati), 42559 (Bhubaneswar/VEBS)
         """
-        if not IMD_API_KEY:
+        if not IMD_API_KEY or not _imd_circuit.can_execute():
             return None
+            
         try:
             params = {"src": "AWSRealtime"}
             if station_ids:
                 params["stnids"] = ",".join(station_ids)
-            async with httpx.AsyncClient(timeout=cls.TIMEOUT) as client:
-                r = await client.get(
-                    IMD_OPENDATA_BASE,
-                    params=params,
-                    headers={"Authorization": f"Bearer {IMD_API_KEY}"},
-                )
-                if r.status_code == 200:
-                    logger.info("IMD AWS realtime fetched ✅ stations=%s", station_ids)
-                    return r.json()
+            
+            client = get_http_client()
+            r = await client.get(
+                IMD_OPENDATA_BASE,
+                params=params,
+                headers={"Authorization": f"Bearer {IMD_API_KEY}"},
+            )
+            if r.status_code == 200:
+                _imd_circuit.record_success()
+                logger.info("IMD AWS realtime fetched ✅ stations=%s", station_ids)
+                return r.json()
+            else:
+                _imd_circuit.record_failure()
         except Exception as exc:
+            _imd_circuit.record_failure()
             logger.warning("IMD AWS fetch failed: %s", exc)
         return None
 
     @classmethod
     async def get_lightning(cls) -> Optional[Dict[str, Any]]:
         """Fetch hourly lightning strike density grid."""
-        if not IMD_API_KEY:
+        if not IMD_API_KEY or not _imd_circuit.can_execute():
             return None
+            
         try:
-            async with httpx.AsyncClient(timeout=cls.TIMEOUT) as client:
-                r = await client.get(
-                    IMD_LIGHTNING,
-                    headers={"Authorization": f"Bearer {IMD_API_KEY}"},
-                )
-                if r.status_code == 200:
-                    return r.json()
+            client = get_http_client()
+            r = await client.get(
+                IMD_LIGHTNING,
+                headers={"Authorization": f"Bearer {IMD_API_KEY}"},
+            )
+            if r.status_code == 200:
+                _imd_circuit.record_success()
+                return r.json()
+            else:
+                _imd_circuit.record_failure()
         except Exception as exc:
+            _imd_circuit.record_failure()
             logger.warning("IMD lightning fetch failed: %s", exc)
         return None
 
@@ -141,18 +197,23 @@ class IMDLiveAdapter:
         Returns structured JSON with thunderstorm probability,
         estimated rainfall, and wind direction.
         """
-        if not IMD_API_KEY:
+        if not IMD_API_KEY or not _imd_circuit.can_execute():
             return None
+            
         try:
-            async with httpx.AsyncClient(timeout=cls.TIMEOUT) as client:
-                r = await client.get(
-                    IMD_OPENDATA_BASE,
-                    params={"src": "Nowcast", "lat": lat, "lon": lon},
-                    headers={"Authorization": f"Bearer {IMD_API_KEY}"},
-                )
-                if r.status_code == 200:
-                    return r.json()
+            client = get_http_client()
+            r = await client.get(
+                IMD_OPENDATA_BASE,
+                params={"src": "Nowcast", "lat": lat, "lon": lon},
+                headers={"Authorization": f"Bearer {IMD_API_KEY}"},
+            )
+            if r.status_code == 200:
+                _imd_circuit.record_success()
+                return r.json()
+            else:
+                _imd_circuit.record_failure()
         except Exception as exc:
+            _imd_circuit.record_failure()
             logger.warning("IMD nowcast fetch failed: %s", exc)
         return None
 

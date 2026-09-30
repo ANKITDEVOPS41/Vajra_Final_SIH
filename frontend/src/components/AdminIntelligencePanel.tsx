@@ -166,15 +166,15 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       {/* Top Header */}
       <div className="flex items-center justify-between pb-3 border-b border-white/[0.12] shrink-0">
         <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#1888ef] to-[#38a8ff] flex items-center justify-center shadow-[0_0_12px_rgba(56,168,255,0.4)]">
-            <Radio className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-xl    flex items-center justify-center ">
+            <Radio className="w-4 h-4 text-[#f7f8f8]" />
           </div>
           <div>
-            <h3 className="text-xs font-display font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <h3 className="text-xs font-display font-bold uppercase tracking-wider text-[#f7f8f8] flex items-center gap-1.5">
               <span>SDMA Intelligence & Alert Dispatch</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </h3>
-            <p className="text-[10px] text-slate-400 font-mono">
+            <p className="text-[10px] text-[#d0d6e0] font-mono">
               MoES Early Warning & Civil Defence Network
             </p>
           </div>
@@ -189,7 +189,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
 
       {/* Confirmation Banner when Alert Dispatched */}
       {(justDispatched || activeDispatchedAlert?.cellId === currentCell.cell_id) && (
-        <div className="bg-gradient-to-r from-red-950/90 via-[#18233a] to-emerald-950/80 border-2 border-emerald-500/70 p-3 rounded-2xl shadow-[0_0_25px_rgba(16,185,129,0.3)] animate-in fade-in duration-300">
+        <div className=" from-red-950/90  to-emerald-950/80 border-2 border-emerald-500/70 p-3 rounded-xl  animate-in fade-in duration-300">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-2.5">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
@@ -197,18 +197,18 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-600/50">
                   ALERT BROADCAST ACTIVE
                 </span>
-                <h4 className="text-xs font-bold text-white mt-1">
+                <h4 className="text-xs font-bold text-[#f7f8f8] mt-1">
                   Pushed to SDMA Emergency Network & Mausam App
                 </h4>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Target corridor: <strong className="text-white">{currentCell.cell_id} ({broadcastRadiusKm} km radius)</strong> · {demographics.totalExposedPopulation.toLocaleString()} citizens alerted.
+                <p className="text-[11px] text-[#f7f8f8] mt-0.5">
+                  Target corridor: <strong className="text-[#f7f8f8]">{currentCell.cell_id} ({broadcastRadiusKm} km radius)</strong> · {demographics.totalExposedPopulation.toLocaleString()} citizens alerted.
                 </p>
               </div>
             </div>
             {onSwitchToCitizenView && (
               <button
                 onClick={onSwitchToCitizenView}
-                className="btn-blizzard-primary text-[11px] px-3 py-1.5 flex items-center space-x-1 shrink-0 ml-2 shadow-[0_0_15px_rgba(56,168,255,0.4)]"
+                className="btn-blizzard-primary text-[11px] px-4 py-1.5 rounded-full.5 flex items-center space-x-1 shrink-0 ml-2 "
               >
                 <span>Preview in Mausam App</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -227,13 +227,13 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       )}
 
       {/* Storm Cell Selector & Core Telemetry Strip */}
-      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3 space-y-2.5 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-xl p-3 space-y-2.5 ">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-[#d0d6e0] font-semibold flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5 text-[#1aaaff]" />
             <span>Active Storm Cell Selection</span>
           </span>
-          <span className="text-[10px] font-mono text-slate-500">
+          <span className="text-[10px] font-mono text-[#d0d6e0]">
             {availableCells.length} cells tracked
           </span>
         </div>
@@ -249,8 +249,8 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 onClick={() => onSelectCell && onSelectCell(cell)}
                 className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all flex items-center space-x-2 border ${
                   isSelected
-                    ? 'bg-gradient-to-r from-[#1aaaff] to-[#1aaaff] text-white font-bold border-white/40 shadow-[0_0_15px_rgba(56,168,255,0.4)]'
-                    : 'bg-ocean-900/80 text-slate-300 border-white/10 hover:border-[#38a8ff]/40 hover:text-white'
+                    ? '   text-[#f7f8f8] font-bold border-white/40 '
+                    : 'bg-ocean-900/80 text-[#f7f8f8] border-white/10 hover:border-[#38a8ff]/40 hover:text-[#f7f8f8]'
                 }`}
               >
                 <span className={`w-2 h-2 rounded-full ${isCellExtreme ? 'bg-red-400 animate-pulse' : 'bg-amber-400'}`} />
@@ -264,26 +264,26 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
         {/* Selected Cell Core Telemetry Bar */}
         <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/[0.08] text-center font-mono">
           <div className="bg-ocean-950/60 p-2 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-400 block uppercase">Core dBZ</span>
+            <span className="text-[9px] text-[#d0d6e0] block uppercase">Core dBZ</span>
             <span className={`text-sm font-black ${currentCell.peak_dbz >= 65 ? 'text-red-400' : 'text-amber-400'}`}>
               {currentCell.peak_dbz} dBZ
             </span>
           </div>
           <div className="bg-ocean-950/60 p-2 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-400 block uppercase">Ground Speed</span>
-            <span className="text-sm font-bold text-white">
+            <span className="text-[9px] text-[#d0d6e0] block uppercase">Ground Speed</span>
+            <span className="text-sm font-bold text-[#f7f8f8]">
               {currentCell.velocity_kmh} km/h
             </span>
           </div>
           <div className="bg-ocean-950/60 p-2 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-400 block uppercase">Heading</span>
+            <span className="text-[9px] text-[#d0d6e0] block uppercase">Heading</span>
             <span className="text-sm font-bold text-[#1aaaff] flex items-center justify-center gap-0.5">
               <Compass className="w-3 h-3" />
               {currentCell.heading_deg}°
             </span>
           </div>
           <div className="bg-ocean-950/60 p-2 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-400 block uppercase">Rain Rate</span>
+            <span className="text-[9px] text-[#d0d6e0] block uppercase">Rain Rate</span>
             <span className={`text-sm font-bold ${isCloudburst ? 'text-red-400' : 'text-amber-300'}`}>
               {currentCell.hazards.rain_rate_mmh.toFixed(0)} mm/h
             </span>
@@ -292,11 +292,11 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Demographic Risk Assessment Section */}
-      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-xl p-3.5 space-y-3 ">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Users className="w-4 h-4 text-[#1aaaff]" />
-            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-white">
+            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-[#f7f8f8]">
               Demographic Risk & Population Exposure
             </h4>
           </div>
@@ -313,17 +313,17 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
 
         {/* Settlement Typology Selector */}
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[10px] font-mono">
-          <span className="text-slate-400 shrink-0 uppercase text-[9px]">Sector:</span>
+          <span className="text-[#d0d6e0] shrink-0 uppercase text-[9px]">Sector:</span>
           {(Object.keys(SETTLEMENT_PROFILES) as SettlementTypology[]).map((type) => {
             const isSelected = selectedSettlement === type;
             return (
               <button
                 key={type}
                 onClick={() => setSelectedSettlement(type)}
-                className={`px-2 py-1 rounded-lg shrink-0 transition-all border ${
+                className={`px-2 py-1 rounded-xl shrink-0 transition-all border ${
                   isSelected
                     ? 'bg-[#38a8ff]/20 text-[#1aaaff] border-[#38a8ff]/60 font-bold'
-                    : 'bg-ocean-950/60 text-slate-400 border-white/5 hover:text-white'
+                    : 'bg-ocean-950/60 text-[#d0d6e0] border-white/5 hover:text-[#f7f8f8]'
                 }`}
                 title={SETTLEMENT_PROFILES[type].description}
               >
@@ -332,15 +332,15 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
             );
           })}
         </div>
-        <p className="text-[10px] text-slate-400 italic font-sans leading-tight">
-          Current: <strong className="text-slate-200">{SETTLEMENT_PROFILES[selectedSettlement].label}</strong> ({SETTLEMENT_PROFILES[selectedSettlement].baseDensityPerKm2.toLocaleString()} citizens/km²).
+        <p className="text-[10px] text-[#d0d6e0] italic font-sans leading-tight">
+          Current: <strong className="text-[#f7f8f8]">{SETTLEMENT_PROFILES[selectedSettlement].label}</strong> ({SETTLEMENT_PROFILES[selectedSettlement].baseDensityPerKm2.toLocaleString()} citizens/km²).
         </p>
 
         {/* 3 Demographic Stat Cards */}
         <div className="grid grid-cols-3 gap-2 text-left">
           <div className="bg-ocean-950/80 p-2.5 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-400 uppercase font-mono block">Impact Corridor</span>
-            <div className="text-lg font-black font-mono text-white mt-0.5">
+            <span className="text-[9px] text-[#d0d6e0] uppercase font-mono block">Impact Corridor</span>
+            <div className="text-lg font-black font-mono text-[#f7f8f8] mt-0.5">
               {demographics.totalExposedPopulation.toLocaleString()}
             </div>
             <span className="text-[9px] text-[#1aaaff] font-mono">
@@ -353,7 +353,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
             <div className="text-lg font-black font-mono text-amber-300 mt-0.5">
               {demographics.criticalJeopardyPopulation.toLocaleString()}
             </div>
-            <span className="text-[9px] text-slate-400 font-mono">
+            <span className="text-[9px] text-[#d0d6e0] font-mono">
               {Math.round(demographics.severityFactor * 100)}% severity index
             </span>
           </div>
@@ -371,31 +371,31 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
 
         {/* High-Risk Demographics Breakdown */}
         <div className="bg-ocean-950/60 p-2.5 rounded-xl border border-white/5 text-[11px] font-mono space-y-1.5">
-          <div className="flex justify-between text-slate-300">
-            <span className="text-slate-400">Kutcha / Slum Dwellers:</span>
+          <div className="flex justify-between text-[#f7f8f8]">
+            <span className="text-[#d0d6e0]">Kutcha / Slum Dwellers:</span>
             <strong className="text-red-300">{demographics.highRiskDemographics.kutchaDwellers.toLocaleString()} persons</strong>
           </div>
-          <div className="flex justify-between text-slate-300">
-            <span className="text-slate-400">Low-lying Drainage Submergence:</span>
+          <div className="flex justify-between text-[#f7f8f8]">
+            <span className="text-[#d0d6e0]">Low-lying Drainage Submergence:</span>
             <strong className="text-amber-300">{demographics.highRiskDemographics.lowLyingDrainageZone.toLocaleString()} persons</strong>
           </div>
-          <div className="flex justify-between text-slate-300">
-            <span className="text-slate-400">Vulnerable Elderly & Children:</span>
-            <strong className="text-white">{demographics.highRiskDemographics.elderlyAndChildren.toLocaleString()} persons</strong>
+          <div className="flex justify-between text-[#f7f8f8]">
+            <span className="text-[#d0d6e0]">Vulnerable Elderly & Children:</span>
+            <strong className="text-[#f7f8f8]">{demographics.highRiskDemographics.elderlyAndChildren.toLocaleString()} persons</strong>
           </div>
         </div>
       </div>
 
       {/* Building Structural Vulnerability (BMTPC / NDMA 4-Tier Matrix) */}
-      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-xl p-3.5 space-y-3 ">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Building2 className="w-4 h-4 text-amber-400" />
-            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-white">
+            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-[#f7f8f8]">
               BMTPC Structural Building Vulnerability
             </h4>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono">
+          <span className="text-[10px] text-[#d0d6e0] font-mono">
             ~{buildingVulnerability.totalEstimatedStructures.toLocaleString()} structures
           </span>
         </div>
@@ -411,12 +411,12 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 {buildingVulnerability.typeA_kutcha.failureRiskPct}% FAILURE RISK
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-[#d0d6e0] mt-1">
               {buildingVulnerability.typeA_kutcha.description} ({buildingVulnerability.typeA_kutcha.structureCount.toLocaleString()} units)
             </p>
             <div className="w-full bg-ocean-900 h-1.5 rounded-full overflow-hidden mt-1.5 border border-white/5">
               <div 
-                className="h-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-500" 
+                className="h-full  from-red-600 to-rose-400 transition-all duration-500" 
                 style={{ width: `${buildingVulnerability.typeA_kutcha.failureRiskPct}%` }}
               />
             </div>
@@ -435,12 +435,12 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 {buildingVulnerability.typeB_semiPucca.failureRiskPct}% DAMAGE RISK
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-[#d0d6e0] mt-1">
               {buildingVulnerability.typeB_semiPucca.description} ({buildingVulnerability.typeB_semiPucca.structureCount.toLocaleString()} units)
             </p>
             <div className="w-full bg-ocean-900 h-1.5 rounded-full overflow-hidden mt-1.5 border border-white/5">
               <div 
-                className="h-full bg-gradient-to-r from-amber-600 to-yellow-400 transition-all duration-500" 
+                className="h-full  from-amber-600 to-yellow-400 transition-all duration-500" 
                 style={{ width: `${buildingVulnerability.typeB_semiPucca.failureRiskPct}%` }}
               />
             </div>
@@ -452,17 +452,17 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
           {/* Type C: Engineered Pucca RCC */}
           <div className="bg-ocean-950/80 p-2.5 rounded-xl border border-white/10">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-200 font-heading">
+              <span className="text-xs font-bold text-[#f7f8f8] font-heading">
                 {buildingVulnerability.typeC_puccaRcc.typeName}
               </span>
               <span className="text-[10px] font-mono font-bold bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-700/60">
                 {buildingVulnerability.typeC_puccaRcc.failureRiskPct}% INUNDATION RISK
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
+            <p className="text-[10px] text-[#d0d6e0] mt-1">
               {buildingVulnerability.typeC_puccaRcc.description} ({buildingVulnerability.typeC_puccaRcc.structureCount.toLocaleString()} units)
             </p>
-            <span className="text-[9px] text-slate-400 font-mono block mt-1">
+            <span className="text-[9px] text-[#d0d6e0] font-mono block mt-1">
               Threat: {buildingVulnerability.typeC_puccaRcc.primaryFailureMode}
             </span>
           </div>
@@ -474,7 +474,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
             </span>
             {buildingVulnerability.typeD_lifeline.assets.map((asset, i) => (
               <div key={i} className="flex items-center justify-between text-[10px] border-b border-white/5 pb-1 last:border-none">
-                <span className="text-slate-300 truncate max-w-[210px]">{asset.name}</span>
+                <span className="text-[#f7f8f8] truncate max-w-[210px]">{asset.name}</span>
                 <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold shrink-0 ${
                   asset.status === 'CRITICAL_STANDBY'
                     ? 'bg-red-950 text-red-400 border border-red-600/40'
@@ -491,11 +491,11 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Real-World NDRF / SDRF Battalions Proximity Table */}
-      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-2xl p-3.5 space-y-3 shadow-sm">
+      <div className="bg-[#111729]/90 border border-white/[0.1] rounded-xl p-3.5 space-y-3 ">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Truck className="w-4 h-4 text-emerald-400" />
-            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-white">
+            <h4 className="text-xs font-display font-bold uppercase tracking-wider text-[#f7f8f8]">
               NDRF / SDRF Deployment Proximity (Road Route)
             </h4>
           </div>
@@ -517,25 +517,25 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                     <span className="text-[10px] font-mono font-bold bg-[#1888ef]/20 text-[#1aaaff] px-1.5 py-0.5 rounded border border-[#1aaaff]/30">
                       #{idx + 1}
                     </span>
-                    <strong className="text-xs font-heading text-white">{bn.name}</strong>
+                    <strong className="text-xs font-heading text-[#f7f8f8]">{bn.name}</strong>
                   </div>
                   <span className="text-xs font-mono font-black text-emerald-400">
                     ETA {item.totalEtaMinutes} min
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                <div className="flex items-center justify-between text-[10px] font-mono text-[#d0d6e0]">
                   <span>📍 {bn.baseLocation}, {bn.state}</span>
                   <span className="text-[#1aaaff] font-bold">{item.roadDistanceKm} km road</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[9px] font-mono">
-                  <span className="text-slate-300">
+                  <span className="text-[#f7f8f8]">
                     {bn.activeQrtTeams} QRT Teams ({bn.personnelStrength} pax)
                   </span>
                   <button
                     onClick={() => handleCallRadio(bn.name, bn.contactRadio)}
-                    className="px-2 py-1 rounded bg-ocean-800 hover:bg-[#1888ef] text-white transition-colors flex items-center space-x-1 border border-white/10"
+                    className="px-2 py-1 rounded bg-ocean-800 hover:bg-[#1888ef] text-[#f7f8f8] transition-colors flex items-center space-x-1 border border-white/10"
                     title={`Call on ${bn.contactRadio} or ${bn.hotlinePhone}`}
                   >
                     <PhoneCall className="w-2.5 h-2.5 text-[#1aaaff]" />
@@ -549,11 +549,11 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
       </div>
 
       {/* Broadcast Radius Selector & Primary Dispatch Action */}
-      <div className="bg-gradient-to-b from-[#131928] to-[#0a0d15] border-2 border-red-500/40 rounded-2xl p-4 space-y-3.5 shadow-[0_4px_30px_rgba(239,68,68,0.15)]">
+      <div className="   border-2 border-red-500/40 rounded-xl p-4 space-y-3.5 ">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Send className="w-4 h-4 text-red-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-white font-display">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#f7f8f8] font-display">
               Target Broadcast Radius
             </span>
           </div>
@@ -564,8 +564,8 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
                 onClick={() => setBroadcastRadiusKm(r)}
                 className={`px-2.5 py-1 rounded-full border transition-all ${
                   broadcastRadiusKm === r
-                    ? 'bg-red-600 text-white font-bold border-white/30 shadow-[0_0_10px_rgba(239,68,68,0.5)]'
-                    : 'bg-ocean-950 text-slate-400 border-white/10 hover:text-white'
+                    ? 'bg-red-600 text-[#f7f8f8] font-bold border-white/30 '
+                    : 'bg-ocean-950 text-[#d0d6e0] border-white/10 hover:text-[#f7f8f8]'
                 }`}
               >
                 {r}km
@@ -574,16 +574,16 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
-          Broadcasting to <strong className="text-white">{broadcastRadiusKm} km radius</strong> covers {demographics.totalExposedPopulation.toLocaleString()} citizens in the {currentCell.cell_id} impact corridor. Dispatches immediate NDMA SOPs, ETA clocks, and shelter routing to all citizen handsets via the Mausam App.
+        <p className="text-[11px] text-[#f7f8f8] font-sans leading-relaxed">
+          Broadcasting to <strong className="text-[#f7f8f8]">{broadcastRadiusKm} km radius</strong> covers {demographics.totalExposedPopulation.toLocaleString()} citizens in the {currentCell.cell_id} impact corridor. Dispatches immediate NDMA SOPs, ETA clocks, and shelter routing to all citizen handsets via the Mausam App.
         </p>
 
         {/* Primary Action Button */}
         <button
           onClick={handleDispatch}
-          className="w-full py-3.5 px-6 rounded-full font-display font-bold uppercase tracking-wider text-xs text-white bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 shadow-[0_0_30px_rgba(239,68,68,0.5)] border-2 border-white/30 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center space-x-2.5"
+          className="w-full py-3.5 px-6 rounded-full font-display font-bold uppercase tracking-wider text-xs text-[#f7f8f8]  from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500  border-2 border-white/30 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center space-x-2.5"
         >
-          <AlertTriangle className="w-4 h-4 text-white animate-bounce" />
+          <AlertTriangle className="w-4 h-4 text-[#f7f8f8] animate-bounce" />
           <span>Dispatch Alert & Broadcast to Mausam App</span>
         </button>
 
@@ -592,7 +592,7 @@ export const AdminIntelligencePanel: React.FC<AdminIntelligencePanelProps> = ({
           <div className="text-center pt-1">
             <button
               onClick={onSwitchToCitizenView}
-              className="text-[11px] font-mono text-[#1aaaff] hover:text-white underline underline-offset-4 flex items-center justify-center gap-1 mx-auto transition-colors"
+              className="text-[11px] font-mono text-[#1aaaff] hover:text-[#f7f8f8] underline underline-offset-4 flex items-center justify-center gap-1 mx-auto transition-colors"
             >
               <span>Preview in Mausam App (Citizen POV)</span>
               <ChevronRight className="w-3.5 h-3.5" />

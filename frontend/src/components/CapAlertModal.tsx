@@ -57,27 +57,27 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="card-blizzard w-full max-w-2xl border border-red-500/40 rounded-3xl shadow-[0_20px_60px_rgba(239,68,68,0.2)] overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[20000] bg-[#0a0e1a]/85 backdrop-blur-xl flex items-center justify-center p-4">
+      <div className="card-blizzard w-full max-w-2xl border border-red-500/40 rounded-3xl  overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="bg-[#111729]/90 border-b border-white/10 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
             <ShieldAlert className="w-5 h-5 text-red-400" />
             <div>
               <div className="flex items-center space-x-2">
-                <h2 className="font-heading text-sm font-bold text-white uppercase tracking-wider">
+                <h2 className="font-heading text-sm font-bold text-[#f7f8f8] uppercase tracking-wider">
                   NDMA / SDMA Common Alerting Protocol (CAP v1.2 XML)
                 </h2>
                 <DataProvenanceBadge source="LIVE" />
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-[#d0d6e0] font-mono">
                 Targeted Emergency Broadcast Payload for {cellId}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-[#d0d6e0] hover:text-[#f7f8f8] transition-all"
           >
             <X className="w-5 h-5" />
           </button>
@@ -92,7 +92,7 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-white/10 bg-[#111729]/60 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-[#d0d6e0] font-mono">
             OASIS CAP v1.2 Standard · NDMA Direct Ingestion Standard
           </span>
           <div className="flex items-center space-x-2">
@@ -105,7 +105,7 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
             </button>
             <button
               onClick={handleDownload}
-              className="btn-blizzard-primary text-xs px-4 py-2 flex items-center space-x-1.5 bg-red-600 hover:bg-red-500 shadow-[0_0_16px_rgba(239,68,68,0.3)]"
+              className="btn-blizzard-primary text-xs px-4 py-2 flex items-center space-x-1.5 bg-red-600 hover:bg-red-500 "
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download .XML</span>

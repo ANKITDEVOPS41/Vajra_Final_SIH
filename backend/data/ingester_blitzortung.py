@@ -5,6 +5,39 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
+# Lightweight async event bus to replace direct callbacks
+class EventBus:
+    def __init__(self):
+        self.subscribers = []
+        self.queue = asyncio.Queue()
+
+    def subscribe(self, callback: Callable):
+        self.subscribers.append(callback)
+
+    async def publish(self, event):
+        await self.queue.put(event)
+
+    async def _dispatch_loop(self):
+        while True:
+            event = await self.queue.get()
+            for sub in self.subscribers:
+                try:
+                    # In a real system, this would be an async dispatch or Redis publish
+                    if asyncio.iscoroutinefunction(sub):
+                        asyncio.create_task(sub(event))
+                    else:
+                        sub(event)
+                except Exception as e:
+                    logger.error(f"Error in event subscriber: {e}")
+            self.queue.task_done()
+
+# Global Event Bus Singleton
+_lightning_bus = EventBus()
+
+def get_lightning_bus() -> EventBus:
+    return _lightning_bus
+
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -23,16 +56,19 @@ class LightningIngestor:
     """
     Live streaming ingestor for lightning strikes.
     Abstracts the underlying socket connection to provide a unified
-    callback-driven architecture for the MultimodalFusionEngine.
+    event-driven architecture (via EventBus/Queue) for the MultimodalFusionEngine.
     """
     def __init__(self, websocket_url: str = "wss://ws1.blitzortung.org:443/"):
         self.websocket_url = websocket_url
         self.is_running = False
-        self._callbacks: list[Callable[[LightningStrike], None]] = []
+        self.bus = get_lightning_bus()
+        
+        # Start the background dispatch loop
+        self._dispatch_task = asyncio.create_task(self.bus._dispatch_loop())
         
     def add_callback(self, callback: Callable[[LightningStrike], None]):
-        """Register a function to be called on every new lightning strike."""
-        self._callbacks.append(callback)
+        """Register a function to subscribe to the lightning event bus."""
+        self.bus.subscribe(callback)
         
     async def start_streaming(self):
         """
@@ -88,9 +124,8 @@ class LightningIngestor:
                     amplitude_ka=data.get("sig")
                 )
                 
-                # Broadcast to all registered fusion engines
-                for cb in self._callbacks:
-                    cb(strike)
+                # Publish to async event bus
+                asyncio.create_task(self.bus.publish(strike))
                     
         except json.JSONDecodeError:
             pass
@@ -110,8 +145,7 @@ class LightningIngestor:
                 polarity=random.choice([1, -1]),
                 amplitude_ka=random.uniform(10.0, 50.0)
             )
-            for cb in self._callbacks:
-                cb(strike)
+            asyncio.create_task(self.bus.publish(strike))
             await asyncio.sleep(random.uniform(0.1, 1.5))
 
     def stop(self):

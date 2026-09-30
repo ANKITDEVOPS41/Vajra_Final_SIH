@@ -57,3 +57,28 @@ Following the `visual-emotion-engineer` framework:
 - [ ] Any evaluator, judge, or duty forecaster can understand what the screen is doing and what action to take in under 5 seconds.
 - [ ] The full interactive "Mission Briefing" modal is accessible from any view.
 - [ ] `npm run build` passes with 0 TypeScript/ESLint errors.
+
+## 2026-09-30T00:29:57Z
+
+This is a single self-contained fix; keep it small and focused. Refactor the ConvectNow Python backend to bundle all real-time telemetry (Storms, AWS, Grid, Metrics) into a single WebSocket payload at `/ws/live`, and update the React frontend (`useConvectNowData.ts`) to consume this WebSocket stream instead of HTTP polling.
+
+Working directory: /Users/gauravkumarnayak/Desktop/convect
+Integrity mode: development
+
+## Requirements
+
+### R1. Unified Backend WebSocket Payload
+Update `_push_live_update` in `backend/api/main.py` to aggregate data from all four domains (storm cells, AWS stations, grid hazards, evaluation metrics) into a single dictionary payload before broadcasting.
+
+### R2. Frontend WebSocket Integration & Resilience
+Rewrite the `useConvectNowData` hook in `frontend/src/hooks/useConvectNowData.ts` to establish a persistent WebSocket connection to `ws://localhost:8000/ws/live`. Remove the existing `setInterval` HTTP polling logic and update state reactively. Implement auto-reconnection with exponential backoff so the dashboard recovers automatically if the Python server restarts.
+
+## Acceptance Criteria
+
+### Compilation & Build
+- [ ] Backend tests and server start without syntax errors.
+- [ ] Frontend builds successfully (`npm run build`) with zero TypeScript errors.
+
+### Verification
+- [ ] The browser's Network tab confirms a `101 Switching Protocols` WebSocket connection to `/ws/live` and no repetitive `GET` polling requests every 60 seconds.
+- [ ] If the backend server is killed and restarted, the frontend automatically reconnects within a few seconds without a page refresh.

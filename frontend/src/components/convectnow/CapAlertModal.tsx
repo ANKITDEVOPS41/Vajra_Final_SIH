@@ -141,31 +141,31 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
-      <div className="relative w-full max-w-3xl max-h-[90vh] bg-[#0c1220] border border-[#1e293b] rounded-xl shadow-2xl flex flex-col overflow-hidden text-slate-200">
+    <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
+      <div className="relative w-full max-w-3xl max-h-[90vh] bg-[#0c1220] border border-[#1e293b] rounded-xl  flex flex-col overflow-hidden text-[#f7f8f8]">
         {/* Header */}
         <div className="p-4 border-b border-[#1e293b] bg-[#131928] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30">
+            <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/30">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white tracking-wider">
+                <h2 className="text-sm font-bold text-[#f7f8f8] tracking-wider">
                   COMMON ALERTING PROTOCOL (CAP v1.2) DISPATCHER
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
                   ITU-T X.1303 / NDMA
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-[#d0d6e0] mt-0.5">
                 Standard interoperable disaster warning payload for NDMA Sachet & State Disaster Management Authorities
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-xl text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -178,8 +178,8 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
               onClick={() => setActiveFormat('xml')}
               className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 activeFormat === 'xml'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-[#1e293b] text-slate-400 hover:text-slate-200'
+                  ? 'bg-blue-600 text-[#f7f8f8]'
+                  : 'bg-[#141516] text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               CAP v1.2 XML (WMO Standard)
@@ -188,8 +188,8 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
               onClick={() => setActiveFormat('json')}
               className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
                 activeFormat === 'json'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-[#1e293b] text-slate-400 hover:text-slate-200'
+                  ? 'bg-blue-600 text-[#f7f8f8]'
+                  : 'bg-[#141516] text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               NDMA Sachet JSON
@@ -199,14 +199,14 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded bg-[#1e293b] hover:bg-[#283548] text-slate-300 hover:text-white transition-colors border border-slate-700"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full text-xs rounded bg-[#141516] hover:bg-[#283548] text-[#f7f8f8] hover:text-[#f7f8f8] transition-colors border border-[#23252a]"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded bg-[#1e293b] hover:bg-[#283548] text-slate-300 hover:text-white transition-colors border border-slate-700"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full text-xs rounded bg-[#141516] hover:bg-[#283548] text-[#f7f8f8] hover:text-[#f7f8f8] transition-colors border border-[#23252a]"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download</span>
@@ -223,21 +223,21 @@ export const CapAlertModal: React.FC<CapAlertModalProps> = ({
 
         {/* Dispatch Action Footer */}
         <div className="p-3 border-t border-[#1e293b] bg-[#131928] flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 text-[11px] text-[#d0d6e0]">
             <Radio className="w-3.5 h-3.5 text-blue-400" />
             <span>Target: NDMA Sachet National Gateway + Meghalaya SDMA</span>
           </div>
 
           <div className="flex items-center gap-2">
             {isDispatched ? (
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold animate-pulse">
+              <span className="flex items-center gap-1.5 px-4 py-1.5 rounded-full rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold animate-pulse">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 DISPATCHED TO NDMA SACHET
               </span>
             ) : (
               <button
                 onClick={handleDispatch}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-semibold shadow-lg shadow-rose-900/30 transition-all hover:scale-[1.02]"
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded bg-rose-600 hover:bg-rose-500 text-[#f7f8f8] font-semibold  shadow-rose-900/30 transition-all hover:scale-[1.02]"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>Simulate NDMA Broadcast</span>

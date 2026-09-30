@@ -307,25 +307,25 @@ export const InferencePipelineView: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. TOP HERO HEADER & INGESTION TELEMETRY BAR */}
       {/* ========================================================================= */}
-      <div className="bg-[#0b101b] border border-[#1f293d] rounded-2xl p-5 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[450px] h-full bg-gradient-to-l from-sky-500/10 via-purple-500/5 to-transparent pointer-events-none"></div>
+      <div className="bg-[#0b101b] border border-[#1f293d] rounded p-5  relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[450px] h-full  from-[#5e6ad2]/10 via-slate-800/5 to-transparent pointer-events-none"></div>
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center">
-                <Cpu className="w-5 h-5 text-sky-400" />
+              <div className="w-9 h-9 rounded bg-[#1b2333] border border-[#2b3a55] flex items-center justify-center">
+                <Cpu className="w-5 h-5 text-[#38bdf8]" />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h1 className="text-lg font-bold text-white tracking-tight">
+                  <h1 className="text-lg font-bold text-[#f7f8f8] tracking-tight">
                     ConvectNet Spatiotemporal Engine • AI Inference Pipeline
                   </h1>
                   <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                     LIVE MPS ACCELERATED
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5 font-mono">
+                <p className="text-xs text-[#d0d6e0] mt-0.5 font-mono">
                   SIH PS-26084 • 4D Multimodal Sensor Fusion (DWR + INSAT-3DR + IITM Lightning + 9 AWS) → CBAM ConvLSTM
                 </p>
               </div>
@@ -335,20 +335,20 @@ export const InferencePipelineView: React.FC = () => {
           {/* Model Operational SLA & Manual Forward Pass Trigger */}
           <div className="flex items-center space-x-3">
             <div className="text-right font-mono hidden sm:block">
-              <div className="text-[10px] text-slate-400 uppercase">Forward Pass SLA</div>
+              <div className="text-[10px] text-[#d0d6e0] uppercase">Forward Pass SLA</div>
               <div className="text-sm font-bold text-emerald-400 flex items-center justify-end space-x-1">
                 <span>42 ms</span>
-                <span className="text-[10px] text-slate-400">(&lt;50ms PASS)</span>
+                <span className="text-[10px] text-[#d0d6e0]">(&lt;50ms PASS)</span>
               </div>
             </div>
 
             <button
               onClick={handleTriggerInference}
               disabled={isInferring}
-              className={`px-4 py-2.5 rounded-xl font-mono text-xs font-bold flex items-center space-x-2 transition-all shadow-lg ${
+              className={`px-4 py-2.5 rounded font-mono text-xs font-bold flex items-center space-x-2 transition-all  ${
                 isInferring 
-                  ? 'bg-sky-500/30 text-sky-300 border border-sky-500/50 cursor-wait'
-                  : 'bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white shadow-sky-900/30 active:scale-[0.98]'
+                  ? 'bg-[#38bdf8]/30 text-sky-300 border border-[#38bdf8] cursor-wait'
+                  : ' from-sky-600 to-indigo-600 hover:from-[#5e6ad2] hover:to-indigo-500 text-[#f7f8f8] shadow-sky-900/30 active:scale-[0.98]'
               }`}
             >
               {isInferring ? (
@@ -368,29 +368,29 @@ export const InferencePipelineView: React.FC = () => {
 
         {/* Live Latency Breakdown & Verified Model Benchmarks */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-5 pt-4 border-t border-[#1f293d] text-xs font-mono">
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">Tensor Assembly</div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">Tensor Assembly</div>
             <div className="text-sm font-bold text-sky-300 mt-0.5">12 ms</div>
           </div>
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">Encoder + CBAM</div>
-            <div className="text-sm font-bold text-purple-300 mt-0.5">14 ms</div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">Encoder + CBAM</div>
+            <div className="text-sm font-bold text-amber-400 mt-0.5">14 ms</div>
           </div>
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">ConvLSTM Core</div>
-            <div className="text-sm font-bold text-indigo-300 mt-0.5">18 ms</div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">ConvLSTM Core</div>
+            <div className="text-sm font-bold text-sky-300 mt-0.5">18 ms</div>
           </div>
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">CSI Score (0–6h)</div>
-            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.68 <span className="text-[10px] text-slate-400">(+24% vs DWR)</span></div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">CSI Score (0–6h)</div>
+            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.68 <span className="text-[10px] text-[#d0d6e0]">(+24% vs DWR)</span></div>
           </div>
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">False Alarm Ratio</div>
-            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.14 <span className="text-[10px] text-slate-400">(Low FAR)</span></div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">False Alarm Ratio</div>
+            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.14 <span className="text-[10px] text-[#d0d6e0]">(Low FAR)</span></div>
           </div>
-          <div className="bg-[#0e1424] p-2.5 rounded-lg border border-[#1e2a42]">
-            <div className="text-[10px] text-slate-400">Brier Score</div>
-            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.082 <span className="text-[10px] text-slate-400">(Calibrated)</span></div>
+          <div className="bg-[#0e1424] p-2.5 rounded border border-[#1e2a42]">
+            <div className="text-[10px] text-[#d0d6e0]">Brier Score</div>
+            <div className="text-sm font-bold text-emerald-400 mt-0.5">0.082 <span className="text-[10px] text-[#d0d6e0]">(Calibrated)</span></div>
           </div>
         </div>
       </div>
@@ -403,11 +403,11 @@ export const InferencePipelineView: React.FC = () => {
         {/* Left: 4 Input Stream Cards */}
         <div className="lg:col-span-4 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center">
-              <Database className="w-3.5 h-3.5 text-sky-400 mr-2" />
+            <h3 className="text-xs font-mono font-bold text-[#f7f8f8] uppercase tracking-wider flex items-center">
+              <Database className="w-3.5 h-3.5 text-[#38bdf8] mr-2" />
               1. Multi-Modal Fused Input Channels
             </h3>
-            <span className="text-[10px] font-mono text-sky-400">
+            <span className="text-[10px] font-mono text-[#38bdf8]">
               Shape: (1, 4, 12, 128, 128)
             </span>
           </div>
@@ -418,20 +418,20 @@ export const InferencePipelineView: React.FC = () => {
               <div
                 key={ch.code}
                 onClick={() => setSelectedChannel(ch.index)}
-                className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                className={`p-3.5 rounded border transition-all cursor-pointer ${
                   isSelected 
-                    ? 'bg-sky-950/20 border-sky-400/60 shadow-lg shadow-sky-950/50' 
-                    : 'bg-[#0b101b] border-[#1f293d] hover:border-slate-600 hover:bg-[#0e1526]'
+                    ? 'bg-sky-950/20 border-[#5e6ad2]/60  shadow-sky-950/50' 
+                    : 'bg-[#0b101b] border-[#1f293d] hover:border-[#23252a] hover:bg-[#0e1526]'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <span className="w-6 h-6 rounded-md bg-slate-800 text-sky-400 text-xs font-mono font-bold flex items-center justify-center border border-slate-700">
+                    <span className="w-6 h-6 rounded bg-black/20 backdrop-blur-md text-[#38bdf8] text-xs font-mono font-bold flex items-center justify-center border border-[#23252a]">
                       {ch.code}
                     </span>
                     <div>
-                      <div className="text-xs font-bold text-white">{ch.name}</div>
-                      <div className="text-[10px] font-mono text-slate-400">{ch.source}</div>
+                      <div className="text-xs font-bold text-[#f7f8f8]">{ch.name}</div>
+                      <div className="text-[10px] font-mono text-[#d0d6e0]">{ch.source}</div>
                     </div>
                   </div>
 
@@ -440,11 +440,11 @@ export const InferencePipelineView: React.FC = () => {
                   </span>
                 </div>
 
-                <p className="text-[11px] text-slate-300 mt-2 font-mono leading-relaxed">
+                <p className="text-[11px] text-[#f7f8f8] mt-2 font-mono leading-relaxed">
                   {ch.description}
                 </p>
 
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#23252a]/80 text-[10px] font-mono text-[#d0d6e0]">
                   <span>Range: {ch.range}</span>
                   <span className="text-emerald-400 font-bold">{ch.status}</span>
                 </div>
@@ -456,8 +456,8 @@ export const InferencePipelineView: React.FC = () => {
         {/* Right: Interactive ConvectNet Neural Architecture Stage Inspector */}
         <div className="lg:col-span-8 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-mono font-bold text-slate-300 uppercase tracking-wider flex items-center">
-              <Workflow className="w-3.5 h-3.5 text-purple-400 mr-2" />
+            <h3 className="text-xs font-mono font-bold text-[#f7f8f8] uppercase tracking-wider flex items-center">
+              <Workflow className="w-3.5 h-3.5 text-amber-400 mr-2" />
               2. ConvectNet Spatiotemporal Network Pipeline
             </h3>
             <span className="text-[10px] font-mono text-emerald-400">
@@ -473,53 +473,53 @@ export const InferencePipelineView: React.FC = () => {
                 <button
                   key={stage.id}
                   onClick={() => setSelectedStageId(stage.id)}
-                  className={`p-2.5 rounded-xl border text-left flex flex-col justify-between transition-all ${
+                  className={`p-2.5 rounded border text-left flex flex-col justify-between transition-all ${
                     isSelected 
-                      ? 'bg-purple-950/30 border-purple-400 shadow-md shadow-purple-950/50' 
-                      : 'bg-[#0b101b] border-[#1f293d] hover:border-slate-600 hover:bg-[#0e1526]'
+                      ? 'bg-purple-950/30 border-purple-400  shadow-purple-950/50' 
+                      : 'bg-[#0b101b] border-[#1f293d] hover:border-[#23252a] hover:bg-[#0e1526]'
                   }`}
                 >
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-[9px] font-mono text-slate-400">STG {idx + 1}</span>
-                    <span className="text-[9px] font-mono text-purple-400 font-bold">{stage.latencyMs}ms</span>
+                    <span className="text-[9px] font-mono text-[#d0d6e0]">STG {idx + 1}</span>
+                    <span className="text-[9px] font-mono text-amber-400 font-bold">{stage.latencyMs}ms</span>
                   </div>
-                  <div className="text-xs font-bold text-white mt-1 leading-tight">{stage.shortName}</div>
-                  <div className="text-[9px] font-mono text-slate-400 mt-1 truncate">{stage.outputShape}</div>
+                  <div className="text-xs font-bold text-[#f7f8f8] mt-1 leading-tight">{stage.shortName}</div>
+                  <div className="text-[9px] font-mono text-[#d0d6e0] mt-1 truncate">{stage.outputShape}</div>
                 </button>
               );
             })}
           </div>
 
           {/* Detailed Selected Stage Diagnostic Inspector */}
-          <div className="p-5 bg-[#0b101b] border border-[#1f293d] rounded-2xl flex-1 flex flex-col justify-between">
+          <div className="p-5 bg-[#0b101b] border border-[#1f293d] rounded flex-1 flex flex-col justify-between">
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1f293d] pb-3 mb-3">
                 <div className="flex items-center space-x-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 uppercase">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/20 text-amber-400 border border-purple-500/40 uppercase">
                     {activeStage.type}
                   </span>
-                  <h4 className="text-sm font-bold text-white font-mono">{activeStage.name}</h4>
+                  <h4 className="text-sm font-bold text-[#f7f8f8] font-mono">{activeStage.name}</h4>
                 </div>
 
-                <div className="flex items-center space-x-3 text-xs font-mono text-slate-300">
+                <div className="flex items-center space-x-3 text-xs font-mono text-[#f7f8f8]">
                   <span>Input: <strong className="text-sky-300">{activeStage.inputShape}</strong></span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#d0d6e0]" />
                   <span>Output: <strong className="text-emerald-300">{activeStage.outputShape}</strong></span>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 font-mono leading-relaxed mb-4">
+              <p className="text-xs text-[#f7f8f8] font-mono leading-relaxed mb-4">
                 {activeStage.description}
               </p>
 
               <div className="space-y-2">
-                <div className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-wider">
+                <div className="text-[11px] font-mono font-bold text-[#d0d6e0] uppercase tracking-wider">
                   Mathematical Operations &amp; Tensor Transformations:
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {activeStage.operations.map((op, i) => (
-                    <div key={i} className="flex items-center space-x-2 bg-[#0e1526] p-2.5 rounded-lg border border-[#1f293d] text-xs font-mono text-slate-200">
-                      <ChevronRight className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <div key={i} className="flex items-center space-x-2 bg-[#0e1526] p-2.5 rounded border border-[#1f293d] text-xs font-mono text-[#f7f8f8]">
+                      <ChevronRight className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span>{op}</span>
                     </div>
                   ))}
@@ -530,28 +530,28 @@ export const InferencePipelineView: React.FC = () => {
             {/* XAI Shapley Physical Attribution Vector */}
             <div className="mt-4 pt-3 border-t border-[#1f293d]">
               <div className="flex items-center justify-between text-xs font-mono mb-2">
-                <span className="text-sky-400 font-bold flex items-center">
+                <span className="text-[#38bdf8] font-bold flex items-center">
                   <Sparkles className="w-3.5 h-3.5 mr-1" />
                   Shapley Attribution Weights (Physical Driver Balance):
                 </span>
-                <span className="text-slate-400 text-[10px]">Sum: 100% Calibrated</span>
+                <span className="text-[#d0d6e0] text-[10px]">Sum: 100% Calibrated</span>
               </div>
               <div className="grid grid-cols-4 gap-2 text-xs font-mono">
-                <div className="bg-[#0e1526] p-2 rounded border border-slate-800">
-                  <div className="text-[10px] text-slate-400">C0 (VIL Core)</div>
+                <div className="bg-[#0e1526] p-2 rounded border border-[#23252a]">
+                  <div className="text-[10px] text-[#d0d6e0]">C0 (VIL Core)</div>
                   <div className="text-sm font-bold text-rose-400">+42%</div>
                 </div>
-                <div className="bg-[#0e1526] p-2 rounded border border-slate-800">
-                  <div className="text-[10px] text-slate-400">C1 (ΔZ Trend)</div>
+                <div className="bg-[#0e1526] p-2 rounded border border-[#23252a]">
+                  <div className="text-[10px] text-[#d0d6e0]">C1 (ΔZ Trend)</div>
                   <div className="text-sm font-bold text-amber-400">+28%</div>
                 </div>
-                <div className="bg-[#0e1526] p-2 rounded border border-slate-800">
-                  <div className="text-[10px] text-slate-400">C2 (IR Cooling)</div>
-                  <div className="text-sm font-bold text-purple-400">+19%</div>
+                <div className="bg-[#0e1526] p-2 rounded border border-[#23252a]">
+                  <div className="text-[10px] text-[#d0d6e0]">C2 (IR Cooling)</div>
+                  <div className="text-sm font-bold text-amber-400">+19%</div>
                 </div>
-                <div className="bg-[#0e1526] p-2 rounded border border-slate-800">
-                  <div className="text-[10px] text-slate-400">C3 (Lightning 2σ)</div>
-                  <div className="text-sm font-bold text-sky-400">+11%</div>
+                <div className="bg-[#0e1526] p-2 rounded border border-[#23252a]">
+                  <div className="text-[10px] text-[#d0d6e0]">C3 (Lightning 2σ)</div>
+                  <div className="text-sm font-bold text-[#38bdf8]">+11%</div>
                 </div>
               </div>
             </div>
@@ -564,31 +564,31 @@ export const InferencePipelineView: React.FC = () => {
       {/* ========================================================================= */}
       {/* 3. MULTI-TASK HAZARD PREDICTION HEADS & SPATIAL VERIFICATION MAP */}
       {/* ========================================================================= */}
-      <div className="bg-[#0b101b] border border-[#1f293d] rounded-2xl p-5 shadow-2xl flex flex-col space-y-4">
+      <div className="bg-[#0b101b] border border-[#1f293d] rounded p-5  flex flex-col space-y-4">
         
         {/* Header & Prediction Head Selector */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1f293d] pb-4">
           <div>
-            <h3 className="text-sm font-mono font-bold text-white uppercase tracking-wider flex items-center">
+            <h3 className="text-sm font-mono font-bold text-[#f7f8f8] uppercase tracking-wider flex items-center">
               <Activity className="w-4 h-4 text-emerald-400 mr-2" />
               3. Multi-Task Output Decoders &amp; Spatial Field Verification
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5 font-mono">
+            <p className="text-xs text-[#d0d6e0] mt-0.5 font-mono">
               Select output prediction head and forecast horizon to project calibrated hazard fields over VEBS runway and 3x3 corridor.
             </p>
           </div>
 
           {/* Forecast Horizon Switcher */}
-          <div className="flex items-center space-x-1.5 bg-[#0e1526] border border-[#1f293d] rounded-xl p-1 text-xs font-mono">
-            <span className="text-[10px] text-slate-400 px-2 uppercase font-bold">Horizon:</span>
+          <div className="flex items-center space-x-1.5 bg-[#0e1526] border border-[#1f293d] rounded p-1 text-xs font-mono">
+            <span className="text-[10px] text-[#d0d6e0] px-2 uppercase font-bold">Horizon:</span>
             {[15, 30, 45, 60, 120, 180].map(mins => (
               <button
                 key={mins}
                 onClick={() => setLeadHorizonMin(mins)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                className={`px-2.5 py-1 rounded font-bold transition-all ${
                   leadHorizonMin === mins 
-                    ? 'bg-sky-500 text-white shadow-md' 
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#38bdf8] text-[#f7f8f8] ' 
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-white/5'
                 }`}
               >
                 +{mins}m
@@ -601,96 +601,96 @@ export const InferencePipelineView: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <button
             onClick={() => setSelectedHead('cloudburst')}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            className={`p-3 rounded border text-left transition-all ${
               selectedHead === 'cloudburst' 
-                ? 'bg-rose-950/30 border-rose-500/60 shadow-lg shadow-rose-950/40' 
-                : 'bg-[#0e1526] border-[#1f293d] hover:border-slate-600'
+                ? 'bg-rose-950/30 border-rose-500/60  shadow-rose-950/40' 
+                : 'bg-[#0e1526] border-[#1f293d] hover:border-[#23252a]'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">Head A: Cloudburst</span>
+              <span className="text-xs font-bold text-[#f7f8f8]">Head A: Cloudburst</span>
               <span className="w-2 h-2 rounded-full bg-rose-500"></span>
             </div>
             <div className="text-lg font-bold text-rose-400 font-mono mt-1">142 mm/h</div>
-            <div className="text-[10px] font-mono text-slate-400">Binary Logit + Z-R Rate</div>
+            <div className="text-[10px] font-mono text-[#d0d6e0]">Binary Logit + Z-R Rate</div>
           </button>
 
           <button
             onClick={() => setSelectedHead('microburst')}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            className={`p-3 rounded border text-left transition-all ${
               selectedHead === 'microburst' 
-                ? 'bg-amber-950/30 border-amber-500/60 shadow-lg shadow-amber-950/40' 
-                : 'bg-[#0e1526] border-[#1f293d] hover:border-slate-600'
+                ? 'bg-amber-950/30 border-amber-500/60  shadow-amber-950/40' 
+                : 'bg-[#0e1526] border-[#1f293d] hover:border-[#23252a]'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">Head B: Microburst LLWS</span>
+              <span className="text-xs font-bold text-[#f7f8f8]">Head B: Microburst LLWS</span>
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
             </div>
             <div className="text-lg font-bold text-amber-400 font-mono mt-1">ΔV 48 m/s</div>
-            <div className="text-[10px] font-mono text-slate-400">Surface Outflow &amp; Gust</div>
+            <div className="text-[10px] font-mono text-[#d0d6e0]">Surface Outflow &amp; Gust</div>
           </button>
 
           <button
             onClick={() => setSelectedHead('hail')}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            className={`p-3 rounded border text-left transition-all ${
               selectedHead === 'hail' 
-                ? 'bg-purple-950/30 border-purple-500/60 shadow-lg shadow-purple-950/40' 
-                : 'bg-[#0e1526] border-[#1f293d] hover:border-slate-600'
+                ? 'bg-purple-950/30 border-purple-500/60  shadow-purple-950/40' 
+                : 'bg-[#0e1526] border-[#1f293d] hover:border-[#23252a]'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">Head C: Severe Hail</span>
+              <span className="text-xs font-bold text-[#f7f8f8]">Head C: Severe Hail</span>
               <span className="w-2 h-2 rounded-full bg-purple-400"></span>
             </div>
-            <div className="text-lg font-bold text-purple-400 font-mono mt-1">38 mm (MESH)</div>
-            <div className="text-[10px] font-mono text-slate-400">SHI + POSH 82%</div>
+            <div className="text-lg font-bold text-amber-400 font-mono mt-1">38 mm (MESH)</div>
+            <div className="text-[10px] font-mono text-[#d0d6e0]">SHI + POSH 82%</div>
           </button>
 
           <button
             onClick={() => setSelectedHead('ci')}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            className={`p-3 rounded border text-left transition-all ${
               selectedHead === 'ci' 
-                ? 'bg-sky-950/30 border-sky-500/60 shadow-lg shadow-sky-950/40' 
-                : 'bg-[#0e1526] border-[#1f293d] hover:border-slate-600'
+                ? 'bg-sky-950/30 border-[#5e6ad2]/60  shadow-sky-950/40' 
+                : 'bg-[#0e1526] border-[#1f293d] hover:border-[#23252a]'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">Head D: Initiation (CI)</span>
-              <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+              <span className="text-xs font-bold text-[#f7f8f8]">Head D: Initiation (CI)</span>
+              <span className="w-2 h-2 rounded-full bg-[#38bdf8]"></span>
             </div>
-            <div className="text-lg font-bold text-sky-400 font-mono mt-1">96% Prob</div>
-            <div className="text-[10px] font-mono text-slate-400">0–2h Updraft Trigger</div>
+            <div className="text-lg font-bold text-[#38bdf8] font-mono mt-1">96% Prob</div>
+            <div className="text-[10px] font-mono text-[#d0d6e0]">0–2h Updraft Trigger</div>
           </button>
         </div>
 
         {/* Spatial Map Display (Interactive Prediction Footprint) */}
-        <div className="relative w-full h-[460px] rounded-xl overflow-hidden border border-[#1f293d]">
+        <div className="relative w-full h-[460px] rounded overflow-hidden border border-[#1f293d]">
           
           {/* Floating On-Map Metadata HUD */}
-          <div className="absolute top-3 left-3 z-[1000] bg-[#0a0f1d]/95 backdrop-blur-md border border-[#1f293d] rounded-xl p-3.5 shadow-2xl max-w-sm pointer-events-auto">
+          <div className="absolute top-3 left-3 z-[1000] bg-[#0a0f1d]/95 backdrop-blur-md border border-[#1f293d] rounded p-3.5  max-w-sm pointer-events-auto">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: hazardMeta.color }}></span>
-              <span className="text-xs font-mono font-bold text-white uppercase">{hazardMeta.alertLevel}</span>
+              <span className="text-xs font-mono font-bold text-[#f7f8f8] uppercase">{hazardMeta.alertLevel}</span>
             </div>
-            <div className="text-[13px] font-bold text-white mt-1">
+            <div className="text-[13px] font-bold text-[#f7f8f8] mt-1">
               {hazardMeta.title}
             </div>
-            <div className="flex items-center space-x-3 text-xs font-mono mt-1 text-slate-300">
+            <div className="flex items-center space-x-3 text-xs font-mono mt-1 text-[#f7f8f8]">
               <span>Peak: <strong style={{ color: hazardMeta.color }}>{hazardMeta.peakValue}</strong></span>
               <span>•</span>
-              <span>Certainty: <strong className="text-white">{hazardMeta.prob}</strong></span>
+              <span>Certainty: <strong className="text-[#f7f8f8]">{hazardMeta.prob}</strong></span>
               <span>•</span>
               <span>T+{leadHorizonMin}m</span>
             </div>
           </div>
 
           {/* Floating Basemap Switcher */}
-          <div className="absolute top-3 right-3 z-[1000] flex bg-[#0a0f1d]/95 backdrop-blur-md border border-[#1f293d] rounded-lg p-0.5 text-xs font-mono pointer-events-auto shadow-xl">
+          <div className="absolute top-3 right-3 z-[1000] flex bg-[#0a0f1d]/95 backdrop-blur-md border border-[#1f293d] rounded p-0.5 text-xs font-mono pointer-events-auto ">
             <button
               onClick={() => setTileMode('satellite')}
               className={`px-2.5 py-1 rounded font-medium transition-all ${
-                tileMode === 'satellite' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                tileMode === 'satellite' ? 'bg-sky-600 text-[#f7f8f8] font-bold' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               Satellite HD
@@ -698,7 +698,7 @@ export const InferencePipelineView: React.FC = () => {
             <button
               onClick={() => setTileMode('dark')}
               className={`px-2.5 py-1 rounded font-medium transition-all ${
-                tileMode === 'dark' ? 'bg-sky-600 text-white font-bold' : 'text-slate-400 hover:text-white'
+                tileMode === 'dark' ? 'bg-sky-600 text-[#f7f8f8] font-bold' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               Dark Canvas
@@ -800,10 +800,11 @@ export const InferencePipelineView: React.FC = () => {
                     dashArray: '6, 4'
                   }}
                 >
-                  <Tooltip direction="top" offset={[0, -20]} opacity={0.95}>
-                    <div className="text-xs font-mono p-1">
-                      <strong className="text-white">{hazardMeta.title}</strong><br/>
-                      <span>Peak: {hazardMeta.peakValue} • T+{leadHorizonMin}m</span>
+                  <Tooltip direction="top" offset={[0, -20]} opacity={1} className="!bg-[#101726] !backdrop-blur-none !border !border-[#2b3a55] !text-[#d0d6e0] !font-mono !text-xs !p-2 !rounded">
+                    <div className="font-mono">
+                      <strong className="text-rose-400 uppercase tracking-wider block mb-1">{hazardMeta.title}</strong>
+                      <span className="text-[#8a99ad]">Peak Severity: <span className="text-[#f7f8f8] font-bold">{hazardMeta.peakValue}</span></span><br/>
+                      <span className="text-[#8a99ad]">Impact ETA: <span className="text-amber-400 font-bold">T+{leadHorizonMin}m</span></span>
                     </div>
                   </Tooltip>
                 </Polygon>

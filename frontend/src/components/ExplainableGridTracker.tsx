@@ -164,17 +164,17 @@ export const ExplainableGridTracker: React.FC = () => {
   }, [isPlaying]);
 
   return (
-    <div className="w-full bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans shadow-2xl">
+    <div className="w-full bg-[#0a0d15]  border border-[#1e2533] rounded overflow-hidden flex flex-col font-sans ">
       
       {/* Header */}
-      <div className="px-6 py-3.5 border-b border-[#23252a] bg-[#0c0d0f] flex justify-between items-center shadow-lg">
+      <div className="px-6 py-3.5 border-b border-[#1e2533] bg-[#101726]  flex justify-between items-center ">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
+          <div className="w-9 h-9 rounded bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
             <Crosshair className="w-5 h-5 text-rose-500" />
           </div>
           <div>
             <div className="flex items-center space-x-2.5">
-              <h2 className="text-[17px] font-bold text-white tracking-tight">
+              <h2 className="text-[17px] font-bold text-[#f7f8f8] tracking-tight">
                 3×3 Tactical Grid Tracking &amp; ConvectNet XAI
               </h2>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
@@ -192,14 +192,14 @@ export const ExplainableGridTracker: React.FC = () => {
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setIsMapExpanded(!isMapExpanded)}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#141518] hover:bg-[#1f2127] border border-[#34343a] text-slate-200 hover:text-white transition-all flex items-center space-x-1.5 shadow"
+            className="px-4 py-1.5 rounded rounded text-xs font-medium bg-[#101726] hover:bg-[#1b2333] border border-[#2b3a55] text-[#f7f8f8] hover:text-[#f7f8f8] transition-all flex items-center space-x-1.5 shadow"
           >
-            {isMapExpanded ? <Minimize2 className="w-3.5 h-3.5 text-sky-400" /> : <Maximize2 className="w-3.5 h-3.5 text-sky-400" />}
+            {isMapExpanded ? <Minimize2 className="w-3.5 h-3.5 text-[#38bdf8]" /> : <Maximize2 className="w-3.5 h-3.5 text-[#38bdf8]" />}
             <span className="font-semibold">{isMapExpanded ? 'Standard Split' : 'Maximize Map'}</span>
           </button>
 
-          <div className="px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-[11px] font-mono font-bold uppercase flex items-center space-x-1.5">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          <div className="px-4 py-1.5 rounded bg-rose-500/10 border border-rose-500/30 rounded text-red-400 text-[11px] font-mono font-bold uppercase flex items-center space-x-1.5">
+            <span className="w-2 h-2 rounded bg-red-500 animate-pulse"></span>
             <span>CELL {activeSector.id} ({currentTrack.dbz} dBZ)</span>
           </div>
         </div>
@@ -210,22 +210,22 @@ export const ExplainableGridTracker: React.FC = () => {
         
         {/* Left: Map Container (Expanded to 74% in split mode or 100% in full mode) */}
         <div 
-          className={`border border-[#34343a] rounded-xl bg-[#101113] flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(0,0,0,0.6)] transition-all duration-300 ${
+          className={`border border-[#2b3a55] rounded bg-[#151c2e]  flex flex-col overflow-hidden relative  transition-all duration-300 ${
             isMapExpanded ? 'w-full h-[820px]' : 'w-[74%] h-[740px]'
           }`}
         >
           {/* Top-Left Telemetry Overlay Badge */}
-          <div className="absolute top-4 left-4 z-[400] px-4 py-2.5 bg-[#08090a]/92 border border-[#34343a] rounded-lg shadow-xl backdrop-blur-md">
-            <div className="text-[12px] font-bold text-white uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
-              <Radar className="w-4 h-4 text-sky-400" />
+          <div className="absolute top-4 left-4 z-[400] px-4 py-2.5 bg-[#101726]  border border-[#2b3a55] rounded  ">
+            <div className="text-[12px] font-bold text-[#f7f8f8] uppercase tracking-wider mb-0.5 flex items-center gap-1.5">
+              <Radar className="w-4 h-4 text-[#38bdf8]" />
               <span>Nowcast: T+{currentTrack.timeOffset} Mins</span>
               <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
                 {currentTrack.dbz} dBZ Core
               </span>
             </div>
-            <div className="text-[11px] font-mono text-slate-300 flex items-center gap-2">
-              <span>Active Cell: <strong className="text-white">{activeSector.id}</strong> [{activeSector.code}]</span>
-              <span className="text-slate-500">•</span>
+            <div className="text-[11px] font-mono text-[#f7f8f8] flex items-center gap-2">
+              <span>Active Cell: <strong className="text-[#f7f8f8]">{activeSector.id}</strong> [{activeSector.code}]</span>
+              <span className="text-[#d0d6e0]">•</span>
               <span className="text-amber-400">{currentTrack.intensity.split(' (')[0]}</span>
             </div>
           </div>
@@ -233,16 +233,16 @@ export const ExplainableGridTracker: React.FC = () => {
           {/* Top-Right Domain, Basemap & Reset Controls */}
           <div className="absolute top-4 right-4 z-[400] flex flex-col items-end gap-2">
             {/* Domain Switcher */}
-            <div className="flex bg-[#08090a]/92 border border-[#34343a] rounded-lg p-1 shadow-xl backdrop-blur-md gap-1">
+            <div className="flex bg-[#101726]  border border-[#2b3a55] rounded p-1   gap-1">
               <button
                 onClick={() => {
                   setGridDomain('3km_aerodrome');
                   setTimeStep(18); // Reset to midfield impact
                 }}
-                className={`px-3 py-1 text-xs rounded-md font-medium transition-all ${
+                className={`px-3 py-1 text-xs rounded font-medium transition-all ${
                   gridDomain === '3km_aerodrome'
-                    ? 'bg-rose-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-rose-600 text-[#f7f8f8] font-bold shadow'
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
                 }`}
               >
                 🎯 3×3 km Aerodrome
@@ -252,10 +252,10 @@ export const ExplainableGridTracker: React.FC = () => {
                   setGridDomain('60km_corridor');
                   setTimeStep(12); // Reset to corridor progression
                 }}
-                className={`px-3 py-1 text-xs rounded-md font-medium transition-all ${
+                className={`px-3 py-1 text-xs rounded font-medium transition-all ${
                   gridDomain === '60km_corridor'
-                    ? 'bg-rose-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-rose-600 text-[#f7f8f8] font-bold shadow'
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
                 }`}
               >
                 🗺️ 60 km Corridor
@@ -263,13 +263,13 @@ export const ExplainableGridTracker: React.FC = () => {
             </div>
 
             {/* Basemap Switcher */}
-            <div className="flex bg-[#08090a]/92 border border-[#34343a] rounded-lg p-1 shadow-xl backdrop-blur-md gap-1">
+            <div className="flex bg-[#101726]  border border-[#2b3a55] rounded p-1   gap-1">
               <button
                 onClick={() => setMapType('satellite')}
                 className={`px-2.5 py-0.5 text-[11px] rounded font-medium transition-all ${
                   mapType === 'satellite'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-sky-600 text-[#f7f8f8] font-bold shadow'
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
                 }`}
               >
                 🛰️ Satellite HD
@@ -278,8 +278,8 @@ export const ExplainableGridTracker: React.FC = () => {
                 onClick={() => setMapType('streets')}
                 className={`px-2.5 py-0.5 text-[11px] rounded font-medium transition-all ${
                   mapType === 'streets'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-sky-600 text-[#f7f8f8] font-bold shadow'
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
                 }`}
               >
                 🗺️ Streets
@@ -288,8 +288,8 @@ export const ExplainableGridTracker: React.FC = () => {
                 onClick={() => setMapType('dark')}
                 className={`px-2.5 py-0.5 text-[11px] rounded font-medium transition-all ${
                   mapType === 'dark'
-                    ? 'bg-sky-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-sky-600 text-[#f7f8f8] font-bold shadow'
+                    : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
                 }`}
               >
                 🌑 Dark
@@ -301,10 +301,10 @@ export const ExplainableGridTracker: React.FC = () => {
               onClick={() => {
                 setCurrentZoom(gridDomain === '3km_aerodrome' ? 14.3 : 10.4);
               }}
-              className="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-[#08090a]/92 border border-[#34343a] text-slate-300 hover:text-white transition-all shadow flex items-center gap-1 backdrop-blur-md"
+              className="px-4 py-1.5 rounded rounded text-[11px] font-mono rounded bg-[#101726]  border border-[#2b3a55] text-[#f7f8f8] hover:text-[#f7f8f8] transition-all shadow flex items-center gap-1 "
               title="Reset View to VEBS Center"
             >
-              <RotateCcw className="w-3 h-3 text-sky-400" />
+              <RotateCcw className="w-3 h-3 text-[#38bdf8]" />
               <span>Center VEBS</span>
             </button>
           </div>
@@ -313,7 +313,7 @@ export const ExplainableGridTracker: React.FC = () => {
             center={mapCenter} 
             zoom={mapZoom} 
             scrollWheelZoom={true} 
-            className="w-full h-full bg-[#0a0d15]"
+            className="w-full h-full bg-[#0a0d15] "
           >
             <ChangeView center={mapCenter} zoom={mapZoom} isExpanded={isMapExpanded} />
             <ZoomWatcher onZoomChange={setCurrentZoom} />
@@ -415,7 +415,7 @@ export const ExplainableGridTracker: React.FC = () => {
                     <Tooltip 
                       permanent 
                       direction="center" 
-                      className="bg-black/70 backdrop-blur-sm border border-white/20 text-white text-[11px] font-mono font-bold px-2 py-0.5 rounded shadow pointer-events-none"
+                      className="bg-black/70 backdrop-blur-sm border border-white/20 text-[#f7f8f8] text-[11px] font-mono font-bold px-2 py-0.5 rounded shadow pointer-events-none"
                     >
                       <span className={isActive ? 'text-amber-300 font-extrabold' : 'text-sky-200'}>
                         [{shortId}] {sec.radarDbz} dBZ {isExtreme ? '⚠️' : ''}
@@ -425,25 +425,25 @@ export const ExplainableGridTracker: React.FC = () => {
 
                   {/* Rich Detailed Popup on Click */}
                   <Popup>
-                    <div className="p-2 font-sans bg-[#0c1017] text-white rounded max-w-[260px]">
-                      <div className="flex items-center justify-between border-b border-slate-700 pb-1 mb-1.5">
-                        <span className="font-bold text-xs text-sky-400">{sec.id} [{sec.code}]</span>
+                    <div className="p-2 font-sans bg-[#0c1017] text-[#f7f8f8] rounded max-w-[260px]">
+                      <div className="flex items-center justify-between border-b border-[#1e2533] pb-1 mb-1.5">
+                        <span className="font-bold text-xs text-[#38bdf8]">{sec.id} [{sec.code}]</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono font-bold">
                           {sec.radarDbz} dBZ
                         </span>
                       </div>
                       <div className="font-semibold text-xs text-slate-100">{sec.name}</div>
-                      <div className="text-[11px] text-slate-400 mt-1 leading-tight">{sec.description}</div>
+                      <div className="text-[11px] text-[#d0d6e0] mt-1 leading-tight">{sec.description}</div>
                       
-                      <div className="grid grid-cols-2 gap-1.5 mt-2.5 text-[10px] font-mono bg-black/40 p-2 rounded border border-white/10">
-                        <div>Rain: <span className="text-white font-bold">{sec.rainRateMmh} mm/h</span></div>
-                        <div>Wind: <span className="text-white font-bold">{sec.windGustKmh} km/h</span></div>
+                      <div className="grid grid-cols-2 gap-1.5 mt-2.5 text-[10px] font-mono bg-[#151c2e] p-2 rounded border border-white/10">
+                        <div>Rain: <span className="text-[#f7f8f8] font-bold">{sec.rainRateMmh} mm/h</span></div>
+                        <div>Wind: <span className="text-[#f7f8f8] font-bold">{sec.windGustKmh} km/h</span></div>
                         <div>CAPE: <span className="text-purple-300 font-bold">{sec.capeJkg} J/kg</span></div>
                         <div>Hail: <span className="text-amber-300 font-bold">{sec.hailRisk}</span></div>
                       </div>
 
                       {sec.cloudburstFlag && (
-                        <div className="mt-2 px-2 py-1 bg-red-500/20 border border-red-500/40 text-red-300 text-[10px] font-bold rounded text-center">
+                        <div className="mt-2 px-2 py-1 bg-red-500/20 border border-rose-500/40 text-red-300 text-[10px] font-bold rounded text-center">
                           ⚠️ ACTIVE MICROBURST / CLOUDBURST CELL
                         </div>
                       )}
@@ -533,7 +533,7 @@ export const ExplainableGridTracker: React.FC = () => {
                 permanent 
                 direction="top" 
                 offset={[0, -12]} 
-                className="bg-red-600/90 text-white font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow border border-white/40 pointer-events-none"
+                className="bg-[#1b2333] border border-[#2b3a55]/90 text-[#f7f8f8] font-mono font-bold text-[10px] px-2 py-0.5 rounded shadow border border-white/40 pointer-events-none"
               >
                 🔴 Storm Core: {currentTrack.dbz} dBZ (T+{currentTrack.timeOffset}m)
               </Tooltip>
@@ -541,11 +541,11 @@ export const ExplainableGridTracker: React.FC = () => {
           </MapContainer>
 
           {/* Timeline Scrubber */}
-          <div className="absolute bottom-0 left-0 w-full p-4 bg-[#08090a]/94 backdrop-blur-md border-t border-[#34343a] z-[400]">
+          <div className="absolute bottom-0 left-0 w-full p-4 bg-[#101726]   border-t border-[#2b3a55] z-[400]">
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => setIsPlaying(!isPlaying)}
-                className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-500 transition-colors shadow-lg flex-shrink-0"
+                className="w-9 h-9 rounded bg-[#1b2333] border border-[#2b3a55] flex items-center justify-center text-[#f7f8f8] hover:bg-[#2b3a55] transition-colors  flex-shrink-0"
                 title={isPlaying ? 'Pause Simulation' : 'Play Timeline'}
               >
                 {isPlaying ? (
@@ -562,7 +562,7 @@ export const ExplainableGridTracker: React.FC = () => {
                   max="36" 
                   value={timeStep}
                   onChange={(e) => setTimeStep(parseInt(e.target.value))}
-                  className="w-full accent-red-500 h-1.5 bg-[#34343a] rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-red-500 h-1.5 bg-[#34343a] rounded appearance-none cursor-pointer"
                 />
                 
                 {/* Timeline Axis Labels adapted to Domain */}
@@ -592,9 +592,9 @@ export const ExplainableGridTracker: React.FC = () => {
         <div className={isMapExpanded ? 'grid grid-cols-1 lg:grid-cols-2 gap-5 w-full' : 'flex flex-col gap-4 w-[26%]'}>
           
           {/* ConvectNet Attribution Card */}
-          <div className="p-4 border border-sky-500/30 bg-sky-950/10 rounded-xl space-y-3.5">
+          <div className="p-4 border border-[#38bdf8]/30 bg-sky-950/10 rounded space-y-3.5">
             <div className="flex justify-between items-center">
-              <h3 className="text-[12px] font-bold text-sky-400 flex items-center uppercase tracking-wider font-mono">
+              <h3 className="text-[12px] font-bold text-[#38bdf8] flex items-center uppercase tracking-wider font-mono">
                 <Brain className="w-4 h-4 mr-1.5" /> ConvectNet XAI Attribution
               </h3>
               <span className="text-[11px] font-mono text-amber-400 font-bold">
@@ -603,61 +603,63 @@ export const ExplainableGridTracker: React.FC = () => {
             </div>
             
             {/* Target Sector Card */}
-            <div className="p-3 bg-[#0a0d15] border border-[#34343a] rounded-lg">
+            <div className="p-3 bg-[#0a0d15]  border border-[#2b3a55] rounded">
               <div className="text-[10px] font-mono text-[#8a8f98] mb-0.5">CURRENT TARGET INTERSECT</div>
-              <div className="text-[16px] font-bold text-white flex items-center justify-between">
+              <div className="text-[16px] font-bold text-[#f7f8f8] flex items-center justify-between">
                 <span>{activeSector.id} [{activeSector.code}]</span>
               </div>
-              <div className="text-[11px] text-slate-300 font-medium truncate mt-0.5">
+              <div className="text-[11px] text-[#f7f8f8] font-medium truncate mt-0.5">
                 {activeSector.name}
               </div>
               <div className="mt-1.5 text-[11px] font-mono text-rose-400 font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded bg-rose-500 animate-pulse"></span>
                 <span>{currentTrack.intensity}</span>
               </div>
             </div>
 
             {/* Physical Attribution Description */}
-            <div className="text-[11px] text-slate-300 leading-relaxed border-l-2 border-sky-500 pl-2.5">
-              <span className="font-bold text-white">Physics Attribution:</span> ConvectNet cross-correlates radar reflectivity (
-              <strong className="text-amber-300">{currentTrack.dbz} dBZ</strong>), high liquid content (
-              <strong className="text-sky-300">{currentTrack.vil} kg/m²</strong>), and cold pool anomaly (
-              <strong className="text-rose-400">{currentTrack.tempAnomaly}°C</strong>). Low-level wind shear of{' '}
-              <strong className="text-white">{currentTrack.shearVelocity} m/s</strong> active over glidepath.
+            <div className="text-[11px] text-[#f7f8f8] leading-relaxed border-l-2 border-[#38bdf8] pl-2.5">
+              <span className="font-bold text-[#f7f8f8]">METEOROLOGICAL ATTRIBUTION (XAI):</span><br/>
+              ConvectNet's spatiotemporal Shapley analysis cross-correlates explosive radar reflectivity (
+              <strong className="text-amber-400">{currentTrack.dbz} dBZ</strong>) with a dense vertically integrated liquid core (
+              <strong className="text-sky-400">{currentTrack.vil} kg/m²</strong>). A rapid cloud-top cooling rate triggers the cold pool anomaly (
+              <strong className="text-rose-400">{currentTrack.tempAnomaly}°C</strong>), culminating in an intense downdraft.<br/><br/>
+              <strong>Hazard Escalation:</strong> The collision of this downdraft with the surface generates an extreme low-level wind shear (LLWS) divergence of{' '}
+              <strong className="text-amber-400">{currentTrack.shearVelocity} m/s</strong> active directly over the runway glidepath. This exceeds the 15 m/s ICAO mandatory go-around threshold.
             </div>
 
             {/* SHAP Weights */}
-            <h4 className="text-[10px] font-bold text-[#8a8f98] uppercase tracking-wider border-b border-[#34343a] pb-1">
+            <h4 className="text-[10px] font-bold text-[#8a8f98] uppercase tracking-wider border-b border-[#2b3a55] pb-1">
               Multi-Modal Integrated Gradients
             </h4>
             
             <div className="space-y-2.5 font-mono text-[11px]">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-slate-300 flex items-center"><Activity className="w-3 h-3 mr-1 text-amber-400" /> Radar Aloft</span>
+                  <span className="text-[#f7f8f8] flex items-center"><Activity className="w-3 h-3 mr-1 text-amber-400" /> Radar Aloft</span>
                   <span className="text-amber-400 font-bold">{currentTrack.dbz} dBZ (42%)</span>
                 </div>
-                <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                <div className="w-full bg-[#0a0d15]  h-1 rounded overflow-hidden">
                   <div className="bg-amber-400 h-full" style={{ width: `${(currentTrack.dbz / 70) * 100}%` }}></div>
                 </div>
               </div>
               
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-slate-300 flex items-center"><Thermometer className="w-3 h-3 mr-1 text-purple-400" /> CAPE</span>
+                  <span className="text-[#f7f8f8] flex items-center"><Thermometer className="w-3 h-3 mr-1 text-purple-400" /> CAPE</span>
                   <span className="text-purple-400 font-bold">{currentTrack.cape} J/kg (28%)</span>
                 </div>
-                <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                <div className="w-full bg-[#0a0d15]  h-1 rounded overflow-hidden">
                   <div className="bg-purple-400 h-full" style={{ width: `${(currentTrack.cape / 3800) * 100}%` }}></div>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-slate-300 flex items-center"><Wind className="w-3 h-3 mr-1 text-rose-400" /> Gust &amp; LLWS</span>
+                  <span className="text-[#f7f8f8] flex items-center"><Wind className="w-3 h-3 mr-1 text-rose-400" /> Gust &amp; LLWS</span>
                   <span className="text-rose-400 font-bold">{currentTrack.windGust} km/h</span>
                 </div>
-                <div className="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+                <div className="w-full bg-[#0a0d15]  h-1 rounded overflow-hidden">
                   <div className="bg-rose-500 h-full" style={{ width: `${(currentTrack.windGust / 120) * 100}%` }}></div>
                 </div>
               </div>
@@ -665,15 +667,15 @@ export const ExplainableGridTracker: React.FC = () => {
           </div>
 
           {/* Actionable Intelligence Card */}
-          <div className="p-4 border border-[#23252a] bg-[#0c0d0f] rounded-xl flex flex-col justify-between space-y-3">
+          <div className="p-4 border border-[#1e2533] bg-[#101726]  rounded flex flex-col justify-between space-y-3">
             <div>
-              <h3 className="text-[12px] font-bold text-white flex items-center uppercase tracking-wider mb-2 font-mono">
+              <h3 className="text-[12px] font-bold text-[#f7f8f8] flex items-center uppercase tracking-wider mb-2 font-mono">
                 <AlertTriangle className="w-4 h-4 mr-1.5 text-amber-400" /> Aviation &amp; SDMA Action
               </h3>
               
-              <div className="p-3 bg-[#141516] border border-[#34343a] rounded-lg border-l-4 border-l-red-500 text-xs">
-                <div className="font-bold text-white mb-0.5">VEBS RUNWAY 01 INTERCEPT</div>
-                <div className="text-slate-300 text-[11px] leading-relaxed">
+              <div className="p-3 bg-white/5  border border-[#2b3a55] rounded border-l-4 border-l-red-500 text-xs">
+                <div className="font-bold text-[#f7f8f8] mb-0.5">VEBS RUNWAY 01 INTERCEPT</div>
+                <div className="text-[#f7f8f8] text-[11px] leading-relaxed">
                   Microburst core touches Sector <strong>{activeSector.id}</strong> at T+{currentTrack.timeOffset}m.
                   AAI/ATC Advisory: <strong className="text-rose-400">IMMEDIATE RUNWAY 01 HOLD &amp; DIVERT INBOUND TRAFFIC</strong>.
                 </div>
@@ -682,7 +684,7 @@ export const ExplainableGridTracker: React.FC = () => {
             
             <button 
               onClick={() => alert(`Transmitted NDMA CAP v1.2 Protocol Alert for Sector ${activeSector.id} [${activeSector.code}] to VEBS Tower and Odisha SDMA.`)}
-              className="w-full py-2 bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold rounded-lg transition-colors font-mono uppercase tracking-wider shadow-lg flex items-center justify-center space-x-1"
+              className="w-full py-2 bg-[#1b2333] border border-[#2b3a55] hover:bg-[#2b3a55] text-[#f7f8f8] text-[11px] font-bold rounded transition-colors font-mono uppercase tracking-wider  flex items-center justify-center space-x-1"
             >
               <ShieldAlert className="w-3.5 h-3.5 mr-1" />
               <span>Transmit CAP Alert</span>

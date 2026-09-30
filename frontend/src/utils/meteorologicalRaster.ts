@@ -128,7 +128,7 @@ export function generateMeteorologicalRaster({
   bounds,
   stations,
   perturbations = [],
-  gridResolution = 90,
+  gridResolution = 200,
 }: GenerateRasterOptions): string {
   if (typeof document === 'undefined') return '';
 
@@ -166,9 +166,9 @@ export function generateMeteorologicalRaster({
       for (const st of stations) {
         const dLat = (st.lat - lat) * 111.0;
         const dLon = (st.lon - lon) * 111.0 * Math.cos((lat * Math.PI) / 180);
-        const distKm = Math.sqrt(dLat * dLat + dLon * dLon) + 0.5; // Smoothing offset
+        const distKm = Math.sqrt(dLat * dLat + dLon * dLon) + 0.1; // Smoothing offset
 
-        const w = 1.0 / Math.pow(distKm, 2.0);
+        const w = 1.0 / Math.pow(distKm, 3.0);
         weightSum += w;
         tempSum += st.tempC * w;
         pressureSum += st.pressureHpa * w;
@@ -185,7 +185,7 @@ export function generateMeteorologicalRaster({
         const dLat = (cell.lat - lat) * 111.0;
         const dLon = (cell.lon - lon) * 111.0 * Math.cos((lat * Math.PI) / 180);
         const distKm = Math.sqrt(dLat * dLat + dLon * dLon);
-        const influenceRadius = cell.radiusKm || 18.0;
+        const influenceRadius = cell.radiusKm || 12.0;
 
         if (distKm < influenceRadius) {
           const factor = Math.cos((distKm / influenceRadius) * (Math.PI / 2));

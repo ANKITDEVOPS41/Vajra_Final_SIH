@@ -112,26 +112,26 @@ export const WeatherFormatSelector: React.FC<WeatherFormatSelectorProps> = ({
   return (
     <div className={`relative inline-block text-left pointer-events-auto ${className}`}>
       {/* Dropdown / Quick Switch Pill */}
-      <div className="flex items-center bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-1 shadow-2xl space-x-1 font-mono text-xs">
+      <div className="flex items-center bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-1  space-x-1 font-mono text-xs">
         {/* Quick icon indicator */}
-        <div className="px-2 py-1 text-slate-400 font-bold flex items-center space-x-1.5 border-r border-[#1f293d] pr-2.5">
-          <Layers className="w-3.5 h-3.5 text-sky-400" />
-          <span className="text-[10px] uppercase text-slate-300 hidden md:inline">Layer:</span>
+        <div className="px-2 py-1 text-[#d0d6e0] font-bold flex items-center space-x-1.5 border-r border-[#1f293d] pr-2.5">
+          <Layers className="w-3.5 h-3.5 text-[#5e6ad2]" />
+          <span className="text-[10px] uppercase text-[#f7f8f8] hidden md:inline">Layer:</span>
         </div>
 
         {/* Dropdown Toggle Button */}
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-[#141d30] hover:bg-[#1a2640] border border-[#263756] text-white font-bold transition-all"
+          className="flex items-center space-x-2 px-4 py-1.5 rounded-full.5 rounded-xl bg-[#141d30] hover:bg-[#1a2640] border border-[#263756] text-[#f7f8f8] font-bold transition-all"
         >
           <span>{activeOption.icon}</span>
           <span>{compact ? activeOption.shortLabel : activeOption.label}</span>
-          <span className="px-1.5 py-0.2 rounded text-[9px] bg-sky-500/20 text-sky-300 border border-sky-500/30">
+          <span className="px-1.5 py-0.2 rounded text-[9px] bg-[#5e6ad2]/20 text-sky-300 border border-[#5e6ad2]/30">
             {activeOption.badge}
           </span>
           <ChevronDown
-            className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
+            className={`w-3.5 h-3.5 text-[#d0d6e0] transition-transform ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -142,10 +142,10 @@ export const WeatherFormatSelector: React.FC<WeatherFormatSelectorProps> = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[600]" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-84 z-[700] bg-[#0a0f1d]/98 backdrop-blur-2xl border border-[#1f293d] rounded-xl shadow-2xl p-2 font-mono text-xs space-y-1 max-h-[80vh] overflow-y-auto">
-            <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-[#1f293d] flex justify-between">
+          <div className="absolute right-0 mt-2 w-84 z-[700] bg-[#0a0f1d]/98 backdrop-blur-2xl border border-[#1f293d] rounded-xl  p-2 font-mono text-xs space-y-1 max-h-[80vh] overflow-y-auto">
+            <div className="px-4 py-1.5 rounded-full.5 text-[10px] font-bold text-[#d0d6e0] uppercase tracking-wider border-b border-[#1f293d] flex justify-between">
               <span>Select Weather Raster Feed</span>
-              <span className="text-sky-400">IMD / RainViewer Live</span>
+              <span className="text-[#5e6ad2]">IMD / RainViewer Live</span>
             </div>
 
             {WEATHER_FORMAT_OPTIONS.map((opt) => {
@@ -159,27 +159,27 @@ export const WeatherFormatSelector: React.FC<WeatherFormatSelectorProps> = ({
                     onSelectFormat(opt.id);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left p-2.5 rounded-lg transition-all flex items-start space-x-2.5 ${
+                  className={`w-full text-left p-2.5 rounded-xl transition-all flex items-start space-x-2.5 ${
                     isSelected
-                      ? 'bg-sky-500/20 border border-sky-500/40 text-white shadow-sm'
-                      : 'hover:bg-[#131b2e] text-slate-300 border border-transparent'
+                      ? 'bg-[#5e6ad2]/20 border border-[#5e6ad2]/40 text-[#f7f8f8] '
+                      : 'hover:bg-[#131b2e] text-[#f7f8f8] border border-transparent'
                   }`}
                 >
                   <span className="text-base shrink-0 mt-0.5">{opt.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white truncate">{opt.label}</span>
+                      <span className="font-bold text-[#f7f8f8] truncate">{opt.label}</span>
                       <span
                         className={`text-[9px] px-1.5 py-0.2 rounded font-bold ${
                           isSelected
-                            ? 'bg-sky-500 text-white'
-                            : 'bg-slate-800 text-slate-400'
+                            ? 'bg-[#5e6ad2] text-[#f7f8f8]'
+                            : 'bg-[#08090a] text-[#d0d6e0]'
                         }`}
                       >
                         {opt.badge}
                       </span>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-2">
+                    <p className="text-[10px] text-[#d0d6e0] mt-0.5 line-clamp-2">
                       {opt.description}
                     </p>
                   </div>

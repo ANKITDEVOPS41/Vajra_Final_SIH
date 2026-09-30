@@ -1,7 +1,7 @@
-# BRIEFING — 2026-09-28T01:14:17Z
+# BRIEFING — 2026-09-30T00:29:57Z
 
 ## Mission
-Replace synthetic geometric circles with genuine live meteorological satellite/radar feeds (INSAT-3DR IR, RainViewer Doppler radar, Open-Meteo fields) and equip all 7 pages with a universal Visual Intelligence & Decision Key.
+Refactor the ConvectNow Python backend to bundle all real-time telemetry (Storms, AWS, Grid, Metrics) into a single WebSocket payload at `/ws/live`, and update the React frontend (`useConvectNowData.ts`) to consume this WebSocket stream instead of HTTP polling with auto-reconnection and exponential backoff.
 
 ## 🔒 My Identity
 - Archetype: sentinel
@@ -13,25 +13,34 @@ Replace synthetic geometric circles with genuine live meteorological satellite/r
 - Progress Cron Task: task-16
 - Liveness Cron Task: task-18
 - Route: General (teamwork_preview_orchestrator)
+- Active Agent Type: teamwork_preview_swe
+- Route Decision: SWE Light (teamwork_preview_swe)
+- Active SWE Directory: /Users/gauravkumarnayak/Desktop/convect/.agents/teamwork/swe_2/
+- Active Orchestrator Directory: /Users/gauravkumarnayak/Desktop/convect/.agents/teamwork/orchestrator_5/
+- Fallback Route: General (teamwork_preview_orchestrator)
+- Current Active Orchestrator ID: d03d3808-e9d4-4d21-a073-06c9bbb883a5
+- Current Progress Cron Task: task-34
+- Current Liveness Cron Task: task-36
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
 - Must not write code, analyze problems, or make technical decisions
 - Keep context ultra-light
+- On victory claim: spawn teamwork_preview_victory_auditor (BLOCKING)
 
 ## User Context
-- **Last user request**: Replace AI-looking circles with authentic live meteorological feeds (IMD INSAT-3DR, RainViewer Doppler radar, Open-Meteo Heat/Pressure/Humidity) and add universal Visual Intelligence & Decision Key to all 7 pages.
+- **Last user request**: Refactor ConvectNow backend to bundle all real-time telemetry into `/ws/live` WebSocket and update React frontend (`useConvectNowData.ts`) to consume WebSocket stream with auto-reconnect.
 - **Pending clarifications**: none
 - **Delivered results**: none yet
 
 ## Project Status
-- **Phase**: in progress (remediating audit findings)
+- **Phase**: in progress
 
 ## Victory Audit Status
-- **Triggered**: yes
-- **Verdict**: VICTORY REJECTED
-- **Retry count**: 1
+- **Triggered**: no
+- **Verdict**: pending
+- **Retry count**: 0
 
 ## Artifact Index
 - /Users/gauravkumarnayak/Desktop/convect/.agents/teamwork/ORIGINAL_REQUEST.md — Authoritative record of user intent

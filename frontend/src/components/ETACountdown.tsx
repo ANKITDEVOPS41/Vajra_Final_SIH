@@ -86,7 +86,7 @@ export const ETACountdown: React.FC<ETACountdownProps> = ({
 
                 <button
                   onClick={() => onTriggerAlert(item.cell_id)}
-                  className="px-3 py-1.5 bg-[#e5e5e6] hover:bg-[#f3f3f4] active:bg-[#cfcfd1] text-[#08090a] rounded-full font-medium text-[12px] transition-colors focus:ring-[3px] focus:ring-[rgba(94,106,210,0.32)] focus:outline-none flex items-center space-x-1.5"
+                  className="px-4 py-1.5 rounded-full.5 bg-[#e5e5e6] hover:bg-[#f3f3f4] active:bg-[#cfcfd1] text-[#08090a] rounded-full font-medium text-[12px] transition-colors focus:ring-[3px] focus:ring-[rgba(94,106,210,0.32)] focus:outline-none flex items-center space-x-1.5"
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
                   <span>CAP Alert</span>

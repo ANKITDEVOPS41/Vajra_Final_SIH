@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { background: #11141a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: white; display: flex; gap: 20px; padding: 20px; }
+  .map-box { width: 300px; height: 300px; background: #1a1d24; position: relative; border-radius: 8px; border: 1px solid #2a2d34; overflow: hidden; }
+  .title { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #8a99ad; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  /* AI Glow Style (Current) */
+  .ai-grid { position: absolute; inset: 40px; border: 2px dashed #0a84ff; box-shadow: 0 0 15px rgba(10,132,255,0.5); background: rgba(10,132,255,0.1); }
+  .ai-poly { position: absolute; top: 100px; left: 60px; right: 60px; bottom: 100px; border: 2px solid #ff453a; box-shadow: 0 0 20px rgba(255,69,58,0.6); background: rgba(255,69,58,0.3); transform: rotate(15deg); }
+  
+  /* Professional Meteorological Style (Proposed) */
+  .pro-grid { position: absolute; inset: 40px; border: 1px dashed rgba(255,255,255,0.3); }
+  .pro-grid-inner { position: absolute; inset: 33.3%; border: 1px solid rgba(255,255,255,0.1); }
+  .pro-poly { position: absolute; top: 100px; left: 60px; right: 60px; bottom: 100px; border: 2px solid #ff3b30; background: repeating-linear-gradient(45deg, rgba(255,59,48,0.1), rgba(255,59,48,0.1) 2px, transparent 2px, transparent 8px); transform: rotate(15deg); }
+  .pro-label { position: absolute; top: 80px; left: 60px; background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; font-weight: bold; font-family: monospace; border-radius: 2px; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="title">Current (AI-Like Glow)</div>
+    <div class="map-box">
+      <div class="ai-grid"></div>
+      <div class="ai-poly"></div>
+    </div>
+  </div>
+  <div>
+    <div class="title">Professional (NWS/WMO Style)</div>
+    <div class="map-box" style="background: #0a0d15;">
+      <div class="pro-grid"></div>
+      <div class="pro-grid-inner"></div>
+      <div class="pro-poly"></div>
+      <div class="pro-label">SIGMET: SEVERE TS</div>
+    </div>
+  </div>
+</body>
+</html>

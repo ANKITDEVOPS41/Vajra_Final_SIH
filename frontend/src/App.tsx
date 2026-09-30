@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Radar, CloudLightning, MapPin, Activity, Info, ExternalLink, Cpu, ShieldCheck, Grid, Radio, Target, Compass
+  Radar, CloudLightning, MapPin, Activity, Info, ExternalLink, Cpu, ShieldCheck, Grid, Radio, Target, Compass, ShieldAlert
 } from 'lucide-react';
 import { ETACountdown } from './components/ETACountdown';
 import { CitizenWarningInterface } from './components/CitizenWarningInterface';
@@ -75,70 +75,78 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-[#f7f8f8] font-sans selection:bg-[#5e6ad2]/30 selection:text-white flex flex-col">
+    <div className="min-h-screen min-w-[1440px] bg-[#0a0e1a] text-[#f7f8f8] font-sans selection:bg-[#5e6ad2]/30 selection:text-white flex flex-col">
       
       {/* Top Navbar */}
-      <header className="sticky top-0 z-50 h-14 bg-[#0a0d14]/95 backdrop-blur-md border-b border-[#1e2533] px-5 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-md bg-[#131b28] border border-sky-500/30 flex items-center justify-center">
-            <Radar className="w-4 h-4 text-sky-400" />
+      <header className="relative z-[10000] h-[72px] bg-[#08090a]/72 backdrop-blur-xl border-b border-[#23252a] px-6 flex items-center justify-between overflow-x-auto hide-scrollbar shrink-0">
+        <div className="flex items-center space-x-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#0f1011] border border-[#23252a] flex items-center justify-center">
+            <Radar className="w-4 h-4 text-[#5e6ad2]" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-sm font-bold tracking-tight text-white font-mono">VAJRA</h1>
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-sky-500/10 text-[#5e6ad2] border border-sky-500/20">
                 FUSI0NX
               </span>
             </div>
-            <p className="text-[10px] font-mono text-[#8a8f98] uppercase tracking-wider">
+            <p className="text-[10px] font-mono text-[#d0d6e0] uppercase tracking-wider">
               MoES / NCMRWF • 0–6h Severe Convection (PS-26084)
             </p>
           </div>
         </div>
         
         <div className="flex items-center space-x-3">
-          <div className="flex p-0.5 bg-[#101522] border border-[#212b3e] rounded-lg">
+          <div className="flex items-center gap-2 pr-4 overflow-x-auto hide-scrollbar">
              <button 
                 onClick={() => setViewMode('hazard')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 active:scale-[0.98] ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
                   viewMode === 'hazard' 
-                    ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' 
-                    : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
-                <Radar className="w-3.5 h-3.5 text-sky-400" />
+                <Radar className="w-3.5 h-3.5" />
                 <span>Hazard GIS</span>
              </button>
              <button 
                 onClick={() => setViewMode('tactical')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
-                  viewMode === 'tactical' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'tactical' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 Dashboard
              </button>
              <button 
                 onClick={() => setViewMode('convectnow')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 active:scale-[0.98] ${
-                  viewMode === 'convectnow' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'convectnow' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
                 title="ConvectNow National 0–6h Operations Console (Sohra/Cherrapunji Escarpment)"
              >
-                <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                <Compass className="w-3.5 h-3.5" />
                 <span>NE India Nowcast</span>
              </button>
              <button 
                 onClick={() => setViewMode('hyperlocal')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
-                  viewMode === 'hyperlocal' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'hyperlocal' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 3x3 Airfield Twin
              </button>
              <button 
                 onClick={() => setViewMode('inference')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 active:scale-[0.98] ${
-                  viewMode === 'inference' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'inference' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 <Cpu className="w-3.5 h-3.5" />
@@ -146,32 +154,40 @@ export default function App() {
              </button>
              <button 
                 onClick={() => setViewMode('replay')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
-                  viewMode === 'replay' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'replay' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 Case Replay
              </button>
              <button 
                 onClick={() => setViewMode('grid')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
-                  viewMode === 'grid' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'grid' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 Grid XAI
              </button>
              <button 
                 onClick={() => setViewMode('microburst')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all active:scale-[0.98] ${
-                  viewMode === 'microburst' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'microburst' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 3x3km Microburst
              </button>
              <button 
                 onClick={() => setViewMode('public')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center space-x-1.5 active:scale-[0.98] ${
-                  viewMode === 'public' ? 'bg-[#1e293b] text-white shadow-sm border border-slate-600 font-semibold' : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 ${
+                  viewMode === 'public' 
+                    ? 'bg-[#5e6ad2] text-white border border-[#5e6ad2] shadow-sm' 
+                    : 'bg-[#0f1011] text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[#1a1b1d] border border-[#23252a]'
                 }`}
              >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -181,10 +197,9 @@ export default function App() {
           
           <button 
             onClick={() => setShowMissionBriefing(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/40 text-sky-300 font-mono text-xs font-semibold shadow-sm transition-all active:scale-[0.98]"
-            title="Operational Mission Briefing (M)"
+            className="px-4 py-1.5 rounded-xl text-xs font-medium font-mono transition-colors flex items-center space-x-1.5 shrink-0 bg-[#0f1011] text-emerald-400 hover:text-emerald-300 hover:bg-[#1a1b1d] border border-[#23252a]"
           >
-            <Target className="w-3.5 h-3.5 text-amber-400" />
+            <ShieldAlert className="w-3.5 h-3.5" />
             <span>Mission Briefing [M]</span>
           </button>
 
@@ -207,7 +222,7 @@ export default function App() {
       {viewMode !== 'hazard' && viewMode !== 'tactical' && viewMode !== 'convectnow' && (
         <div className="bg-[#0b101b] border-b border-[#1f293d] px-6 py-2 flex flex-wrap items-center justify-between text-xs font-mono text-[#94a3b8]">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1.5 text-sky-400 font-bold">
+          <div className="flex items-center space-x-1.5 text-[#5e6ad2] font-bold">
             <Grid className="w-3.5 h-3.5" />
             <span>3x3 TACTICAL AOI: 20.0°N–20.6°N, 85.5°E–86.1°E</span>
           </div>

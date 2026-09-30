@@ -328,12 +328,12 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
                   >
                     <Popup className="dark-gis-popup">
                       <div className="p-2 text-xs font-mono space-y-1 bg-slate-950 text-slate-100 rounded">
-                        <div className="font-bold text-sky-400">{sec.id} [{sec.code}]</div>
-                        <div className="text-slate-300 font-sans font-medium">{sec.name}</div>
-                        <div className="border-t border-slate-800 pt-1 grid grid-cols-2 gap-1 text-[11px]">
+                        <div className="font-bold text-[#5e6ad2]">{sec.id} [{sec.code}]</div>
+                        <div className="text-[#f7f8f8] font-sans font-medium">{sec.name}</div>
+                        <div className="border-t border-[#23252a] pt-1 grid grid-cols-2 gap-1 text-[11px]">
                           <div>Radar: <span className="font-bold text-amber-400">{sec.radarDbz} dBZ</span></div>
                           <div>Rain: <span className="font-bold text-sky-300">{sec.rainRateMmh} mm/h</span></div>
-                          <div>Wind: <span className="text-slate-200">{sec.windGustKmh} km/h</span></div>
+                          <div>Wind: <span className="text-[#f7f8f8]">{sec.windGustKmh} km/h</span></div>
                           <div>CAPE: <span className="text-rose-400">{sec.capeJkg} J/kg</span></div>
                         </div>
                         {sec.cloudburstFlag && (
@@ -347,7 +347,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
 
                   {/* Sector Label Badge */}
                   <Marker
-                    position={[sec.latMax - 0.02, sec.lonMin + 0.03]}
+                    position={[sec.latMax - 0.001, sec.lonMin + 0.001]}
                     icon={L.divIcon({
                       className: 'sector-badge',
                       html: `
@@ -391,17 +391,17 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
                 <Popup className="dark-gis-popup">
                   <div className="p-2 text-xs font-mono space-y-1 bg-slate-950 text-slate-100 rounded">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-sky-400">{station.id}</span>
-                      <span className="text-[10px] text-slate-400">WMO {station.code}</span>
+                      <span className="font-bold text-[#5e6ad2]">{station.id}</span>
+                      <span className="text-[10px] text-[#d0d6e0]">WMO {station.code}</span>
                     </div>
-                    <div className="text-slate-300 font-sans">{station.name}</div>
-                    <div className="border-t border-slate-800 pt-1 grid grid-cols-2 gap-1 text-[11px]">
+                    <div className="text-[#f7f8f8] font-sans">{station.name}</div>
+                    <div className="border-t border-[#23252a] pt-1 grid grid-cols-2 gap-1 text-[11px]">
                       <div>Temp: <span className="font-bold text-amber-300">{station.tempC}°C</span> (Td {station.dewPointC}°C)</div>
-                      <div>Press: <span className="text-slate-200">{station.pressureHpa} hPa ({station.tendency3h}hPa/3h)</span></div>
+                      <div>Press: <span className="text-[#f7f8f8]">{station.pressureHpa} hPa ({station.tendency3h}hPa/3h)</span></div>
                       <div>Wind: <span className="font-bold text-sky-300">{station.windDirDeg}° @ {station.windSpeedKt}kt (G{station.windGustKt}kt)</span></div>
                       <div>1h Rain: <span className="text-emerald-400">{station.rain1hMm} mm</span></div>
                       <div>CAPE: <span className="text-rose-400">{station.capeJkg} J/kg</span></div>
-                      <div>RH: <span className="text-slate-300">{station.humidityPct}%</span></div>
+                      <div>RH: <span className="text-[#f7f8f8]">{station.humidityPct}%</span></div>
                     </div>
                   </div>
                 </Popup>
@@ -484,7 +484,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
         {showInfrastructure && (
           <>
             <CircleMarker center={VEBS_TERMINAL_1_2} radius={6} pathOptions={{ color: '#ffffff', fillColor: '#38bdf8', fillOpacity: 0.9, weight: 1.5 }}>
-              <Tooltip direction="top" className="!bg-black/90 !text-white !font-mono !text-[10px]">
+              <Tooltip direction="top" className="!bg-black/90 !text-[#f7f8f8] !font-mono !text-[10px]">
                 🏢 VEBS Passenger Terminals 1 &amp; 2
               </Tooltip>
             </CircleMarker>
@@ -494,7 +494,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
               </Tooltip>
             </CircleMarker>
             <CircleMarker center={VEBS_MAIN_APRON} radius={5} pathOptions={{ color: '#ffffff', fillColor: '#94a3b8', fillOpacity: 0.8, weight: 1.5 }}>
-              <Tooltip direction="top" className="!bg-black/90 !text-slate-300 !font-mono !text-[10px]">
+              <Tooltip direction="top" className="!bg-black/90 !text-[#f7f8f8] !font-mono !text-[10px]">
                 🅿️ Main Apron (Bays 1–8)
               </Tooltip>
             </CircleMarker>
@@ -508,7 +508,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
       {/* Floating Tactical Layer & Provider Control */}
       {showProviderToggle && (
         <div
-          className={`absolute ${positionClass} z-[400] flex items-center bg-[#08090a]/92 backdrop-blur-md border border-[#34343a] rounded-lg p-1 space-x-1.5 shadow-xl`}
+          className={`absolute ${positionClass} z-[400] flex items-center bg-[#08090a]/92 backdrop-blur-md border border-[#34343a] rounded-xl p-1 space-x-1.5 `}
         >
           {/* 3x3 Grid Toggle */}
           <button
@@ -516,8 +516,8 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
             onClick={() => setGridVisible(!gridVisible)}
             className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium flex items-center space-x-1 transition-colors ${
               gridVisible
-                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/40'
+                : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
             }`}
           >
             <Grid className="w-3 h-3" />
@@ -531,14 +531,14 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
             className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium flex items-center space-x-1 transition-colors ${
               awsVisible
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                : 'text-slate-400 hover:text-white'
+                : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
             }`}
           >
             <Radio className="w-3 h-3" />
             <span>AWS (9)</span>
           </button>
 
-          <div className="h-4 w-px bg-slate-700 mx-0.5" />
+          <div className="h-4 w-px bg-[#0f1011] mx-0.5" />
 
           {/* Tile Selector */}
           <div className="flex items-center pl-1 text-[#8a8f98]">
@@ -549,7 +549,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
             onClick={() => setActiveProvider('cartoDark')}
             className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors ${
               activeProvider === 'cartoDark'
-                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 shadow-sm'
+                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 '
                 : 'text-[#8a8f98] hover:text-[#f7f8f8]'
             }`}
           >
@@ -560,7 +560,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
             onClick={() => setActiveProvider('esriSatellite')}
             className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors ${
               activeProvider === 'esriSatellite'
-                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 shadow-sm'
+                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 '
                 : 'text-[#8a8f98] hover:text-[#f7f8f8]'
             }`}
           >
@@ -571,7 +571,7 @@ export const TacticalAirportMapEngine: React.FC<TacticalAirportMapEngineProps> =
             onClick={() => setActiveProvider('osmStandard')}
             className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-colors ${
               activeProvider === 'osmStandard'
-                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 shadow-sm'
+                ? 'bg-[#38bdf8]/20 text-[#38bdf8] border border-[#38bdf8]/40 '
                 : 'text-[#8a8f98] hover:text-[#f7f8f8]'
             }`}
           >

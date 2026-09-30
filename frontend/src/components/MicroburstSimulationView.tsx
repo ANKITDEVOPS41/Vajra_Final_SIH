@@ -66,11 +66,11 @@ export const MicroburstSimulationView: React.FC = () => {
   const storm = getStormCore(timeStep);
 
   return (
-    <div className="w-full min-h-[860px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans shadow-2xl">
+    <div className="w-full min-h-[860px] bg-[#08090a] border border-[#23252a] rounded-xl overflow-hidden flex flex-col font-sans ">
       
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#23252a] bg-[#0f1011] flex justify-between items-center shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-red-500/10 to-transparent pointer-events-none"></div>
+      <div className="px-6 py-4 border-b border-[#23252a] bg-[#0f1011] flex justify-between items-center  relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-full  from-red-500/10 to-transparent pointer-events-none"></div>
         <div>
           <h2 className="text-[18px] font-bold text-[#f7f8f8] flex items-center tracking-tight">
             <CloudLightning className="w-5 h-5 mr-2 text-rose-500" />
@@ -93,16 +93,16 @@ export const MicroburstSimulationView: React.FC = () => {
       </div>
 
       {/* Clear Purpose & Operational Intent Explainer Bar */}
-      <div className="px-6 py-2.5 bg-[#0e131d] border-b border-[#1e2533] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-        <div className="flex items-center space-x-2 text-slate-200">
-          <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold text-[11px]">
+      <div className="px-6 py-2.5 bg-[#0e131d] border-b border-[#23252a] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        <div className="flex items-center space-x-2 text-[#f7f8f8]">
+          <span className="px-2 py-0.5 rounded bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/30 font-bold text-[11px]">
             WHAT THIS VIEW REVEALS
           </span>
-          <span className="text-slate-300">
+          <span className="text-[#f7f8f8]">
             Real-time simulation of a severe convective downdraft impacting Runway 01 touchdown zone.
           </span>
         </div>
-        <div className="flex items-center space-x-4 text-[11px] text-slate-400">
+        <div className="flex items-center space-x-4 text-[11px] text-[#d0d6e0]">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
             <span className="text-red-400 font-semibold">LLWS Shear &gt;15 m/s: Mandatory Go-Around</span>
@@ -118,10 +118,10 @@ export const MicroburstSimulationView: React.FC = () => {
       <div className="flex-1 flex p-6 gap-6">
         
         {/* Left: The High-Res Map */}
-        <div className="flex-1 border border-[#34343a] rounded-xl bg-[#141516] flex flex-col overflow-hidden relative shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-           <div className="absolute top-4 left-4 z-[400] px-3.5 py-2.5 bg-[#08090a]/92 border border-[#34343a] rounded-lg shadow-lg backdrop-blur-md">
+        <div className="flex-1 border border-[#34343a] rounded-xl bg-[#141516] flex flex-col overflow-hidden relative ">
+           <div className="absolute top-4 left-4 z-[400] px-3.5 py-2.5 bg-[#08090a]/92 border border-[#34343a] rounded-xl  backdrop-blur-md">
                <div className="text-[12px] font-bold text-[#f7f8f8] uppercase tracking-wider mb-1 flex items-center">
-                   <Activity className="w-3.5 h-3.5 mr-1.5 text-sky-400" />
+                   <Activity className="w-3.5 h-3.5 mr-1.5 text-[#5e6ad2]" />
                    T+{timeStep} Minutes Interpolation
                </div>
                <div className="text-[11px] font-mono text-[#8a8f98]">
@@ -135,7 +135,7 @@ export const MicroburstSimulationView: React.FC = () => {
               minZoom={12} 
               maxZoom={18}
               scrollWheelZoom={true} 
-              className="w-full h-full bg-[#0a0d15]"
+              className="w-full h-full bg-[#08090a]"
               showTacticalGrid={false}
               showAwsStations={true}
               showProviderToggle={true}
@@ -165,7 +165,7 @@ export const MicroburstSimulationView: React.FC = () => {
                       dashArray: '6, 6'
                     }} 
                   >
-                    <Tooltip direction="top" className="bg-slate-900 text-amber-300 font-mono text-[10px]">
+                    <Tooltip direction="top" className="bg-[#08090a] text-amber-300 font-mono text-[10px]">
                       Outflow Boundary: Gust {storm.windGust} km/h (ΔT {storm.coldPoolDelta}°C)
                     </Tooltip>
                   </Polygon>
@@ -195,7 +195,7 @@ export const MicroburstSimulationView: React.FC = () => {
                       weight: 2 
                     }} 
                   >
-                    <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono font-bold text-white drop-shadow">
+                    <Tooltip permanent direction="center" className="bg-transparent border-none shadow-none text-[11px] font-mono font-bold text-[#f7f8f8] drop-shadow">
                       {storm.coreDbz} dBZ
                     </Tooltip>
                   </Polygon>
@@ -219,7 +219,7 @@ export const MicroburstSimulationView: React.FC = () => {
                     <div>Reflectivity: <span className="font-bold text-amber-300">{storm.coreDbz} dBZ</span></div>
                     <div>Rain Rate: <span className="font-bold text-sky-300">{storm.rainRate} mm/h</span></div>
                     <div>Velocity Shear ΔV: <span className="font-bold text-rose-400">{storm.velocityShear} m/s</span></div>
-                    <div>Peak Surface Gust: <span className="text-white font-bold">{storm.windGust} km/h</span></div>
+                    <div>Peak Surface Gust: <span className="text-[#f7f8f8] font-bold">{storm.windGust} km/h</span></div>
                   </div>
                 </Popup>
               </CircleMarker>
@@ -230,12 +230,12 @@ export const MicroburstSimulationView: React.FC = () => {
               <div className="flex items-center space-x-4">
                  <button 
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white hover:bg-red-500 transition-colors shadow-lg"
+                    className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-[#f7f8f8] hover:bg-red-500 transition-colors "
                  >
                     {isPlaying ? (
-                      <Pause className="w-4 h-4 text-white" />
+                      <Pause className="w-4 h-4 text-[#f7f8f8]" />
                     ) : (
-                      <Play className="w-4 h-4 text-white ml-0.5" />
+                      <Play className="w-4 h-4 text-[#f7f8f8] ml-0.5" />
                     )}
                  </button>
                  <div className="flex-1 relative pt-2">
@@ -245,7 +245,7 @@ export const MicroburstSimulationView: React.FC = () => {
                       max="60" 
                       value={timeStep}
                       onChange={(e) => setTimeStep(parseInt(e.target.value))}
-                      className="w-full accent-red-500 h-1.5 bg-[#34343a] rounded-lg appearance-none cursor-pointer"
+                      className="w-full accent-red-500 h-1.5 bg-[#34343a] rounded-xl appearance-none cursor-pointer"
                     />
                     <div className="flex justify-between mt-1 text-[10px] font-mono text-[#8a8f98]">
                        <span>T+0m (Approach)</span>
@@ -263,30 +263,30 @@ export const MicroburstSimulationView: React.FC = () => {
         <div className="w-80 flex flex-col gap-4">
            
            <div className="p-4 border border-[#23252a] bg-[#0f1011] rounded-xl space-y-3">
-              <h3 className="text-[12px] font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center">
-                 <Crosshair className="w-3.5 h-3.5 mr-1.5 text-sky-400" /> VEBS Airfield Telemetry
+              <h3 className="text-[12px] font-bold text-[#f7f8f8] uppercase tracking-wider font-mono flex items-center">
+                 <Crosshair className="w-3.5 h-3.5 mr-1.5 text-[#5e6ad2]" /> VEBS Airfield Telemetry
               </h3>
 
               <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400">VELOCITY SHEAR (ΔV)</span>
+                 <div className="bg-[#08090a]/80 p-2.5 rounded border border-[#23252a]">
+                    <span className="text-[10px] text-[#d0d6e0]">VELOCITY SHEAR (ΔV)</span>
                     <div className="text-lg font-bold text-rose-400">{storm.velocityShear} m/s</div>
-                    <div className="text-[9px] text-slate-400">ICAO Alert &gt;15 m/s</div>
+                    <div className="text-[9px] text-[#d0d6e0]">ICAO Alert &gt;15 m/s</div>
                  </div>
-                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400">PEAK OUTFLOW GUST</span>
+                 <div className="bg-[#08090a]/80 p-2.5 rounded border border-[#23252a]">
+                    <span className="text-[10px] text-[#d0d6e0]">PEAK OUTFLOW GUST</span>
                     <div className="text-lg font-bold text-amber-400">{storm.windGust} km/h</div>
-                    <div className="text-[9px] text-slate-400">54 kt Squall</div>
+                    <div className="text-[9px] text-[#d0d6e0]">54 kt Squall</div>
                  </div>
-                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400">Z-R RAIN RATE</span>
+                 <div className="bg-[#08090a]/80 p-2.5 rounded border border-[#23252a]">
+                    <span className="text-[10px] text-[#d0d6e0]">Z-R RAIN RATE</span>
                     <div className="text-base font-bold text-sky-300">{storm.rainRate} mm/h</div>
-                    <div className="text-[9px] text-slate-400">Cloudburst Level</div>
+                    <div className="text-[9px] text-[#d0d6e0]">Cloudburst Level</div>
                  </div>
-                 <div className="bg-slate-900/80 p-2.5 rounded border border-slate-800">
-                    <span className="text-[10px] text-slate-400">COLD POOL DROP</span>
+                 <div className="bg-[#08090a]/80 p-2.5 rounded border border-[#23252a]">
+                    <span className="text-[10px] text-[#d0d6e0]">COLD POOL DROP</span>
                     <div className="text-base font-bold text-purple-400">{storm.coldPoolDelta}°C</div>
-                    <div className="text-[9px] text-slate-400">Dense Outflow</div>
+                    <div className="text-[9px] text-[#d0d6e0]">Dense Outflow</div>
                  </div>
               </div>
            </div>
@@ -295,19 +295,19 @@ export const MicroburstSimulationView: React.FC = () => {
            <div className="p-4 border border-[#23252a] bg-[#0f1011] rounded-xl space-y-2.5 font-mono text-xs">
               <div className="text-[11px] font-bold text-amber-400 flex items-center justify-between">
                 <span className="flex items-center"><Radio className="w-3.5 h-3.5 mr-1" /> AWS-VEBS Confirmation</span>
-                <span className="text-[10px] text-slate-400">42971</span>
+                <span className="text-[10px] text-[#d0d6e0]">42971</span>
               </div>
-              <div className="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
+              <div className="bg-slate-950 p-2.5 rounded border border-[#23252a] space-y-1 text-[11px]">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Surface Pressure:</span>
-                  <span className="text-white font-bold">999.2 hPa (-4.8/3h)</span>
+                  <span className="text-[#d0d6e0]">Surface Pressure:</span>
+                  <span className="text-[#f7f8f8] font-bold">999.2 hPa (-4.8/3h)</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Aerodrome Wind:</span>
+                  <span className="text-[#d0d6e0]">Aerodrome Wind:</span>
                   <span className="text-rose-400 font-bold">210° @ 28G54 kt</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Air Temperature:</span>
+                  <span className="text-[#d0d6e0]">Air Temperature:</span>
                   <span className="text-amber-300 font-bold">22.8°C (Td 22.1°C)</span>
                 </div>
               </div>
@@ -319,9 +319,9 @@ export const MicroburstSimulationView: React.FC = () => {
                 <h3 className="text-[12px] font-bold text-red-400 uppercase tracking-wider mb-2 font-mono flex items-center">
                    <ShieldAlert className="w-4 h-4 mr-1.5" /> AAI / VEBS ATC Directive
                 </h3>
-                <div className="p-3 bg-slate-950/90 border border-red-500/40 rounded-lg text-xs space-y-1">
-                   <div className="font-bold text-white uppercase text-[11px]">RUNWAY 01 LLWS EMERGENCY</div>
-                   <div className="text-slate-300 text-[11px] leading-relaxed">
+                <div className="p-3 bg-slate-950/90 border border-red-500/40 rounded-xl text-xs space-y-1">
+                   <div className="font-bold text-[#f7f8f8] uppercase text-[11px]">RUNWAY 01 LLWS EMERGENCY</div>
+                   <div className="text-[#f7f8f8] text-[11px] leading-relaxed">
                      {storm.isPeak ? (
                        <span className="text-red-300 font-semibold">
                          Microburst touchdown in progress over Runway 01 threshold. Headwind loss exceeds 30 knots on final approach. 
@@ -336,7 +336,7 @@ export const MicroburstSimulationView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-3 text-[10px] font-mono text-slate-400 text-center">
+              <div className="mt-3 text-[10px] font-mono text-[#d0d6e0] text-center">
                 Automated NDMA CAP / AAI NOTAM broadcast ready
               </div>
            </div>

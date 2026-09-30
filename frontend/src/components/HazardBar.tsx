@@ -34,16 +34,16 @@ export const HazardBar: React.FC<HazardBarProps> = ({ hazards, onHazardClick }) 
         return <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />;
       case 'stable':
       default:
-        return <Minus className="w-3.5 h-3.5 text-slate-400" />;
+        return <Minus className="w-3.5 h-3.5 text-[#d0d6e0]" />;
     }
   };
 
   return (
-    <div className="w-full bg-[#0a0d15]/90 border-t border-[#1e293b] backdrop-blur-md px-3 py-2 z-20 select-none">
+    <div className="w-full bg-[#08090a]/90 border-t border-[#1e293b] backdrop-blur-md px-3 py-2 z-20 select-none">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-        <div className="hidden xl:flex items-center gap-2 text-xs font-mono text-slate-400 border-r border-[#1e293b] pr-3 mr-1">
+        <div className="hidden xl:flex items-center gap-2 text-xs font-mono text-[#d0d6e0] border-r border-[#1e293b] pr-3 mr-1">
           <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span className="font-semibold text-slate-300">HAZARD SUMMARY</span>
+          <span className="font-semibold text-[#f7f8f8]">HAZARD SUMMARY</span>
         </div>
 
         {/* 5 Hazard Indicator Cards */}
@@ -54,23 +54,23 @@ export const HazardBar: React.FC<HazardBarProps> = ({ hazards, onHazardClick }) 
               <div
                 key={hazard.type}
                 onClick={() => onHazardClick?.(hazard)}
-                className={`flex items-center justify-between p-2 rounded-lg border backdrop-blur-md cursor-pointer transition-all hover:scale-[1.02] ${severity.bgClass} ${severity.borderClass}`}
+                className={`flex items-center justify-between p-2 rounded-xl border backdrop-blur-md cursor-pointer transition-all hover:scale-[1.02] ${severity.bgClass} ${severity.borderClass}`}
                 title={hazard.description}
               >
                 <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-md ${severity.colorClass} bg-black/40`}>
+                  <div className={`p-1.5 rounded-xl ${severity.colorClass} bg-black/40`}>
                     {getIcon(hazard.type)}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-200 font-mono">
+                      <span className="text-xs font-bold text-[#f7f8f8] font-mono">
                         {hazard.shortCode}
                       </span>
-                      <span className="text-[10px] text-slate-400 truncate max-w-[80px] lg:max-w-none">
+                      <span className="text-[10px] text-[#d0d6e0] truncate max-w-[80px] lg:max-w-none">
                         {hazard.title}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                    <div className="flex items-center gap-1 text-[10px] text-[#d0d6e0]">
                       <span>Status:</span>
                       <span className={`font-semibold ${severity.colorClass}`}>
                         {severity.label}

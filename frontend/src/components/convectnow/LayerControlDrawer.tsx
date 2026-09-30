@@ -32,7 +32,7 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
       case 'vector_overlay':
         return <Compass className="w-4 h-4 text-orange-400" />;
       default:
-        return <Layers className="w-4 h-4 text-slate-400" />;
+        return <Layers className="w-4 h-4 text-[#d0d6e0]" />;
     }
   };
 
@@ -50,7 +50,7 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
   };
 
   return (
-    <div className="fixed top-14 left-0 bottom-0 w-80 md:w-96 bg-[#0a0d15]/95 border-r border-[#1e293b] backdrop-blur-2xl shadow-2xl z-30 flex flex-col font-mono select-none overflow-hidden animate-in slide-in-from-left duration-200">
+    <div className="fixed top-14 left-0 bottom-0 w-80 md:w-96 bg-[#08090a]/95 border-r border-[#1e293b] backdrop-blur-2xl  z-30 flex flex-col font-mono select-none overflow-hidden animate-in slide-in-from-left duration-200">
       {/* Header */}
       <div className="p-3.5 border-b border-[#1e293b] bg-[#131928]/80 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -58,14 +58,14 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
             <Layers className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs font-bold text-white tracking-wider">OGC & OPERATIONAL LAYERS</h2>
-            <p className="text-[10px] text-slate-400">Independent WMS/WFS/Vector Controls</p>
+            <h2 className="text-xs font-bold text-[#f7f8f8] tracking-wider">OGC & OPERATIONAL LAYERS</h2>
+            <p className="text-[10px] text-[#d0d6e0]">Independent WMS/WFS/Vector Controls</p>
           </div>
         </div>
 
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+          className="p-1 rounded hover:bg-[#08090a] text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
           title="Close Layer Controller"
         >
           <X className="w-4 h-4" />
@@ -77,7 +77,7 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
         {layers.map((layer) => (
           <div
             key={layer.id}
-            className={`p-3 rounded-lg border transition-all ${
+            className={`p-3 rounded-xl border transition-all ${
               layer.visible
                 ? 'bg-[#131928]/60 border-[#334155]'
                 : 'bg-[#0e1422]/40 border-[#1e293b]/60 opacity-60'
@@ -91,12 +91,12 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-slate-200">
+                    <span className="text-xs font-semibold text-[#f7f8f8]">
                       {layer.title}
                     </span>
                     {getProviderBadge(layer.provider)}
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+                  <p className="text-[10px] text-[#d0d6e0] mt-0.5 leading-tight">
                     {layer.description}
                   </p>
                 </div>
@@ -108,7 +108,7 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
                 className={`p-1.5 rounded transition-colors ${
                   layer.visible
                     ? 'bg-blue-600/30 text-blue-300 border border-blue-500/40 hover:bg-blue-600/50'
-                    : 'bg-slate-800/60 text-slate-500 border border-slate-700/60 hover:text-slate-300'
+                    : 'bg-[#08090a]/60 text-[#d0d6e0] border border-[#23252a]/60 hover:text-[#f7f8f8]'
                 }`}
                 title={layer.visible ? 'Hide layer' : 'Show layer'}
               >
@@ -118,9 +118,9 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
 
             {/* Opacity Slider */}
             {layer.visible && (
-              <div className="mt-3 pt-2 border-t border-[#1e293b]/60 flex items-center justify-between gap-3 text-[11px] text-slate-400">
+              <div className="mt-3 pt-2 border-t border-[#1e293b]/60 flex items-center justify-between gap-3 text-[11px] text-[#d0d6e0]">
                 <div className="flex items-center gap-1.5">
-                  <Sliders className="w-3 h-3 text-slate-500" />
+                  <Sliders className="w-3 h-3 text-[#d0d6e0]" />
                   <span>Opacity</span>
                 </div>
                 <div className="flex items-center gap-2 flex-1 max-w-[160px]">
@@ -130,9 +130,9 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
                     max="100"
                     value={Math.round(layer.opacity * 100)}
                     onChange={(e) => onChangeOpacity(layer.id, parseFloat(e.target.value) / 100)}
-                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-1.5 bg-[#08090a] rounded-xl appearance-none cursor-pointer accent-blue-500"
                   />
-                  <span className="w-8 text-right font-mono text-[10px] text-slate-300">
+                  <span className="w-8 text-right font-mono text-[10px] text-[#f7f8f8]">
                     {Math.round(layer.opacity * 100)}%
                   </span>
                 </div>
@@ -143,9 +143,9 @@ export const LayerControlDrawer: React.FC<LayerControlDrawerProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 bg-[#131928]/60 border-t border-[#1e293b] text-[10px] text-slate-500 flex items-center justify-between">
+      <div className="p-3 bg-[#131928]/60 border-t border-[#1e293b] text-[10px] text-[#d0d6e0] flex items-center justify-between">
         <span>Direct OGC Protocol (Zero Iframe)</span>
-        <span className="text-slate-400">EPSG:3857 / EPSG:4326</span>
+        <span className="text-[#d0d6e0]">EPSG:3857 / EPSG:4326</span>
       </div>
     </div>
   );

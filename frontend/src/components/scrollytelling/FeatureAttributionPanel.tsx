@@ -45,15 +45,15 @@ export const FeatureAttributionPanel: React.FC<FeatureAttributionPanelProps> = (
           // Color coding depending on rank/score
           const barColor =
             item.score >= 35
-              ? 'bg-gradient-to-r from-cyan-500 to-ice-400 shadow-[0_0_10px_rgba(0,229,255,0.6)]'
+              ? ' from-cyan-500 to-ice-400 '
               : item.score >= 25
-              ? 'bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]'
-              : 'bg-gradient-to-r from-slate-600 to-steel-400';
+              ? ' from-blue-500 to-cyan-400 '
+              : ' from-slate-600 to-steel-400';
 
           return (
             <div
               key={idx}
-              className="bg-ocean-900/60 border border-steel-800 p-2.5 rounded-lg flex flex-col justify-between hover:border-ice-500/30 transition-all"
+              className="bg-ocean-900/60 border border-steel-800 p-2.5 rounded-xl flex flex-col justify-between hover:border-ice-500/30 transition-all"
             >
               <div>
                 <div className="flex items-center justify-between">

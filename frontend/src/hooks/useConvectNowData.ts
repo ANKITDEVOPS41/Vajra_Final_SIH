@@ -288,97 +288,137 @@ export function useConvectNowData(pollIntervalMs = 60_000): ConvectNowData {
   const [awsStations, setAwsStations] = useState<AWSStation[]>(REAL_HISTORICAL_AWS);
   const [sectorGrid, setSectorGrid] = useState<SectorGrid[]>(REAL_HISTORICAL_GRID);
   const [evalMetrics, setEvalMetrics] = useState<EvaluationMetrics>(REAL_EVAL_METRICS);
-  const fetchingRef = useRef(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryCountRef = useRef(0);
 
-  const refresh = useCallback(async () => {
-    if (fetchingRef.current) return;
-    fetchingRef.current = true;
+  const connectWebSocket = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    try {
-      // 1. Fetch storm cells from trained model backend
-      const cellsRaw = await fetchJSON<any>('/storm/cells', null);
-      if (cellsRaw?.features?.length) {
-        const mapped = mapBackendCells(cellsRaw.features);
-        setStormCells(mapped);
-        // Derive hazard summary from first (most severe) cell
-        const primary = mapped[0];
-        setHazards({
-          ci_prob: primary.ci_prob,
-          cloudburst_prob: primary.cloudburst_prob,
-          hail_prob: primary.hail_prob,
-          downburst_prob: primary.downburst_prob,
-          lightning_prob: primary.lightning_prob,
-        });
-        const mode = cellsRaw.data_mode ?? cellsRaw.features[0]?.properties?.data_mode ?? 'historical_fallback';
-        setDataMode(mode as DataMode);
-        setIsLive(mode === 'imd_live' || mode === 'mosdac_authenticated');
-        setLastUpdated(new Date());
+    const wsUrl = import.meta.env.DEV ? 'ws://localhost:8000/ws/live' : `wss://${window.location.host}/ws/live`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      setIsLive(true);
+      retryCountRef.current = 0; // reset backoff
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'hazard_update') {
+          // 1. Storm Cells
+          if (data.storm_cells_raw?.features?.length) {
+            const mapped = mapBackendCells(data.storm_cells_raw.features);
+            setStormCells(mapped);
+            if (mapped.length > 0) {
+              const primary = mapped[0];
+              setHazards({
+                ci_prob: primary.ci_prob,
+                cloudburst_prob: primary.cloudburst_prob,
+                hail_prob: primary.hail_prob,
+                downburst_prob: primary.downburst_prob,
+                lightning_prob: primary.lightning_prob,
+              });
+              const mode = data.storm_cells_raw.data_mode ?? primary.data_mode ?? 'historical_fallback';
+              setDataMode(mode as DataMode);
+              setIsLive(mode === 'imd_live' || mode === 'mosdac_authenticated');
+            }
+          }
+
+          // 2. AWS Stations
+          if (data.aws_raw?.data) {
+            const stations: AWSStation[] = Object.entries(data.aws_raw.data).map(([id, s]: [string, any]) => ({
+              id,
+              name: s.name,
+              lat: s.lat,
+              lon: s.lon,
+              temp_c: s.temp_c ?? s.air_temp_c,
+              rh_pct: s.rh_pct ?? s.humidity_pct,
+              precip_mm_1h: s.precip_mm_1h ?? s.rain_1h_mm,
+              wind_kmh: s.wind_kmh ?? s.wind_speed_kmh,
+              pressure_hpa: s.pressure_hpa,
+            }));
+            setAwsStations(stations);
+          }
+
+          // 3. Grid Hazards
+          if (data.hazards_raw?.features?.length) {
+            const features = data.hazards_raw.features;
+            const step = Math.floor(features.length / 9);
+            const gridIds = ['A1','A2','A3','B1','B2','B3','C1','C2','C3'];
+            const gridCells: SectorGrid[] = gridIds.map((id, i) => {
+              const f = features[Math.min(i * step, features.length - 1)];
+              const p = f?.properties ?? {};
+              return {
+                id, row: Math.floor(i / 3), col: i % 3,
+                radar_dbz: Math.round(p.radar_dbz ?? 40),
+                rain_rate_mmh: Math.round(p.rain_rate_mmh ?? 60),
+                wind_gust_kmh: Math.round(p.wind_gust_kmh ?? 50),
+                pressure_hpa: Math.round(p.pressure_hpa ?? 1002),
+                ci_prob: Math.round((p.ci_prob ?? 0.7) * 100),
+                cloudburst_prob: Math.round((p.cloudburst_prob ?? 0.55) * 100),
+                data_mode: p.data_mode ?? 'historical_fallback',
+              };
+            });
+            setSectorGrid(gridCells);
+          }
+
+          // 4. Eval Metrics
+          if (data.eval_raw?.metrics) {
+            setEvalMetrics({
+              convectnet_csi: data.eval_raw.metrics.convectnet_csi,
+              pysteps_csi: data.eval_raw.metrics.pysteps_csi,
+              persistence_csi: data.eval_raw.metrics.persistence_csi,
+              gain_vs_persistence_pct: data.eval_raw.metrics.gain_vs_persistence_pct,
+              gain_vs_optical_flow_pct: data.eval_raw.metrics.gain_vs_optical_flow_pct,
+            });
+          }
+
+          setLastUpdated(new Date());
+        }
+      } catch (err) {
+        console.error('WebSocket message parse error:', err);
       }
+    };
 
-      // 2. Fetch hazard grid (all lat/lon points — drives sector grid)
-      const hazardsRaw = await fetchJSON<any>('/hazards', null);
-      if (hazardsRaw?.features?.length) {
-        // Map 10×10 API grid to 3×3 display grid (pick 9 representative cells)
-        const features = hazardsRaw.features;
-        const step = Math.floor(features.length / 9);
-        const gridCells: SectorGrid[] = ['A1','A2','A3','B1','B2','B3','C1','C2','C3']
-          .map((id, i) => {
-            const f = features[Math.min(i * step, features.length - 1)];
-            const p = f?.properties ?? {};
-            return {
-              id, row: Math.floor(i / 3), col: i % 3,
-              radar_dbz: Math.round(p.radar_dbz ?? 40),
-              rain_rate_mmh: Math.round(p.rain_rate_mmh ?? 60),
-              wind_gust_kmh: Math.round(p.wind_gust_kmh ?? 50),
-              pressure_hpa: Math.round(p.pressure_hpa ?? 1002),
-              ci_prob: Math.round((p.ci_prob ?? 0.7) * 100),
-              cloudburst_prob: Math.round((p.cloudburst_prob ?? 0.55) * 100),
-              data_mode: p.data_mode ?? 'historical_fallback',
-            };
-          });
-        setSectorGrid(gridCells);
-      }
+    ws.onclose = () => {
+      console.log('WebSocket disconnected.');
+      setIsLive(false);
+      wsRef.current = null;
+      // Exponential backoff
+      const backoffDelay = Math.min(30000, 1000 * Math.pow(2, retryCountRef.current));
+      retryCountRef.current++;
+      console.log(`Reconnecting in ${backoffDelay}ms...`);
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, backoffDelay);
+    };
 
-      // 3. Fetch AWS station data
-      const awsRaw = await fetchJSON<any>('/aws_stations', null);
-      if (awsRaw?.data) {
-        const stations: AWSStation[] = Object.entries(awsRaw.data).map(([id, s]: [string, any]) => ({
-          id,
-          name: s.name,
-          lat: s.lat,
-          lon: s.lon,
-          temp_c: s.temp_c,
-          rh_pct: s.rh_pct,
-          precip_mm_1h: s.precip_mm_1h,
-          wind_kmh: s.wind_kmh,
-          pressure_hpa: s.pressure_hpa,
-        }));
-        setAwsStations(stations);
-      }
-
-      // 4. Fetch real evaluation metrics from trained checkpoint
-      const evalRaw = await fetchJSON<any>('/evaluation_report', null);
-      if (evalRaw?.metrics) {
-        setEvalMetrics({
-          convectnet_csi: evalRaw.metrics.convectnet_csi,
-          pysteps_csi: evalRaw.metrics.pysteps_csi,
-          persistence_csi: evalRaw.metrics.persistence_csi,
-          gain_vs_persistence_pct: evalRaw.metrics.gain_vs_persistence_pct,
-          gain_vs_optical_flow_pct: evalRaw.metrics.gain_vs_optical_flow_pct,
-        });
-      }
-
-    } finally {
-      fetchingRef.current = false;
-    }
+    ws.onerror = (err) => {
+      console.error('WebSocket error:', err);
+      ws.close();
+    };
   }, []);
 
-  // Initial fetch + polling
+  const refresh = useCallback(async () => {
+    // If not connected, force a manual reconnect attempt
+    if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED) {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      connectWebSocket();
+    }
+  }, [connectWebSocket]);
+
   useEffect(() => {
-    refresh();
-    const interval = setInterval(refresh, pollIntervalMs);
-    return () => clearInterval(interval);
-  }, [refresh, pollIntervalMs]);
+    connectWebSocket();
+    return () => {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      if (wsRef.current) {
+        wsRef.current.onclose = null; // prevent reconnect loop on unmount
+        wsRef.current.close();
+      }
+    };
+  }, [connectWebSocket]);
 
   return {
     dataMode,

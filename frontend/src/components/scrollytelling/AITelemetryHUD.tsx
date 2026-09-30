@@ -65,7 +65,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         <div className="flex items-center space-x-2">
           {/* Hazard State Badge */}
           <span
-            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border shadow-sm ${getHazardStateBadge(
+            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border  ${getHazardStateBadge(
               metrics.hazardState
             )}`}
           >
@@ -81,7 +81,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
       {/* Primary Metrics Grid in JetBrains Mono */}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-9 gap-2 mt-2">
         {/* 1. Peak Z Max */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider">
             Peak Z_max
           </span>
@@ -92,7 +92,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 2. Core Altitude */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider">
             Core Alt
           </span>
@@ -103,7 +103,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 3. Vertical Velocity w */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <Wind className="w-2.5 h-2.5" />
             <span>Velocity w</span>
@@ -121,7 +121,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 4. VIL (Vertically Integrated Liquid) */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <Layers className="w-2.5 h-2.5 text-blue-400" />
             <span>VIL Mass</span>
@@ -133,7 +133,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 5. VIL Density */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider">
             VIL Density
           </span>
@@ -148,7 +148,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 6. Hail POSH & MESH */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <Zap className="w-2.5 h-2.5 text-amber-400" />
             <span>Hail POSH</span>
@@ -166,7 +166,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 7. Rain Rate (Z-R) */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <CloudRain className="w-2.5 h-2.5 text-cyan-400" />
             <span>Rain Rate</span>
@@ -182,7 +182,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 8. Cloud-Top Temp (INSAT-3DR) */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <Thermometer className="w-2.5 h-2.5 text-blue-300" />
             <span>Cloud Top</span>
@@ -194,7 +194,7 @@ export const AITelemetryHUD: React.FC<AITelemetryHUDProps> = ({
         </div>
 
         {/* 9. Lightning Rate */}
-        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-lg flex flex-col justify-between">
+        <div className="bg-ocean-900/70 border border-steel-800/80 p-2 rounded-xl flex flex-col justify-between">
           <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold tracking-wider flex items-center space-x-1">
             <Zap className="w-2.5 h-2.5 text-yellow-400" />
             <span>Lightning</span>

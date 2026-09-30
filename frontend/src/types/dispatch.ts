@@ -995,8 +995,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
   },
   {
     cell_id: 'CELL-912',
-    centroid_lat: 20.46,
-    centroid_lon: 85.88,
+    centroid_lat: 20.2520,
+    centroid_lon: 85.8170,
     area_km2: 215.0,
     peak_dbz: 52.0,
     mean_dbz: 44.5,
@@ -1019,8 +1019,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
     },
     target_etas: [
       {
-        target_name: 'Cuttack Badambadi Bus Terminal',
-        distance_km: 11.2,
+        target_name: 'Runway 14 Threshold',
+        distance_km: 1.2,
         eta_minutes: 45,
         eta_window_min: '40-55 min',
         threat_level: 'WARNING',
@@ -1035,8 +1035,8 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
   },
   {
     cell_id: 'CELL-401',
-    centroid_lat: 20.11,
-    centroid_lon: 85.83,
+    centroid_lat: 20.2380,
+    centroid_lon: 85.8200,
     area_km2: 8.0,
     peak_dbz: 42.0,
     mean_dbz: 35.0,
@@ -1076,11 +1076,11 @@ export const FALLBACK_STORM_CELLS: StormCell[] = [
 ];
 
 export const DEFAULT_SAFE_SHELTER: DesignatedShelter = {
-  id: 'SHELTER-PADMAPUR-01',
-  name: 'Padmapur Multipurpose Cyclone Shelter (MPCS)',
-  nameHi: 'पद्मापुर बहुउद्देश्यीय चक्रवात एवं बाढ़ आश्रय केंद्र',
+  id: 'SHELTER-VEBS-T1-UNDERGROUND',
+  name: 'Terminal 1 Underground Concourse (Designated Safe Area)',
+  nameHi: 'टर्मिनल 1 अंडरग्राउंड कॉनकोर्स (नामित सुरक्षित क्षेत्र)',
   type: 'Engineered Multi-Purpose Cyclone Shelter',
-  address: 'Sector 4, Near High School Ground, Padmapur Ward Bypass',
+  address: 'Biju Patnaik Airport (VEBS), Domestic Terminal 1, Level -1',
   distanceKm: 1.2,
   walkEtaMinutes: 6,
   driveEtaMinutes: 3,
@@ -1089,8 +1089,8 @@ export const DEFAULT_SAFE_SHELTER: DesignatedShelter = {
   contactNumber: '+91-891-2845112 / Helpline: 1077',
   latitude: 17.792,
   longitude: 83.251,
-  turnByTurnAdviceEn: 'Head West onto NH-16 Elevated Bypass road. Strictly avoid the low-lying Canal Road underpass which is flooding. Follow neon green NDMA emergency evacuation arrows directly to the High School campus.',
-  turnByTurnAdviceHi: 'एनएच-16 एलिवेटेड बाईपास की ओर पश्चिम दिशा में बढ़ें। नहर रोड अंडरपास से बिल्कुल बचें जहां जलभराव हो रहा है। हाई स्कूल परिसर में बने आश्रय केंद्र के हरे दिशा-सूचकों का पालन करें।',
+  turnByTurnAdviceEn: 'Evacuate the tarmac and surface parking areas immediately. Proceed through the main terminal glass doors and follow the neon green emergency evacuation signs down the stairwells to the underground concourse.',
+  turnByTurnAdviceHi: 'विमानतल और सतही पार्किंग क्षेत्रों को तुरंत खाली करें। मुख्य टर्मिनल के कांच के दरवाजों से गुजरें और भूमिगत कॉनकोर्स तक जाने वाले नियॉन ग्रीन आपातकालीन निकासी संकेतों का पालन करें।',
   features: [
     'Reinforced 3-Story Concrete Structure',
     'Dedicated 120kVA Silent Diesel Generator',

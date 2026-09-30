@@ -117,7 +117,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       }).addTo(map).bindTooltip("Padmapur", { 
         permanent: true, 
         direction: 'right', 
-        className: 'bg-transparent border-0 text-white font-bold drop-shadow-md shadow-none text-sm' 
+        className: 'bg-transparent border-0 text-[#f7f8f8] font-bold drop- shadow-none text-sm' 
       });
 
       // Future Nodes
@@ -292,7 +292,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
   ];
 
   return (
-    <div className="relative w-full h-full bg-[#0a0a0a] overflow-hidden rounded-2xl border border-white/10 font-sans text-white shadow-xl">
+    <div className="relative w-full h-full bg-[#0a0a0a] overflow-hidden rounded-xl border border-white/10 font-sans text-[#f7f8f8] ">
       <div id="leaflet-map-root" className="absolute inset-0 z-0" />
       <canvas 
         ref={canvasRef} 
@@ -300,10 +300,10 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       />
 
       {/* Left Sidebar (Zoom Earth Style) */}
-      <div className="absolute top-4 left-4 z-20 w-56 max-h-[calc(100%-2rem)] bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-y-auto flex flex-col">
+      <div className="absolute top-4 left-4 z-20 w-56 max-h-[calc(100%-2rem)] bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-xl  overflow-y-auto flex flex-col">
         <div className="p-4 flex items-center space-x-3 border-b border-white/10">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-             <Eye size={16} className="text-white" />
+          <div className="w-8 h-8 rounded-full  from-blue-500 to-purple-600 flex items-center justify-center ">
+             <Eye size={16} className="text-[#f7f8f8]" />
           </div>
           <span className="font-bold text-base tracking-wide">MoES Earth</span>
         </div>
@@ -311,7 +311,7 @@ export const HazardMap: React.FC<HazardMapProps> = ({
         <div className="py-2">
           {menuItems.map((group, idx) => (
             <div key={idx} className="mb-2">
-              <div className="px-5 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+              <div className="px-5 py-2 text-[10px] font-bold text-[#d0d6e0] uppercase tracking-widest">
                 {group.section}
               </div>
               {group.items.map(item => {
@@ -325,11 +325,11 @@ export const HazardMap: React.FC<HazardMapProps> = ({
                     onClick={() => onLayerChange(item.id === 'radar' ? 'dbz' : item.id)}
                     className={`w-full flex items-center px-5 py-2.5 text-sm transition-all active:scale-[0.98] ${
                       isActive 
-                        ? 'text-white border-l-2 border-blue-500 bg-white/5' 
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border-l-2 border-transparent'
+                        ? 'text-[#f7f8f8] border-l-2 border-blue-500 bg-white/5' 
+                        : 'text-[#d0d6e0] hover:text-gray-200 hover:bg-white/5 border-l-2 border-transparent'
                     }`}
                   >
-                    <item.icon size={18} className={`mr-3 ${isActive ? 'text-blue-400' : 'text-gray-500'}`} />
+                    <item.icon size={18} className={`mr-3 ${isActive ? 'text-blue-400' : 'text-[#d0d6e0]'}`} />
                     <span className="font-medium">{item.label}</span>
                   </button>
                 )
@@ -341,14 +341,14 @@ export const HazardMap: React.FC<HazardMapProps> = ({
 
       {/* Bottom Right Tool Controls & Model Info */}
       <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end space-y-3">
-        <div className="flex flex-col space-y-2 bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-2xl shadow-xl">
-           <button className="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Settings size={18}/></button>
-           <button className="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Share2 size={18}/></button>
-           <button className="p-2.5 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Target size={18}/></button>
+        <div className="flex flex-col space-y-2 bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 p-1.5 rounded-xl ">
+           <button className="p-2.5 text-[#d0d6e0] hover:text-[#f7f8f8] rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Settings size={18}/></button>
+           <button className="p-2.5 text-[#d0d6e0] hover:text-[#f7f8f8] rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Share2 size={18}/></button>
+           <button className="p-2.5 text-[#d0d6e0] hover:text-[#f7f8f8] rounded-xl hover:bg-white/10 active:scale-95 transition-transform"><Target size={18}/></button>
         </div>
-        <div className="flex bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-full overflow-hidden text-xs font-bold shadow-xl">
-           <div className="px-4 py-2 bg-white/10 text-white">ICON <span className="font-normal text-gray-400 ml-1">13 km</span></div>
-           <div className="px-4 py-2 text-gray-500 hover:text-white cursor-pointer transition-colors">GFS <span className="font-normal opacity-50 ml-1">22 km</span></div>
+        <div className="flex bg-[#1a1c23]/90 backdrop-blur-xl border border-white/10 rounded-full overflow-hidden text-xs font-bold ">
+           <div className="px-4 py-2 bg-white/10 text-[#f7f8f8]">ICON <span className="font-normal text-[#d0d6e0] ml-1">13 km</span></div>
+           <div className="px-4 py-2 text-[#d0d6e0] hover:text-[#f7f8f8] cursor-pointer transition-colors">GFS <span className="font-normal opacity-50 ml-1">22 km</span></div>
         </div>
       </div>
 
@@ -356,8 +356,8 @@ export const HazardMap: React.FC<HazardMapProps> = ({
       <div className="absolute bottom-4 left-4 z-20 flex flex-col space-y-2 pointer-events-none">
         {activeLayer === 'temperature' && (
           <div className="flex flex-col space-y-1">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Temp: {omData?.temperature}°C</span>
-            <div className="flex h-6 rounded-md overflow-hidden text-[10px] font-bold text-white shadow-xl border border-white/10">
+            <span className="text-[10px] text-[#d0d6e0] font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Temp: {omData?.temperature}°C</span>
+            <div className="flex h-6 rounded-xl overflow-hidden text-[10px] font-bold text-[#f7f8f8]  border border-white/10">
               <div className="px-3 bg-red-600 flex items-center justify-center">50°</div>
               <div className="px-3 bg-red-500 flex items-center justify-center">40°</div>
               <div className="px-3 bg-orange-500 flex items-center justify-center">30°</div>
@@ -368,8 +368,8 @@ export const HazardMap: React.FC<HazardMapProps> = ({
         
         {activeLayer === 'humidity' && (
           <div className="flex flex-col space-y-1">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Humidity: {omData?.humidity}%</span>
-            <div className="flex h-6 rounded-md overflow-hidden text-[10px] font-bold text-white shadow-xl border border-white/10">
+            <span className="text-[10px] text-[#d0d6e0] font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Humidity: {omData?.humidity}%</span>
+            <div className="flex h-6 rounded-xl overflow-hidden text-[10px] font-bold text-[#f7f8f8]  border border-white/10">
               <div className="px-3 bg-emerald-600 flex items-center justify-center">100%</div>
               <div className="px-3 bg-emerald-400 flex items-center justify-center">75%</div>
               <div className="px-3 bg-green-300 flex items-center justify-center text-black">50%</div>
@@ -379,8 +379,8 @@ export const HazardMap: React.FC<HazardMapProps> = ({
 
         {activeLayer === 'pressure' && (
           <div className="flex flex-col space-y-1">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Pressure: {omData?.pressure} hPa</span>
-            <div className="flex h-6 rounded-md overflow-hidden text-[10px] font-bold text-white shadow-xl border border-white/10">
+            <span className="text-[10px] text-[#d0d6e0] font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Pressure: {omData?.pressure} hPa</span>
+            <div className="flex h-6 rounded-xl overflow-hidden text-[10px] font-bold text-[#f7f8f8]  border border-white/10">
               <div className="px-3 bg-purple-600 flex items-center justify-center">High</div>
               <div className="px-3 bg-purple-400 flex items-center justify-center">Normal</div>
               <div className="px-3 bg-indigo-300 flex items-center justify-center text-black">Low</div>
@@ -390,8 +390,8 @@ export const HazardMap: React.FC<HazardMapProps> = ({
 
         {activeLayer === 'wind' && (
           <div className="flex flex-col space-y-1">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Wind: {omData?.wind} km/h</span>
-            <div className="flex h-6 rounded-md overflow-hidden text-[10px] font-bold text-white shadow-xl border border-white/10">
+            <span className="text-[10px] text-[#d0d6e0] font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">Open-Meteo Wind: {omData?.wind} km/h</span>
+            <div className="flex h-6 rounded-xl overflow-hidden text-[10px] font-bold text-[#f7f8f8]  border border-white/10">
               <div className="px-3 bg-cyan-600 flex items-center justify-center">&gt;100</div>
               <div className="px-3 bg-cyan-400 flex items-center justify-center">50</div>
               <div className="px-3 bg-blue-300 flex items-center justify-center text-black">Calm</div>
@@ -401,8 +401,8 @@ export const HazardMap: React.FC<HazardMapProps> = ({
 
         {(activeLayer === 'radar' || activeLayer === 'precipitation' || activeLayer === 'dbz' || activeLayer === 'hail') && (
           <div className="flex flex-col space-y-1">
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">RainViewer Radar</span>
-            <div className="flex h-6 rounded-md overflow-hidden text-[10px] font-bold text-white shadow-xl border border-white/10">
+            <span className="text-[10px] text-[#d0d6e0] font-bold uppercase tracking-wider bg-[#1a1c23]/80 px-2 py-1 rounded backdrop-blur inline-block w-max">RainViewer Radar</span>
+            <div className="flex h-6 rounded-xl overflow-hidden text-[10px] font-bold text-[#f7f8f8]  border border-white/10">
                <div className="px-3 bg-[#ff00ff] flex items-center justify-center">Severe</div>
                <div className="px-3 bg-[#ff0000] flex items-center justify-center">Heavy</div>
                <div className="px-3 bg-[#ffff00] flex items-center justify-center text-black">Mod</div>

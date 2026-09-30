@@ -313,7 +313,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
         <div className="flex items-center space-x-3">
           <button
             onClick={onBackToTactical}
-            className="px-3 py-1.5 bg-ocean-900 hover:bg-ocean-800 border border-steel-800 hover:border-ice-500/40 rounded-lg text-steel-400 hover:text-ice-100 transition-colors flex items-center space-x-2 text-xs font-sans font-semibold"
+            className="px-4 py-1.5 rounded-full.5 bg-ocean-900 hover:bg-ocean-800 border border-steel-800 hover:border-ice-500/40 rounded-xl text-steel-400 hover:text-ice-100 transition-colors flex items-center space-x-2 text-xs font-sans font-semibold"
           >
             <ArrowLeft className="w-4 h-4 text-ice-500" />
             <span>Tactical Command</span>
@@ -322,8 +322,8 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
           <div className="w-px h-5 bg-steel-800" />
 
           <div className="flex items-center space-x-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-xl  from-cyan-500 to-blue-600 flex items-center justify-center  shadow-cyan-500/20">
+              <Sparkles className="w-4 h-4 text-[#f7f8f8]" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
@@ -342,7 +342,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
         {/* Playback Controls & Progress */}
         <div className="flex items-center space-x-3">
           {/* Autoplay Toggle */}
-          <div className="flex items-center space-x-1.5 bg-ocean-900 border border-steel-800 p-1 rounded-lg">
+          <div className="flex items-center space-x-1.5 bg-ocean-900 border border-steel-800 p-1 rounded-xl">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               className={`px-2.5 py-1 rounded text-xs font-sans font-semibold flex items-center space-x-1.5 transition-colors ${
@@ -410,7 +410,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
           <AITelemetryHUD metrics={dynamicMetrics} timeLabel={currentPhase.timeLabel} />
 
           {/* Center Vertical Radar Reflectivity Cross-Section Canvas */}
-          <div className="flex-1 min-h-0 relative rounded-xl border border-steel-800 overflow-hidden bg-ocean-950 shadow-2xl">
+          <div className="flex-1 min-h-0 relative rounded-xl border border-steel-800 overflow-hidden bg-ocean-950 ">
             <VerticalRadarCrossSection
               phaseIndex={activePhaseIndex}
               scrollProgress={scrollProgress}
@@ -433,15 +433,15 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
             return (
               <section
                 key={phase.id}
-                className={`transition-all duration-500 p-6 rounded-2xl ${
+                className={`transition-all duration-500 p-6 rounded-xl ${
                   isActive
-                    ? 'glass-card-elevated border-ice-500/40 scale-100 opacity-100 shadow-[0_0_35px_rgba(0,229,255,0.18)]'
+                    ? 'glass-card-elevated border-ice-500/40 scale-100 opacity-100 '
                     : 'glass-card border-white/[0.05] opacity-55 scale-95'
                 }`}
               >
                 {/* Chapter Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-steel-800/80">
-                  <span className="text-xs font-mono font-bold text-ice-500 bg-ice-500/10 px-2.5 py-1 rounded border border-ice-500/30">
+                  <span className="text-xs font-mono font-bold text-ice-500 bg-ice-500/10 px-4 py-1.5 rounded-full.5 rounded-full rounded border border-ice-500/30">
                     {phase.timeLabel}
                   </span>
                   <span className="text-xs font-mono text-steel-400">
@@ -479,7 +479,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
 
                 {/* Snapshot Metric Grid in JetBrains Mono */}
                 <div className="grid grid-cols-3 gap-2.5 mt-5">
-                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-lg text-center">
+                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-xl text-center">
                     <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold">
                       Core Peak Z
                     </span>
@@ -489,7 +489,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
                     </div>
                   </div>
 
-                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-lg text-center">
+                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-xl text-center">
                     <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold">
                       Updraft (w)
                     </span>
@@ -505,7 +505,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
                     </div>
                   </div>
 
-                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-lg text-center">
+                  <div className="bg-ocean-900/60 border border-steel-800/80 p-2.5 rounded-xl text-center">
                     <span className="text-[9px] uppercase font-sans text-steel-400 font-semibold">
                       Rain Rate
                     </span>
@@ -529,7 +529,7 @@ export const StormAnatomyScrolly: React.FC<StormAnatomyScrollyProps> = ({ onBack
                   </span>
                   <button
                     onClick={() => scrollToPhase(idx)}
-                    className="px-3 py-1 bg-ocean-800 hover:bg-ocean-700 text-ice-400 hover:text-ice-100 rounded-md text-xs font-sans font-medium transition-colors border border-steel-700"
+                    className="px-4 py-1.5 rounded-full bg-ocean-800 hover:bg-ocean-700 text-ice-400 hover:text-ice-100 rounded-xl text-xs font-sans font-medium transition-colors border border-steel-700"
                   >
                     Focus Phase {idx + 1}
                   </button>

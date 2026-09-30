@@ -68,20 +68,20 @@ export const HyperlocalTwinMap: React.FC = () => {
         <div className="p-4 border-b border-[#23252a] bg-[#141516]">
           <div className="flex items-center justify-between mb-1">
             <h2 className="text-[14px] font-bold text-[#f7f8f8] flex items-center tracking-tight leading-tight">
-              <Crosshair className="w-4 h-4 mr-2 text-sky-400 shrink-0" /> Biju Patnaik Int'l (VEBS)
+              <Crosshair className="w-4 h-4 mr-2 text-[#5e6ad2] shrink-0" /> Biju Patnaik Int'l (VEBS)
             </h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/30">
               3x3 TACTICAL
             </span>
           </div>
           <p className="text-[11px] font-mono text-[#8a8f98]">AOI: 20.0°N–20.6°N, 85.5°E–86.1°E • 9 Sectors</p>
           
           {/* Sub Navigation Tabs */}
-          <div className="flex p-0.5 bg-[#0a0d15] border border-[#23252a] rounded-lg mt-3">
+          <div className="flex p-0.5 bg-[#08090a] border border-[#23252a] rounded-xl mt-3">
             <button
               onClick={() => setActiveTab('grid')}
-              className={`flex-1 py-1.5 rounded-md text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
-                activeTab === 'grid' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`flex-1 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
+                activeTab === 'grid' ? 'bg-[#5e6ad2]/20 text-sky-300 border border-[#5e6ad2]/40 ' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               <Grid className="w-3 h-3" />
@@ -89,8 +89,8 @@ export const HyperlocalTwinMap: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('aws')}
-              className={`flex-1 py-1.5 rounded-md text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
-                activeTab === 'aws' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`flex-1 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
+                activeTab === 'aws' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 ' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               <Radio className="w-3 h-3" />
@@ -98,8 +98,8 @@ export const HyperlocalTwinMap: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('openmeteo')}
-              className={`flex-1 py-1.5 rounded-md text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
-                activeTab === 'openmeteo' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              className={`flex-1 py-1.5 rounded-xl text-[11px] font-mono font-semibold transition-all flex items-center justify-center space-x-1 ${
+                activeTab === 'openmeteo' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 ' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               <span>Aerodrome</span>
@@ -113,28 +113,28 @@ export const HyperlocalTwinMap: React.FC = () => {
           {/* TAB 1: 3x3 GRID SECTOR INSPECTOR */}
           {activeTab === 'grid' && (
             <div className="space-y-4">
-              <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex justify-between">
+              <div className="text-[11px] font-mono text-[#d0d6e0] uppercase tracking-wider flex justify-between">
                 <span>Active 3x3 Sector Matrix</span>
-                <span className="text-sky-400 font-bold">{selectedSector.id} [{selectedSector.code}]</span>
+                <span className="text-[#5e6ad2] font-bold">{selectedSector.id} [{selectedSector.code}]</span>
               </div>
 
               {/* 3x3 Sector Quick Tiles */}
-              <div className="grid grid-cols-3 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+              <div className="grid grid-cols-3 gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-[#23252a]">
                 {TACTICAL_3X3_GRID.map((sec) => {
                   const isSelected = selectedSector.id === sec.id;
                   const isExtreme = sec.cloudburstFlag || sec.radarDbz >= 60;
                   const isSevere = sec.radarDbz >= 50;
-                  const color = isExtreme ? 'border-red-500/60 bg-red-950/40 text-red-300' : isSevere ? 'border-amber-500/50 bg-amber-950/30 text-amber-300' : 'border-slate-800 bg-slate-900/60 text-slate-300';
+                  const color = isExtreme ? 'border-red-500/60 bg-red-950/40 text-red-300' : isSevere ? 'border-amber-500/50 bg-amber-950/30 text-amber-300' : 'border-[#23252a] bg-[#08090a]/60 text-[#f7f8f8]';
 
                   return (
                     <button
                       key={sec.id}
                       onClick={() => setSelectedSector(sec)}
-                      className={`p-2 rounded-lg border text-left transition-all ${color} ${isSelected ? 'ring-2 ring-sky-400 font-bold' : 'hover:border-slate-600'}`}
+                      className={`p-2 rounded-xl border text-left transition-all ${color} ${isSelected ? 'ring-2 ring-[#5e6ad2] font-bold' : 'hover:border-[#23252a]'}`}
                     >
-                      <div className="text-[10px] font-mono text-slate-400">{sec.code}</div>
+                      <div className="text-[10px] font-mono text-[#d0d6e0]">{sec.code}</div>
                       <div className="text-[11px] font-mono font-bold mt-0.5">{sec.radarDbz} dBZ</div>
-                      <div className="text-[9px] truncate text-slate-400 mt-0.5">{sec.rainRateMmh} mm/h</div>
+                      <div className="text-[9px] truncate text-[#d0d6e0] mt-0.5">{sec.rainRateMmh} mm/h</div>
                     </button>
                   );
                 })}
@@ -144,11 +144,11 @@ export const HyperlocalTwinMap: React.FC = () => {
               <div className="bg-[#141516] border border-[#23252a] p-4 rounded-xl space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="text-[13px] font-bold text-white flex items-center">
-                      <span className="w-2 h-2 rounded-full bg-sky-400 mr-2"></span>
+                    <div className="text-[13px] font-bold text-[#f7f8f8] flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-[#5e6ad2] mr-2"></span>
                       {selectedSector.name}
                     </div>
-                    <div className="text-[11px] font-mono text-sky-400 mt-0.5">
+                    <div className="text-[11px] font-mono text-[#5e6ad2] mt-0.5">
                       Sector {selectedSector.id} • Lat {selectedSector.latMin}°–{selectedSector.latMax}°N, Lon {selectedSector.lonMin}°–{selectedSector.lonMax}°E
                     </div>
                   </div>
@@ -159,33 +159,33 @@ export const HyperlocalTwinMap: React.FC = () => {
                   )}
                 </div>
 
-                <p className="text-[11px] text-slate-300 italic border-l-2 border-slate-700 pl-2">
+                <p className="text-[11px] text-[#f7f8f8] italic border-l-2 border-[#23252a] pl-2">
                   {selectedSector.description}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1">
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">RADAR REFLECTIVITY</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">RADAR REFLECTIVITY</div>
                     <div className="text-base font-bold text-amber-400">{selectedSector.radarDbz} dBZ</div>
                   </div>
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">Z-R RAIN RATE</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">Z-R RAIN RATE</div>
                     <div className="text-base font-bold text-sky-300">{selectedSector.rainRateMmh} mm/h</div>
                   </div>
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">SURFACE PRESSURE</div>
-                    <div className="text-sm font-bold text-slate-200">{selectedSector.pressureHpa} hPa</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">SURFACE PRESSURE</div>
+                    <div className="text-sm font-bold text-[#f7f8f8]">{selectedSector.pressureHpa} hPa</div>
                   </div>
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">OUTFLOW GUST</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">OUTFLOW GUST</div>
                     <div className="text-sm font-bold text-rose-400">{selectedSector.windGustKmh} km/h</div>
                   </div>
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">CAPE INSTABILITY</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">CAPE INSTABILITY</div>
                     <div className="text-sm font-bold text-purple-400">{selectedSector.capeJkg} J/kg</div>
                   </div>
-                  <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
-                    <div className="text-[10px] text-slate-400">HAIL PROBABILITY</div>
+                  <div className="bg-[#08090a]/80 p-2 rounded border border-[#23252a]">
+                    <div className="text-[10px] text-[#d0d6e0]">HAIL PROBABILITY</div>
                     <div className="text-sm font-bold text-emerald-400">{selectedSector.hailRisk}</div>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export const HyperlocalTwinMap: React.FC = () => {
           {/* TAB 2: IN-SITU AWS OBSERVATION NETWORK */}
           {activeTab === 'aws' && (
             <div className="space-y-3">
-              <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex justify-between">
+              <div className="text-[11px] font-mono text-[#d0d6e0] uppercase tracking-wider flex justify-between">
                 <span>9 Surrounding Surface AWS Stations</span>
                 <span className="text-amber-400 font-bold">{selectedAws.id}</span>
               </div>
@@ -212,23 +212,23 @@ export const HyperlocalTwinMap: React.FC = () => {
                     <button
                       key={st.id}
                       onClick={() => setSelectedAws(st)}
-                      className={`w-full p-2.5 rounded-lg border text-left transition-all flex items-center justify-between ${
+                      className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
                         isSelected 
                           ? 'border-amber-400/80 bg-amber-950/30' 
-                          : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                          : 'border-[#23252a] bg-[#08090a]/60 hover:border-[#23252a]'
                       }`}
                     >
                       <div>
                         <div className="flex items-center space-x-1.5">
-                          <span className={`w-2 h-2 rounded-full ${isSevere ? 'bg-red-400 animate-pulse' : isWarning ? 'bg-amber-400' : 'bg-sky-400'}`}></span>
-                          <span className="text-xs font-mono font-bold text-white">{st.id}</span>
-                          <span className="text-[10px] font-mono text-slate-400">({st.code})</span>
+                          <span className={`w-2 h-2 rounded-full ${isSevere ? 'bg-red-400 animate-pulse' : isWarning ? 'bg-amber-400' : 'bg-[#5e6ad2]'}`}></span>
+                          <span className="text-xs font-mono font-bold text-[#f7f8f8]">{st.id}</span>
+                          <span className="text-[10px] font-mono text-[#d0d6e0]">({st.code})</span>
                         </div>
-                        <div className="text-[11px] text-slate-300 font-sans truncate max-w-[200px] mt-0.5">{st.name}</div>
+                        <div className="text-[11px] text-[#f7f8f8] font-sans truncate max-w-[200px] mt-0.5">{st.name}</div>
                       </div>
                       <div className="text-right font-mono text-xs">
                         <div className="font-bold text-amber-300">{st.tempC}°C</div>
-                        <div className="text-[10px] text-slate-400">{st.windGustKt} kt gust</div>
+                        <div className="text-[10px] text-[#d0d6e0]">{st.windGustKt} kt gust</div>
                       </div>
                     </button>
                   );
@@ -237,42 +237,42 @@ export const HyperlocalTwinMap: React.FC = () => {
 
               {/* Selected AWS Observation Deep Dive */}
               <div className="bg-[#141516] border border-[#23252a] p-3.5 rounded-xl space-y-2.5">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <div className="flex justify-between items-center border-b border-[#23252a] pb-2">
                   <div>
-                    <div className="text-xs font-bold text-white">{selectedAws.name}</div>
+                    <div className="text-xs font-bold text-[#f7f8f8]">{selectedAws.name}</div>
                     <div className="text-[10px] font-mono text-amber-400">
                       WMO ID: {selectedAws.code} • Lat {selectedAws.lat}°N, Lon {selectedAws.lon}°E (Elev {selectedAws.elevationM}m)
                     </div>
                   </div>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                    selectedAws.status === 'SEVERE_ALERT' ? 'bg-red-950 text-red-300 border border-red-700' : 'bg-slate-800 text-slate-300'
+                    selectedAws.status === 'SEVERE_ALERT' ? 'bg-red-950 text-red-300 border border-red-700' : 'bg-[#08090a] text-[#f7f8f8]'
                   }`}>
                     {selectedAws.status}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="bg-slate-900/70 p-2 rounded">
-                    <span className="text-[10px] text-slate-400">DRY BULB / DEW PT</span>
-                    <div className="font-bold text-white">{selectedAws.tempC}°C / {selectedAws.dewPointC}°C</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">RH: {selectedAws.humidityPct}%</div>
+                  <div className="bg-[#08090a]/70 p-2 rounded">
+                    <span className="text-[10px] text-[#d0d6e0]">DRY BULB / DEW PT</span>
+                    <div className="font-bold text-[#f7f8f8]">{selectedAws.tempC}°C / {selectedAws.dewPointC}°C</div>
+                    <div className="text-[10px] text-[#d0d6e0] mt-0.5">RH: {selectedAws.humidityPct}%</div>
                   </div>
-                  <div className="bg-slate-900/70 p-2 rounded">
-                    <span className="text-[10px] text-slate-400">PRESSURE & TENDENCY</span>
-                    <div className="font-bold text-white">{selectedAws.pressureHpa} hPa</div>
-                    <div className={`text-[10px] font-bold mt-0.5 ${selectedAws.tendency3h < -2 ? 'text-red-400' : 'text-slate-400'}`}>
+                  <div className="bg-[#08090a]/70 p-2 rounded">
+                    <span className="text-[10px] text-[#d0d6e0]">PRESSURE & TENDENCY</span>
+                    <div className="font-bold text-[#f7f8f8]">{selectedAws.pressureHpa} hPa</div>
+                    <div className={`text-[10px] font-bold mt-0.5 ${selectedAws.tendency3h < -2 ? 'text-red-400' : 'text-[#d0d6e0]'}`}>
                       ΔP/3h: {selectedAws.tendency3h > 0 ? `+${selectedAws.tendency3h}` : selectedAws.tendency3h} hPa
                     </div>
                   </div>
-                  <div className="bg-slate-900/70 p-2 rounded">
-                    <span className="text-[10px] text-slate-400">SURFACE WIND</span>
+                  <div className="bg-[#08090a]/70 p-2 rounded">
+                    <span className="text-[10px] text-[#d0d6e0]">SURFACE WIND</span>
                     <div className="font-bold text-sky-300">{selectedAws.windDirDeg}° @ {selectedAws.windSpeedKt} kt</div>
                     <div className="text-[10px] text-rose-400 font-bold mt-0.5">PEAK GUST: {selectedAws.windGustKt} kt</div>
                   </div>
-                  <div className="bg-slate-900/70 p-2 rounded">
-                    <span className="text-[10px] text-slate-400">PRECIPITATION</span>
+                  <div className="bg-[#08090a]/70 p-2 rounded">
+                    <span className="text-[10px] text-[#d0d6e0]">PRECIPITATION</span>
                     <div className="font-bold text-emerald-400">{selectedAws.rain1hMm} mm (1h)</div>
-                    <div className="text-[10px] text-sky-400 mt-0.5">Rate: {selectedAws.rainRateMmh} mm/h</div>
+                    <div className="text-[10px] text-[#5e6ad2] mt-0.5">Rate: {selectedAws.rainRateMmh} mm/h</div>
                   </div>
                 </div>
               </div>
@@ -286,19 +286,19 @@ export const HyperlocalTwinMap: React.FC = () => {
                 <h3 className="text-[11px] uppercase tracking-wider text-[#8a8f98] mb-3 font-semibold">VEBS Aerodrome Telemetry</h3>
                 
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-xl">
                     <div className="text-[11px] text-[#8a8f98] mb-1 flex items-center"><Thermometer className="w-3 h-3 mr-1" /> Temp</div>
                     <div className="text-[16px] font-mono font-bold text-[#f7f8f8]">{weatherData?.current?.temperature_2m ?? '22.8'}°C</div>
                   </div>
-                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-xl">
                     <div className="text-[11px] text-[#8a8f98] mb-1 flex items-center"><Wind className="w-3 h-3 mr-1" /> Wind</div>
                     <div className="text-[16px] font-mono font-bold text-[#f7f8f8]">{weatherData?.current?.wind_speed_10m ?? '52'} km/h</div>
                   </div>
-                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-xl">
                     <div className="text-[11px] text-[#8a8f98] mb-1">CAPE</div>
                     <div className="text-[16px] font-mono font-bold text-[#eb5757]">{weatherData?.current?.cape ?? '3600'} J/kg</div>
                   </div>
-                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                  <div className="bg-[#141516] border border-[#23252a] p-3 rounded-xl">
                     <div className="text-[11px] text-[#8a8f98] mb-1">Precip</div>
                     <div className="text-[16px] font-mono font-bold text-[#f7f8f8]">{weatherData?.current?.precipitation ?? '68.4'} mm</div>
                   </div>
@@ -308,7 +308,7 @@ export const HyperlocalTwinMap: React.FC = () => {
               {/* 6-Hour Nowcast Timeline */}
               <div>
                 <h3 className="text-[11px] uppercase tracking-wider text-[#8a8f98] mb-3 font-semibold">0-6 Hour Convective Timeline</h3>
-                <div className="bg-[#141516] border border-[#23252a] p-3 rounded-lg">
+                <div className="bg-[#141516] border border-[#23252a] p-3 rounded-xl">
                   {weatherData?.hourly ? (
                     <div className="flex justify-between items-end h-24 space-x-1">
                       {weatherData.hourly.map((hour: any, idx: number) => {
@@ -340,7 +340,7 @@ export const HyperlocalTwinMap: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-[rgba(235,87,87,0.05)] border border-[#eb5757]/30 p-4 rounded-lg">
+              <div className="bg-[rgba(235,87,87,0.05)] border border-[#eb5757]/30 p-4 rounded-xl">
                 <h3 className="text-[12px] font-bold text-[#eb5757] flex items-center mb-2">
                   <ShieldAlert className="w-4 h-4 mr-1.5" /> Severe Squall Line Alert
                 </h3>
@@ -405,9 +405,9 @@ export const HyperlocalTwinMap: React.FC = () => {
           <Marker position={[LAT, LON]}>
             <Popup className="dark-gis-popup">
               <div className="p-2 text-xs font-mono space-y-1 bg-slate-950 text-slate-100 rounded">
-                <strong className="text-sky-400">VEBS Aerodrome Center</strong><br/>
-                <span className="text-slate-300">ConvectNow 3x3km Tactical Operations Node</span><br/>
-                <span className="text-[10px] text-slate-500">Lat: {LAT.toFixed(4)}°N, Lon: {LON.toFixed(4)}°E (Elev 42m)</span>
+                <strong className="text-[#5e6ad2]">VEBS Aerodrome Center</strong><br/>
+                <span className="text-[#f7f8f8]">ConvectNow 3x3km Tactical Operations Node</span><br/>
+                <span className="text-[10px] text-[#d0d6e0]">Lat: {LAT.toFixed(4)}°N, Lon: {LON.toFixed(4)}°E (Elev 42m)</span>
               </div>
             </Popup>
           </Marker>
@@ -416,7 +416,7 @@ export const HyperlocalTwinMap: React.FC = () => {
 
         {/* Floating Controls Overlay */}
         <div className="absolute top-4 left-4 z-[400] flex space-x-2">
-           <div className="px-3 py-1.5 bg-[#08090a]/90 backdrop-blur-md border border-[#34343a] rounded-lg text-[11px] font-mono text-[#8a8f98] flex items-center shadow-lg">
+           <div className="px-4 py-1.5 rounded-full.5 bg-[#08090a]/90 backdrop-blur-md border border-[#34343a] rounded-xl text-[11px] font-mono text-[#8a8f98] flex items-center ">
              <span className="w-2 h-2 rounded-full bg-[#4cb782] mr-2"></span>
              LIVE STREAM: OPEN-METEO &amp; AWS NETWORK
            </div>

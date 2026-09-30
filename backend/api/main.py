@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import uvicorn
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, APIRouter, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -41,6 +41,7 @@ from ..data.data_source_manager import get_dsm, data_mode, IMD_API_KEY
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("convectnow.api")
 
+
 app = FastAPI(
     title="ConvectNow GIS API",
     description=(
@@ -49,6 +50,11 @@ app = FastAPI(
     ),
     version="1.0.0",
 )
+
+router_system = APIRouter(prefix="/api/system", tags=["System Operations"])
+router_weather = APIRouter(prefix="/api/weather", tags=["Meteorology & Nowcasting"])
+router_ws = APIRouter(tags=["WebSockets"])
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -269,7 +275,7 @@ async def root() -> Dict[str, str]:
     }
 
 
-@app.get("/api/status")
+@router_system.get("/status", summary="Get API Status")
 async def get_status() -> Dict[str, Any]:
     """
     Real-time system status for judges.
@@ -300,7 +306,7 @@ async def get_status() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/aws_stations")
+@router_weather.get("/aws_stations", summary="Get Real-time AWS Telemetry")
 async def get_aws_stations() -> Dict[str, Any]:
     """
     Surface AWS station observations.
@@ -312,7 +318,7 @@ async def get_aws_stations() -> Dict[str, Any]:
 
 
 
-@app.get("/api/evaluation_report")
+@router_system.get("/evaluation_report", summary="Get ML Evaluation Metrics")
 async def get_evaluation_report() -> Dict[str, Any]:
     """Return the real training evaluation report from convectnet_st_nowcaster.pt.
 
@@ -352,7 +358,7 @@ async def get_evaluation_report() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/grid/{lat}/{lon}", response_model=GridCellSchema)
+@router_weather.get("/grid/{lat}/{lon}", response_model=GridCellSchema)
 async def get_grid_cell(lat: float, lon: float) -> GridCellSchema:
     """Return full 20-feature GridCellSchema for clicked 1 km × 1 km cell.
 
@@ -378,7 +384,7 @@ async def get_grid_cell(lat: float, lon: float) -> GridCellSchema:
     })
 
 
-@app.get("/api/grid/block/{lat}/{lon}")
+@router_weather.get("/grid/block/{lat}/{lon}", summary="Get 3x3 Radar Grid")
 async def get_grid_block(lat: float, lon: float) -> Dict[str, Any]:
     """Return 3×3 km block (9 cells) centred on (lat, lon)."""
     lat, lon = _clamp_lat_lon(lat, lon)
@@ -399,7 +405,7 @@ async def get_grid_block(lat: float, lon: float) -> Dict[str, Any]:
     }
 
 
-@app.get("/api/storm/cells")
+@router_weather.get("/storm/cells", summary="Get Active Storm Cells")
 async def get_storm_cells() -> Dict[str, Any]:
     """Return active storm cells as GeoJSON FeatureCollection.
 
@@ -409,7 +415,7 @@ async def get_storm_cells() -> Dict[str, Any]:
     return synthetic_engine.generate_active_storm_cells_geojson(lead_time_min=0)
 
 
-@app.get("/api/forecast/{lead_time_min}", response_model=ForecastOutputSchema)
+@router_weather.get("/forecast/{lead_time_min}", response_model=ForecastOutputSchema)
 async def get_forecast(lead_time_min: int) -> ForecastOutputSchema:
     """Return ConvectNet ForecastOutputSchema for the given lead time (minutes).
 
@@ -421,7 +427,7 @@ async def get_forecast(lead_time_min: int) -> ForecastOutputSchema:
     return _run_model(anchor, lead_time_min=lt)
 
 
-@app.get("/api/hazards")
+@router_weather.get("/hazards", summary="Get Hazard Risk Grid")
 async def get_hazards() -> Dict[str, Any]:
     """Return all 5 convective hazard probability fields as GeoJSON.
 
@@ -458,7 +464,7 @@ async def get_hazards() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/data_quality")
+@router_system.get("/data_quality", summary="Get Sensor Data Quality")
 async def get_data_quality() -> Dict[str, Any]:
     """Return per-source data quality, latency, and data_mode status."""
     sources = [
@@ -487,7 +493,7 @@ async def get_data_quality() -> Dict[str, Any]:
     }
 
 
-@app.get("/api/replay/{event_id}")
+@router_system.get("/replay/{event_id}", summary="Replay Historical Event")
 async def get_replay_sequence(event_id: str = "may_2024") -> Dict[str, Any]:
     """Return the 6-step historical replay sequence for dashboard Replay Mode.
 
@@ -523,7 +529,7 @@ async def get_replay_sequence(event_id: str = "may_2024") -> Dict[str, Any]:
 
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.get("/ws/live/info", tags=["WebSockets"])
+@router_ws.get("/ws/live/info", summary="WebSocket Connection Info")
 async def websocket_info():
     """
     ### 🔌 Live Telemetry WebSocket
@@ -548,7 +554,7 @@ async def websocket_info():
 # WebSocket — Live Push Feed
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.websocket("/ws/live")
+@router_ws.websocket("/ws/live")
 async def websocket_live(ws: WebSocket) -> None:
     """WebSocket endpoint — pushes current hazard state every 60 seconds.
 
@@ -560,38 +566,113 @@ async def websocket_live(ws: WebSocket) -> None:
     logger.info("WebSocket client connected. Total: %d", len(_ws_clients))
     try:
         # Send immediate first update on connect
-        await _push_live_update(ws)
+        payload_str = await _generate_master_payload()
+        await ws.send_text(payload_str)
+        
         while True:
-            # Keep connection alive — wait for ping or 60s
-            try:
-                data = await asyncio.wait_for(ws.receive_text(), timeout=60.0)
-                if data == "ping":
-                    await ws.send_text("pong")
-            except asyncio.TimeoutError:
-                await _push_live_update(ws)
+            # Keep connection open to listen for disconnects or pings
+            data = await ws.receive_text()
+            if data == "ping":
+                await ws.send_text("pong")
     except WebSocketDisconnect:
-        _ws_clients.remove(ws)
+        if ws in _ws_clients:
+            _ws_clients.remove(ws)
+        logger.info("WebSocket client disconnected. Total: %d", len(_ws_clients))
+
+
+async def _generate_master_payload() -> str:
+    """Run inference and fetch data ONCE to avoid O(N) compute bottleneck."""
+    from backend.data.historical_engine import synthetic_engine
+    
+    # 1. Storm Cells
+    cells_data = synthetic_engine.generate_active_storm_cells_geojson(lead_time_min=0)
+    
+    # 2. AWS Stations
+    dsm = get_dsm()
+    aws_data = await dsm.get_aws_stations()
+    
+    # 3. Grid Hazards
+    hazards_data = await get_hazards()
+    
+    # 4. Evaluation Report
+    eval_data_res = await get_evaluation_report()
+    
+    payload = {
+        "type": "hazard_update",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "storm_cells_raw": cells_data,
+        "aws_raw": aws_data,
+        "hazards_raw": hazards_data,
+        "eval_raw": eval_data_res,
+        "ai_model": ConvectNetInference.MODEL_NAME,
+    }
+    return json.dumps(payload)
+
+
+async def _push_payload_to_client(ws: WebSocket, payload_str: str) -> None:
+    """Push pre-computed payload string to a single client."""
+    try:
+        await ws.send_text(payload_str)
+    except Exception as exc:
+        logger.warning("WebSocket push failed: %s", exc)
+        if ws in _ws_clients:
+            _ws_clients.remove(ws)
+
+
+async def _live_broadcast_loop() -> None:
+    """Background task — broadcasts live updates to all WebSocket clients every 60s."""
+    while True:
+        await asyncio.sleep(60)
+        
+        # Skip heavy compute if nobody is listening
+        if not _ws_clients:
+            continue
+            
+        try:
+            # COMPUTE ONCE
+            payload_str = await _generate_master_payload()
+            
+            # FAN OUT TO ALL CONCURRENTLY
+            tasks = [_push_payload_to_client(ws, payload_str) for ws in list(_ws_clients)]
+            await asyncio.gather(*tasks)
+        except Exception as exc:
+            logger.error("Failed to broadcast master payload: %s", exc)
         logger.info("WebSocket client disconnected. Total: %d", len(_ws_clients))
 
 
 async def _push_live_update(ws: WebSocket) -> None:
     """Push current hazard state to one WebSocket client."""
     try:
-        anchor = await _get_grid_cell(25.2702, 91.7323)
-        forecast = _run_model(anchor, lead_time_min=0)
+        from backend.data.historical_engine import synthetic_engine
+        
+        # 1. Storm Cells
+        cells_data = synthetic_engine.generate_active_storm_cells_geojson(lead_time_min=0)
+        
+        # 2. AWS Stations
+        dsm = get_dsm()
+        aws_data = await dsm.get_aws_stations()
+        
+        # 3. Grid Hazards
+        # get_hazards() returns a Dict
+        hazards_data = await get_hazards()
+        
+        # 4. Evaluation Report
+        # get_evaluation_report is async
+        eval_data_res = await get_evaluation_report()
+        
         payload = {
             "type": "hazard_update",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "hazards": forecast.hazard_probabilities,
-            "hazard_probabilities": forecast.hazard_probabilities,
-            "storm_cells": forecast.storm_cells,
-            "storm_motion": forecast.storm_motion,
-            "data_mode": forecast.data_mode,
+            "storm_cells_raw": cells_data,
+            "aws_raw": aws_data,
+            "hazards_raw": hazards_data,
+            "eval_raw": eval_data_res,
             "ai_model": ConvectNetInference.MODEL_NAME,
         }
         await ws.send_text(json.dumps(payload))
     except Exception as exc:
         logger.warning("WebSocket push failed: %s", exc)
+
 
 
 async def _live_broadcast_loop() -> None:
@@ -621,3 +702,7 @@ if __name__ == "__main__":
         reload=True,
         log_level="info",
     )
+
+app.include_router(router_system)
+app.include_router(router_weather)
+app.include_router(router_ws)

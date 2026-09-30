@@ -68,31 +68,31 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
   };
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0c1220] border border-[#1e293b] rounded-xl shadow-2xl flex flex-col overflow-hidden text-slate-200">
+    <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md font-mono select-none">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0c1220] border border-[#1e293b] rounded-xl  flex flex-col overflow-hidden text-[#f7f8f8]">
         {/* Header */}
         <div className="p-4 border-b border-[#1e293b] bg-[#131928] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+            <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30">
               <Award className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold text-white tracking-wider">
+                <h2 className="text-sm font-bold text-[#f7f8f8] tracking-wider">
                   WMO OPERATIONAL VERIFICATION SCORECARD
                 </h2>
                 <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
                   GROUND TRUTH VALIDATED
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-[#d0d6e0] mt-0.5">
                 Evaluated against MoES/IMD AWS ground network & Sohra DWR Level-2 archives (May 2024 & June 2022)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-xl text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -106,7 +106,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
               className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 transition-all ${
                 activeTab === 'metrics'
                   ? 'border-blue-500 text-blue-400 bg-blue-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  : 'border-transparent text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               WMO Skill Scores (0–6h)
@@ -116,7 +116,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
               className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 transition-all ${
                 activeTab === 'baselines'
                   ? 'border-blue-500 text-blue-400 bg-blue-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  : 'border-transparent text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               Baseline Comparison (vs pySTEPS)
@@ -126,7 +126,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
               className={`px-3 py-1.5 text-xs font-semibold rounded-t border-b-2 transition-all ${
                 activeTab === 'events'
                   ? 'border-blue-500 text-blue-400 bg-blue-500/10'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  : 'border-transparent text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               Benchmark Event Cases
@@ -135,7 +135,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
 
           <button
             onClick={handleCopySummary}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] rounded bg-[#1e293b] hover:bg-[#283548] text-slate-300 hover:text-white transition-colors border border-slate-700 mb-1"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full.5 rounded-full text-[11px] rounded bg-[#141516] hover:bg-[#283548] text-[#f7f8f8] hover:text-[#f7f8f8] transition-colors border border-[#23252a] mb-1"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copied ? 'Copied' : 'Copy Summary'}</span>
@@ -146,31 +146,31 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
         <div className="p-5 overflow-y-auto space-y-4 flex-1">
           {activeTab === 'metrics' && (
             <div className="space-y-4">
-              <div className="bg-[#131928]/60 p-3 rounded-lg border border-[#1e293b] text-xs text-slate-300 leading-relaxed">
+              <div className="bg-[#131928]/60 p-3 rounded-xl border border-[#1e293b] text-xs text-[#f7f8f8] leading-relaxed">
                 Standard WMO 2×2 contingency table scores evaluated over the 200 × 200 km Northeast India domain at 1 km resolution. Threshold: Reflectivity ≥ 40 dBZ or Rainfall Rate ≥ 30 mm/h.
               </div>
 
-              <div className="border border-[#1e293b] rounded-lg overflow-hidden bg-[#0d1424]">
+              <div className="border border-[#1e293b] rounded-xl overflow-hidden bg-[#0d1424]">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#131c30] text-slate-400 border-b border-[#1e293b] uppercase tracking-wider text-[11px]">
+                  <thead className="bg-[#131c30] text-[#d0d6e0] border-b border-[#1e293b] uppercase tracking-wider text-[11px]">
                     <tr>
                       <th className="py-2.5 px-3">Lead Time</th>
                       <th className="py-2.5 px-3 text-emerald-400">POD (Detection) ↑</th>
                       <th className="py-2.5 px-3 text-amber-400">FAR (False Alarm) ↓</th>
                       <th className="py-2.5 px-3 text-blue-400 font-bold">CSI (Threat Score) ↑</th>
                       <th className="py-2.5 px-3 text-purple-400">Heidke Skill (HSS) ↑</th>
-                      <th className="py-2.5 px-3 text-slate-400">Brier Score ↓</th>
+                      <th className="py-2.5 px-3 text-[#d0d6e0]">Brier Score ↓</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1e293b] font-mono">
                     {leadTimeMetrics.map((row) => (
                       <tr key={row.lead} className="hover:bg-white/5 transition-colors">
-                        <td className="py-2.5 px-3 font-bold text-white">{row.lead}</td>
+                        <td className="py-2.5 px-3 font-bold text-[#f7f8f8]">{row.lead}</td>
                         <td className="py-2.5 px-3 text-emerald-300 font-medium">{row.pod}</td>
                         <td className="py-2.5 px-3 text-amber-300 font-medium">{row.far}</td>
                         <td className="py-2.5 px-3 text-blue-300 font-bold bg-blue-500/5">{row.csi}</td>
                         <td className="py-2.5 px-3 text-purple-300 font-medium">{row.hss}</td>
-                        <td className="py-2.5 px-3 text-slate-400">{row.brier}</td>
+                        <td className="py-2.5 px-3 text-[#d0d6e0]">{row.brier}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -179,20 +179,20 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
 
               {/* Mathematical Formulations */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-[11px]">
-                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-lg">
-                  <div className="text-slate-400 font-semibold mb-1">Critical Success Index</div>
+                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-xl">
+                  <div className="text-[#d0d6e0] font-semibold mb-1">Critical Success Index</div>
                   <div className="text-blue-300 font-bold">CSI = Hits / (Hits + Misses + FA)</div>
-                  <div className="text-slate-500 text-[10px] mt-1">Measures penalization-free threat capture</div>
+                  <div className="text-[#d0d6e0] text-[10px] mt-1">Measures penalization-free threat capture</div>
                 </div>
-                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-lg">
-                  <div className="text-slate-400 font-semibold mb-1">Probability of Detection</div>
+                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-xl">
+                  <div className="text-[#d0d6e0] font-semibold mb-1">Probability of Detection</div>
                   <div className="text-emerald-300 font-bold">POD = Hits / (Hits + Misses)</div>
-                  <div className="text-slate-500 text-[10px] mt-1">Ratio of correctly forecasted severe cells</div>
+                  <div className="text-[#d0d6e0] text-[10px] mt-1">Ratio of correctly forecasted severe cells</div>
                 </div>
-                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-lg">
-                  <div className="text-slate-400 font-semibold mb-1">False Alarm Ratio</div>
+                <div className="p-3 bg-[#131928]/40 border border-[#1e293b] rounded-xl">
+                  <div className="text-[#d0d6e0] font-semibold mb-1">False Alarm Ratio</div>
                   <div className="text-amber-300 font-bold">FAR = FA / (Hits + FA)</div>
-                  <div className="text-slate-500 text-[10px] mt-1">Fraction of false convective alarms</div>
+                  <div className="text-[#d0d6e0] text-[10px] mt-1">Fraction of false convective alarms</div>
                 </div>
               </div>
             </div>
@@ -200,29 +200,29 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
 
           {activeTab === 'baselines' && (
             <div className="space-y-4">
-              <div className="bg-[#131928]/60 p-3 rounded-lg border border-[#1e293b] text-xs text-slate-300 leading-relaxed">
+              <div className="bg-[#131928]/60 p-3 rounded-xl border border-[#1e293b] text-xs text-[#f7f8f8] leading-relaxed">
                 Comparative analysis against standard operational benchmarks: pure Lagrangian Persistence, pySTEPS (Semi-Lagrangian Optical Flow extrapolation), and High-Resolution Rapid Refresh (HRRR).
               </div>
 
               <div className="space-y-3">
                 {baselineComparison.map((comp, idx) => (
-                  <div key={idx} className="p-3.5 bg-[#0d1424] border border-[#1e293b] rounded-lg space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold text-white">
+                  <div key={idx} className="p-3.5 bg-[#0d1424] border border-[#1e293b] rounded-xl space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#f7f8f8]">
                       <span>{comp.metric}</span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="p-2 rounded bg-blue-500/10 border border-blue-500/30">
-                        <div className="text-[10px] text-slate-400 uppercase">ConvectNet (Ours)</div>
+                        <div className="text-[10px] text-[#d0d6e0] uppercase">ConvectNet (Ours)</div>
                         <div className="text-sm font-bold text-blue-300 mt-0.5">{comp.convectnet}</div>
                       </div>
                       <div className="p-2 rounded bg-[#131928] border border-[#1e293b]">
-                        <div className="text-[10px] text-slate-400 uppercase">pySTEPS Optical Flow</div>
-                        <div className="text-sm font-bold text-slate-300 mt-0.5">{comp.pysteps}</div>
+                        <div className="text-[10px] text-[#d0d6e0] uppercase">pySTEPS Optical Flow</div>
+                        <div className="text-sm font-bold text-[#f7f8f8] mt-0.5">{comp.pysteps}</div>
                       </div>
                       <div className="p-2 rounded bg-[#131928] border border-[#1e293b]">
-                        <div className="text-[10px] text-slate-400 uppercase">Radar Persistence</div>
-                        <div className="text-sm font-bold text-slate-400 mt-0.5">{comp.persistence}</div>
+                        <div className="text-[10px] text-[#d0d6e0] uppercase">Radar Persistence</div>
+                        <div className="text-sm font-bold text-[#d0d6e0] mt-0.5">{comp.persistence}</div>
                       </div>
                     </div>
 
@@ -238,7 +238,7 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
 
           {activeTab === 'events' && (
             <div className="space-y-4">
-              <div className="bg-[#131928]/60 p-3 rounded-lg border border-[#1e293b] text-xs text-slate-300 leading-relaxed">
+              <div className="bg-[#131928]/60 p-3 rounded-xl border border-[#1e293b] text-xs text-[#f7f8f8] leading-relaxed">
                 ConvectNet was evaluated and calibrated against two documented catastrophic convective episodes documented in <span className="text-blue-400 font-bold">EVENT_PROOF.md</span>:
               </div>
 
@@ -250,8 +250,8 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
                       HISTORICAL RECORD
                     </span>
                   </div>
-                  <div className="text-sm font-bold text-white">June 16–17, 2022 Cherrapunji Catastrophe</div>
-                  <div className="text-xs text-slate-300 space-y-1 pt-1 font-sans">
+                  <div className="text-sm font-bold text-[#f7f8f8]">June 16–17, 2022 Cherrapunji Catastrophe</div>
+                  <div className="text-xs text-[#f7f8f8] space-y-1 pt-1 font-sans">
                     <p>• <strong>Peak 24h Rainfall:</strong> 972.6 mm at Sohra AWS (3rd highest in history)</p>
                     <p>• <strong>Mechanism:</strong> Low-level southerly moisture flux against southern Khasi gorge</p>
                     <p>• <strong>ConvectNet Lead Time:</strong> Forecasted cloudburst escalation 48 min before rain rate exceeded 100 mm/h</p>
@@ -265,8 +265,8 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
                       DWR + INSAT + AWS
                     </span>
                   </div>
-                  <div className="text-sm font-bold text-white">May 2024 Pre-Monsoon Severe Squall</div>
-                  <div className="text-xs text-slate-300 space-y-1 pt-1 font-sans">
+                  <div className="text-sm font-bold text-[#f7f8f8]">May 2024 Pre-Monsoon Severe Squall</div>
+                  <div className="text-xs text-[#f7f8f8] space-y-1 pt-1 font-sans">
                     <p>• <strong>Peak Wind Gust:</strong> 48 kt downburst at Shillong Airport (Barapani)</p>
                     <p>• <strong>Hail / Lightning:</strong> 34 lightning strikes/min, 2.5 cm hail reported</p>
                     <p>• <strong>ConvectNet CI Signal:</strong> Detected Schultz 2-sigma lightning jump 18 min prior to squall line touchdown</p>
@@ -278,14 +278,14 @@ export const OperationalVerificationModal: React.FC<OperationalVerificationModal
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-[#1e293b] bg-[#131928] flex items-center justify-between text-[11px] text-slate-400">
+        <div className="p-3 border-t border-[#1e293b] bg-[#131928] flex items-center justify-between text-[11px] text-[#d0d6e0]">
           <span className="flex items-center gap-1.5">
             <ShieldAlert className="w-3.5 h-3.5 text-blue-400" />
             <span>Compliance: WMO-No. 488 (Guide on the Global Data-processing and Forecasting System)</span>
           </span>
           <button
             onClick={onClose}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded text-xs transition-colors"
+            className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-[#f7f8f8] font-semibold rounded text-xs transition-colors"
           >
             Close Scorecard
           </button>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { WMSTileLayer, TileLayer, ImageOverlay, Polyline, Tooltip } from 'react-leaflet';
+import { WMSTileLayer, TileLayer, ImageOverlay, Polyline, Tooltip, useMap } from 'react-leaflet';
 import { useRainViewerRadar } from '../hooks/useRainViewerRadar';
 import { useLiveAtmosphericData } from '../hooks/useLiveAtmosphericData';
 import {
@@ -67,6 +67,8 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
 
   // 2. Live Surface Atmospheric Data Hook (Open-Meteo + In-Situ AWS Network)
   const liveMeteo = useLiveAtmosphericData(300000);
+  const map = useMap();
+  const currentZoom = map.getZoom();
 
   // 3. Map cells to convective thermodynamic perturbations
   const perturbations: ConvectivePerturbation[] = useMemo(() => {
@@ -147,6 +149,7 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
           maxZoom={18}
           maxNativeZoom={7}
           tileSize={256}
+          className="sih-satellite-smooth"
         />
       )}
 
@@ -174,6 +177,7 @@ export const WeatherRasterOverlay: React.FC<WeatherRasterOverlayProps> = ({
           maxZoom={18}
           maxNativeZoom={7}
           tileSize={256}
+          className="sih-satellite-smooth"
         />
       )}
 

@@ -59,7 +59,7 @@ export const MapView: React.FC<MapViewProps> = ({
     // 0. Base Dark Cartography (CartoDB Dark — no API key, never blocked)
     const baseCartoLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
         crossOrigin: 'anonymous',
         attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://www.esri.com/">Esri</a>',
       }),
@@ -67,7 +67,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const baseReferenceLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://{a-c}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
         crossOrigin: 'anonymous',
       }),
       opacity: 0.85,
@@ -544,15 +544,15 @@ export const MapView: React.FC<MapViewProps> = ({
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Map DOM Container */}
-      <div ref={mapContainerRef} className="w-full h-full bg-[#0a0d15]" />
+      <div ref={mapContainerRef} className="w-full h-full bg-[#08090a]" />
 
       {/* Map Overlay Badge: Domain & Center */}
-      <div className="absolute top-3 left-3 bg-[#0a0d15]/85 border border-[#1e293b] backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono z-10 select-none shadow-lg">
+      <div className="absolute top-3 left-3 bg-[#08090a]/85 border border-[#1e293b] backdrop-blur-md px-4 py-1.5 rounded-full.5 rounded-xl text-xs font-mono z-10 select-none ">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span className="text-white font-bold">RADAR DOMAIN: MEGHALAYA & ASSAM</span>
+          <span className="text-[#f7f8f8] font-bold">RADAR DOMAIN: MEGHALAYA & ASSAM</span>
         </div>
-        <div className="text-[10px] text-slate-400 mt-0.5">
+        <div className="text-[10px] text-[#d0d6e0] mt-0.5">
           Khasi Hills Escarpment · Sohra Doppler Radar 250 km Range
         </div>
       </div>
@@ -564,7 +564,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ zoom: (view.getZoom() || 8.5) + 1, duration: 250 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-white flex items-center justify-center font-bold text-sm shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-[#f7f8f8] flex items-center justify-center font-bold text-sm  transition-colors"
           title="Zoom In"
         >
           +
@@ -574,7 +574,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ zoom: (view.getZoom() || 8.5) - 1, duration: 250 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-white flex items-center justify-center font-bold text-sm shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-[#f7f8f8] flex items-center justify-center font-bold text-sm  transition-colors"
           title="Zoom Out"
         >
           -
@@ -584,7 +584,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ center: SOHRA_WEB_MERCATOR, zoom: 8.5, duration: 400 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-blue-400 flex items-center justify-center font-bold text-xs shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-blue-400 flex items-center justify-center font-bold text-xs  transition-colors"
           title="Recenter on Sohra Radar"
         >
           ⌖

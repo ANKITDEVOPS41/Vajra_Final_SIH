@@ -73,7 +73,7 @@ export const MapView: React.FC<MapViewProps> = ({
     // 0. Base Dark Cartography (CartoDB Dark — no API key, never blocked)
     const baseCartoLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
         crossOrigin: 'anonymous',
         attributions: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://www.esri.com/">Esri</a>',
       }),
@@ -81,7 +81,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
     const baseReferenceLayer = new TileLayer({
       source: new XYZ({
-        url: 'https://{a-c}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
         crossOrigin: 'anonymous',
       }),
       opacity: 0.85,
@@ -235,36 +235,37 @@ export const MapView: React.FC<MapViewProps> = ({
           return new Style({
             image: new CircleStyle({
               radius: 9,
-              fill: new Fill({ color: '#d500f9' }),
-              stroke: new Stroke({ color: '#ffffff', width: 2.5 }),
+              fill: new Fill({ color: '#0f172a' }),
+              stroke: new Stroke({ color: '#ef4444', width: 2.5 }),
             }),
             text: new Text({
-              text: `⚡ ${name}\n${maxDbz} dBZ · ${speed} km/h`,
+              text: `${name}\n${maxDbz} dBZ · ${speed} km/h`,
               offsetY: -22,
               font: 'bold 11px JetBrains Mono, monospace',
               fill: new Fill({ color: '#ffffff' }),
-              backgroundFill: new Fill({ color: 'rgba(213, 0, 249, 0.85)' }),
+              backgroundFill: new Fill({ color: 'rgba(10, 15, 26, 0.95)' }),
+              backgroundStroke: new Stroke({ color: 'rgba(239, 68, 68, 0.5)', width: 1 }),
               padding: [2, 6, 2, 6],
             }),
           });
         } else if (type === 'motion_vector') {
           return new Style({
             stroke: new Stroke({
-              color: '#00e5ff',
+              color: '#38bdf8',
               width: 3,
               lineDash: [6, 4],
             }),
           });
         } else if (type === 'cell_polygon') {
           const severity = feature.get('severity');
-          const color = severity === 'EXTREME' ? '#d500f9' : severity === 'SEVERE' ? '#ff0000' : '#ffff00';
+          const color = severity === 'EXTREME' ? '#ef4444' : severity === 'SEVERE' ? '#f97316' : '#eab308';
           return new Style({
             stroke: new Stroke({
               color: color,
               width: 2,
             }),
             fill: new Fill({
-              color: color + '33',
+              color: color + '05', // virtually invisible fill
             }),
           });
         }
@@ -351,7 +352,7 @@ export const MapView: React.FC<MapViewProps> = ({
           image: new CircleStyle({
             radius: 8,
             fill: new Fill({ color: '#f59e0b' }),
-            stroke: new Stroke({ color: '#ffffff', width: 2.5 }),
+            stroke: new Stroke({ color: '#ef4444', width: 2.5 }),
           }),
           stroke: new Stroke({
             color: '#f59e0b',
@@ -502,25 +503,33 @@ export const MapView: React.FC<MapViewProps> = ({
       const nPoints = 32;
       const polyCoords: number[][] = [];
 
+      // Realistic irregular shapes for radar echoes instead of perfect circles
+      const seedVal = cell.name?.charCodeAt(0) ?? 65;
+      
       for (let i = 0; i <= nPoints; i++) {
         const angle = (i * 2 * Math.PI) / nPoints;
 
-        // Ellipse: 20% wider perpendicular to motion, compressed 15% ahead of storm
+        // Dynamic asymmetric shape based on motion
         const relAngle = angle - bearingRad;
         const alongMotion = Math.cos(relAngle);
         const acrossMotion = Math.sin(relAngle);
-        const shapeRadius =
+        const baseShapeRadius =
           baseRadiusM *
-          (0.85 + 0.15 * acrossMotion * acrossMotion) * // wider across motion
-          (1.0 - 0.15 * Math.max(0, alongMotion));      // compressed ahead
+          (0.9 + 0.2 * acrossMotion * acrossMotion) * // wider across motion
+          (1.0 - 0.2 * Math.max(0, alongMotion));      // compressed ahead
 
-        // Add natural meteorological irregularity (seed from cell name for repeatability)
-        const seed = (cell.name?.charCodeAt(0) ?? 65) + i;
-        const noise = 0; // Removed fake jagged noise. Use smooth SCIT boundaries.
+        // Realistic meteorological jaggedness (Perlin-like noise simulation)
+        // Combine multiple sine waves for organic irregular boundaries
+        const noiseFactor = 
+            0.15 * Math.sin(angle * 3 + seedVal) + 
+            0.10 * Math.cos(angle * 5 - seedVal) +
+            0.05 * Math.sin(angle * 11);
+            
+        const finalRadius = baseShapeRadius * (1.0 + noiseFactor);
 
         polyCoords.push([
-          baseMercator[0] + (shapeRadius + noise) * Math.sin(angle),
-          baseMercator[1] + (shapeRadius + noise) * Math.cos(angle),
+          baseMercator[0] + finalRadius * Math.sin(angle),
+          baseMercator[1] + finalRadius * Math.cos(angle),
         ]);
       }
 
@@ -568,15 +577,15 @@ export const MapView: React.FC<MapViewProps> = ({
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Map DOM Container */}
-      <div ref={mapContainerRef} className="w-full h-full bg-[#0a0d15]" />
+      <div ref={mapContainerRef} className="w-full h-full bg-[#08090a]" />
 
       {/* Map Overlay Badge: Domain & Center */}
-      <div className="absolute top-3 left-3 bg-[#0a0d15]/85 border border-[#1e293b] backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-mono z-10 select-none shadow-lg">
+      <div className="absolute top-3 left-3 bg-[#08090a]/85 border border-[#1e293b] backdrop-blur-md px-4 py-1.5 rounded-full.5 rounded-xl text-xs font-mono z-10 select-none ">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span className="text-white font-bold">RADAR DOMAIN: MEGHALAYA & ASSAM</span>
+          <span className="text-[#f7f8f8] font-bold">RADAR DOMAIN: MEGHALAYA & ASSAM</span>
         </div>
-        <div className="text-[10px] text-slate-400 mt-0.5">
+        <div className="text-[10px] text-[#d0d6e0] mt-0.5">
           Khasi Hills Escarpment · Sohra Doppler Radar 250 km Range
         </div>
       </div>
@@ -588,7 +597,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ zoom: (view.getZoom() || 8.5) + 1, duration: 250 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-white flex items-center justify-center font-bold text-sm shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-[#f7f8f8] flex items-center justify-center font-bold text-sm  transition-colors"
           title="Zoom In"
         >
           +
@@ -598,7 +607,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ zoom: (view.getZoom() || 8.5) - 1, duration: 250 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-white flex items-center justify-center font-bold text-sm shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-[#f7f8f8] flex items-center justify-center font-bold text-sm  transition-colors"
           title="Zoom Out"
         >
           -
@@ -608,7 +617,7 @@ export const MapView: React.FC<MapViewProps> = ({
             const view = mapRef.current?.getView();
             if (view) view.animate({ center: SOHRA_WEB_MERCATOR, zoom: 8.5, duration: 400 });
           }}
-          className="w-8 h-8 rounded-lg bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-blue-400 flex items-center justify-center font-bold text-xs shadow-lg transition-colors"
+          className="w-8 h-8 rounded-xl bg-[#131928]/90 hover:bg-[#1a2236] border border-[#1e293b] text-blue-400 flex items-center justify-center font-bold text-xs  transition-colors"
           title="Recenter on Sohra Radar"
         >
           ⌖

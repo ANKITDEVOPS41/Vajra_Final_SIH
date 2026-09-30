@@ -17,7 +17,7 @@ export class ApiService {
 
   public static async checkHealth(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/data_quality`, { method: 'GET', signal: AbortSignal.timeout(2000) });
+      const res = await fetch(`${API_BASE}/system/data_quality`, { method: 'GET', signal: AbortSignal.timeout(2000) });
       const available = res.ok;
       this.isBackendAvailable = available;
       return available;
@@ -33,7 +33,7 @@ export class ApiService {
 
   public static async getGridCell(lat: number, lon: number): Promise<GridCellData> {
     try {
-      const res = await fetch(`${API_BASE}/grid/${lat.toFixed(4)}/${lon.toFixed(4)}`, {
+      const res = await fetch(`${API_BASE}/weather/grid/${lat.toFixed(4)}/${lon.toFixed(4)}`, {
         signal: AbortSignal.timeout(2500),
       });
       if (res.ok) {
@@ -49,7 +49,7 @@ export class ApiService {
 
   public static async getForecast(leadMinutes: number): Promise<ForecastOutput> {
     try {
-      const res = await fetch(`${API_BASE}/forecast/${leadMinutes}`, {
+      const res = await fetch(`${API_BASE}/weather/forecast/${leadMinutes}`, {
         signal: AbortSignal.timeout(2500),
       });
       if (res.ok) {
@@ -65,7 +65,7 @@ export class ApiService {
 
   public static async getStormCells(): Promise<StormCellFeature[]> {
     try {
-      const res = await fetch(`${API_BASE}/storm/cells`, {
+      const res = await fetch(`${API_BASE}/weather/storm/cells`, {
         signal: AbortSignal.timeout(2500),
       });
       if (res.ok) {
@@ -94,7 +94,7 @@ export class ApiService {
 
   public static async getDataQuality(): Promise<DataQuality> {
     try {
-      const res = await fetch(`${API_BASE}/data_quality`, {
+      const res = await fetch(`${API_BASE}/system/data_quality`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) {
@@ -117,7 +117,7 @@ export class ApiService {
   /** Fetch real evaluation_report.json generated from the trained model run. */
   public static async getEvaluationReport(): Promise<any> {
     try {
-      const res = await fetch(`${API_BASE}/evaluation_report`, {
+      const res = await fetch(`${API_BASE}/system/evaluation_report`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) return await res.json();
@@ -141,7 +141,7 @@ export class ApiService {
   /** Fetch live storm cells from backend — falls back to FALLBACK_STORM_CELLS if unreachable. */
   public static async getLiveStormCells(): Promise<any[]> {
     try {
-      const res = await fetch(`${API_BASE}/storm/cells`, {
+      const res = await fetch(`${API_BASE}/weather/storm/cells`, {
         signal: AbortSignal.timeout(3000),
       });
       if (res.ok) {

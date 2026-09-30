@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, Rectangle, CircleMarker, ScaleControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, Polyline, Rectangle, CircleMarker, ScaleControl, useMap , ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { Play, Pause, RotateCcw, ShieldCheck, History, Activity, Radio, Grid, MapPin, Mountain, Plane, Layers } from 'lucide-react';
 import { 
@@ -265,11 +265,12 @@ export const HistoricalReplayView: React.FC = () => {
             center={currentSpecs.center} 
             zoom={currentSpecs.zoom} 
             scrollWheelZoom={true} 
-            zoomControl={true} 
+            zoomControl={false} 
             className="w-full h-full bg-[#0a0d15]"
           >
             <SyncMapView center={currentSpecs.center} zoom={currentSpecs.zoom} />
             <ScaleControl position="bottomleft" metric={true} imperial={false} />
+            <ZoomControl position="topright" />
 
             {/* Basemap Tiles */}
             {mapType === 'satellite' && (
@@ -399,11 +400,12 @@ export const HistoricalReplayView: React.FC = () => {
             center={currentSpecs.center} 
             zoom={currentSpecs.zoom} 
             scrollWheelZoom={true} 
-            zoomControl={true} 
+            zoomControl={false} 
             className="w-full h-full bg-[#0a0d15]"
           >
             <SyncMapView center={currentSpecs.center} zoom={currentSpecs.zoom} />
             <ScaleControl position="bottomleft" metric={true} imperial={false} />
+            <ZoomControl position="topright" />
 
             {/* Basemap Tiles */}
             {mapType === 'satellite' && (

@@ -434,7 +434,7 @@ export const ConvectNowDashboard: React.FC = () => {
         <div className="absolute top-20 right-4 z-20">
           <button
             onClick={() => setMapBaseStyle(prev => prev === 'tactical' ? 'satellite' : 'tactical')}
-            className="flex items-center gap-2 px-3 py-2 bg-[#131928]/95 border border-blue-500/40 rounded shadow-lg backdrop-blur text-[11px] font-bold tracking-wider font-mono text-blue-300 hover:bg-[#1e293b] hover:text-white transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-[#101726] border border-sky-500/40 rounded   text-[11px] font-bold tracking-wider font-mono text-sky-300 hover:bg-[#141516] hover:text-[#f7f8f8] transition-colors"
           >
             {mapBaseStyle === 'tactical' ? '🌍 ENABLE LIVE SATELLITE (IMD/MOSDAC)' : '🗺️ ENABLE TACTICAL MAP'}
           </button>

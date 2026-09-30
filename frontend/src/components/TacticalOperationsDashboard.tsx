@@ -288,7 +288,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
 
   const createTargetIcon = (name: string, threatLevel: string) => {
     const isEmerg = threatLevel === 'EMERGENCY';
-    const color = isEmerg ? '#ef4444' : '#38bdf8';
+    const color = isEmerg ? '#ff3b30' : '#8a99ad';
 
     return L.divIcon({
       className: 'target-asset-marker',
@@ -298,9 +298,9 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           align-items: center;
           background: rgba(10, 15, 26, 0.95);
           border: 1.5px solid ${color};
-          border-radius: 4px;
+          border-radius: 0px;
           padding: 2px 6px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.8);
+          
           transform: translate(-50%, -50%);
           white-space: nowrap;
           pointer-events: none;
@@ -357,27 +357,27 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
       <div className="absolute top-3 left-4 right-4 z-[500] pointer-events-none flex flex-wrap items-center justify-between gap-3">
         
         {/* Left: Corridor Identity & Domain Breadcrumb */}
-        <div className="pointer-events-auto flex items-center space-x-2 bg-[#0a0f1d]/90 backdrop-blur-md border border-[#1f293d] rounded-lg px-3.5 py-2 shadow-xl">
+        <div className="pointer-events-auto flex items-center space-x-2 bg-[#101726] border border-[#2b3a55] rounded px-3.5 py-2 ">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-mono font-bold text-white tracking-wide">VEBS CORRIDOR C2</span>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">
+              <span className="text-xs font-mono font-bold text-[#f7f8f8] tracking-wide">VEBS CORRIDOR C2</span>
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/30">
                 0–6H NOWCAST
               </span>
             </div>
-            <div className="text-[10px] font-mono text-slate-400">
-              3x3 AOI: 20.0°N–20.6°N, 85.5°E–86.1°E • 9 Surface AWS Ground Truth
+            <div className="text-[10px] font-mono text-[#d0d6e0]">
+              Hyperlocal 3x3 km AOI: 1km² Sector Resolution • 9 Surface AWS Ground Truth
             </div>
           </div>
         </div>
 
         {/* Center: Severity Filter Chips */}
-        <div className="pointer-events-auto flex items-center bg-[#0a0f1d]/90 backdrop-blur-md border border-[#1f293d] rounded-lg p-1 shadow-xl space-x-1">
+        <div className="pointer-events-auto flex items-center bg-[#101726] border border-[#2b3a55] rounded p-1  space-x-1">
           <button
             onClick={() => setActiveFilter('ALL')}
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all ${
-              activeFilter === 'ALL' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' : 'text-slate-400 hover:text-white'
+              activeFilter === 'ALL' ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
             }`}
           >
             All Cells ({stormCells.length})
@@ -385,7 +385,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           <button
             onClick={() => setActiveFilter('EXTREME')}
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all flex items-center space-x-1 ${
-              activeFilter === 'EXTREME' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'text-slate-400 hover:text-rose-400'
+              activeFilter === 'EXTREME' ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -394,7 +394,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           <button
             onClick={() => setActiveFilter('SEVERE')}
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all flex items-center space-x-1 ${
-              activeFilter === 'SEVERE' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'text-slate-400 hover:text-amber-400'
+              activeFilter === 'SEVERE' ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
@@ -403,10 +403,10 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           <button
             onClick={() => setActiveFilter('MODERATE')}
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold transition-all flex items-center space-x-1 ${
-              activeFilter === 'MODERATE' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40' : 'text-slate-400 hover:text-sky-400'
+              activeFilter === 'MODERATE' ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5e6ad2]"></span>
             <span>Moderate</span>
           </button>
         </div>
@@ -415,12 +415,12 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
         <div className="pointer-events-auto flex items-center space-x-2">
           
           {/* Layer toggles pill */}
-          <div className="flex items-center bg-[#0a0f1d]/90 backdrop-blur-md border border-[#1f293d] rounded-lg px-2 py-1 space-x-2 text-xs font-mono">
+          <div className="flex items-center bg-[#101726] border border-[#2b3a55] rounded px-2 py-1 space-x-2 text-xs font-mono">
             <button
               onClick={() => setShowGrid(!showGrid)}
               title="Toggle 3x3 Tactical Grid"
               className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                showGrid ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white'
+                showGrid ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
               }`}
             >
               <Grid className="w-3 h-3" />
@@ -430,7 +430,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               onClick={() => setShowVectors(!showVectors)}
               title="Toggle Velocity Motion Vectors"
               className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                showVectors ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30' : 'text-slate-400 hover:text-white'
+                showVectors ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
               }`}
             >
               <Navigation className="w-3 h-3" />
@@ -440,7 +440,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               onClick={() => setShowInterceptRays(!showInterceptRays)}
               title="Toggle Intercept Rays & Live ETAs"
               className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                showInterceptRays ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'text-slate-400 hover:text-white'
+                showInterceptRays ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
               }`}
             >
               <Zap className="w-3 h-3" />
@@ -450,7 +450,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               onClick={() => setShowAws(!showAws)}
               title="Toggle 9 AWS In-Situ Surface Stations"
               className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                showAws ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-400 hover:text-white'
+                showAws ? 'bg-[#1b2333] text-white ring-1 ring-inset ring-white' : 'text-[#8a99ad] hover:text-white bg-[#0a0d15] border border-[#1e2533]'
               }`}
             >
               <Radio className="w-3 h-3" />
@@ -460,7 +460,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
               onClick={() => setShowRangeRings(!showRangeRings)}
               title="Toggle 1km, 2km, 3km Aerodrome Safety Range Rings around Runway 19"
               className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors ${
-                showRangeRings ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold' : 'text-slate-400 hover:text-white'
+                showRangeRings ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 font-bold' : 'text-[#d0d6e0] hover:text-[#f7f8f8]'
               }`}
             >
               <Target className="w-3 h-3" />
@@ -477,7 +477,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           {/* Mission & Scale Guide Button */}
           <button
             onClick={() => setShowMissionGuide(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/50 text-xs font-mono font-bold flex items-center space-x-1.5 shadow-lg backdrop-blur-md transition-all active:scale-95"
+            className="px-4 py-1.5 bg-[#0a0d15] text-[#ff9f0a] border border-[#ff9f0a] rounded text-xs font-mono font-bold flex items-center space-x-1.5 transition-all hover:bg-[#ff9f0a] hover:text-white"
             title="Why 1-3km matters & How to read this tactical nowcasting map"
           >
             <HelpCircle className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
@@ -485,37 +485,40 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
             <span className="sm:hidden">Guide</span>
           </button>
 
-          {/* Camera Quick Buttons */}
-          <div className="flex bg-[#0a0f1d]/90 backdrop-blur-md border border-[#1f293d] rounded-lg p-1 space-x-1">
-            <button
-              onClick={handleFocusAirport}
-              title="Focus VEBS Biju Patnaik Airport"
-              className="px-2 py-1 rounded bg-[#162032] hover:bg-sky-500/20 text-sky-300 border border-[#2b3a55] text-xs font-mono font-semibold flex items-center space-x-1"
-            >
-              <Plane className="w-3 h-3" />
-              <span>VEBS Airfield</span>
-            </button>
-            <button
-              onClick={handleResetToCorridor}
-              title="Reset to Full 3x3 Corridor"
-              className="px-2 py-1 rounded bg-[#162032] hover:bg-sky-500/20 text-slate-300 hover:text-white border border-[#2b3a55] text-xs font-mono font-semibold flex items-center space-x-1"
-            >
-              <Maximize2 className="w-3 h-3" />
-              <span>Corridor</span>
-            </button>
-          </div>
+
 
         </div>
-
       </div>
+
 
       {/* ========================================================================= */}
       {/* 2. MAIN EXPANSIVE GIS MAP CANVAS */}
       {/* ========================================================================= */}
       <div className="flex-1 w-full h-full relative z-0">
+      {/* ========================================================================= */}
+      {/* 1B. CAMERA QUICK BUTTONS (Left Side) */}
+      {/* ========================================================================= */}
+      <div className="absolute bottom-8 left-4 z-[500] pointer-events-auto flex bg-[#101726] border border-[#2b3a55] rounded p-1 space-x-1">
+        <button
+          onClick={handleFocusAirport}
+          title="Focus VEBS Biju Patnaik Airport"
+          className="px-2 py-1 rounded bg-[#162032] hover:bg-[#1b2333] text-sky-300 border border-[#2b3a55] text-xs font-mono font-semibold flex items-center space-x-1 transition-colors"
+        >
+          <Plane className="w-3 h-3" />
+          <span>VEBS Airfield</span>
+        </button>
+        <button
+          onClick={handleResetToCorridor}
+          title="Reset to Full 3x3 Corridor"
+          className="px-2 py-1 rounded bg-[#162032] hover:bg-[#1b2333] text-[#f7f8f8] border border-[#2b3a55] text-xs font-mono font-semibold flex items-center space-x-1 transition-colors"
+        >
+          <Maximize2 className="w-3 h-3" />
+          <span>Corridor</span>
+        </button>
+      </div>
         <MapContainer
           center={VEBS_AIRPORT_SPECS.center}
-          zoom={13}
+          zoom={15}
           minZoom={9}
           maxZoom={18}
           scrollWheelZoom={true}
@@ -623,8 +626,8 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                   dashArray: '5, 5',
                 }}
               >
-                <Tooltip permanent direction="top" offset={[0, -10]}>
-                  <div className="font-mono text-[9px] font-bold text-red-400 bg-[#0a0f1d]/95 px-2 py-0.5 rounded border border-red-500/60 shadow-lg">
+                <Tooltip direction="top" offset={[0, -10]}>
+                  <div className="font-mono text-[9px] font-bold text-red-400 bg-[#0a0f1d]/95 px-2 py-0.5 rounded border border-red-500/60 ">
                     ⭕ 1 km TOUCHDOWN ZONE (&lt;2 MIN IMPACT)
                   </div>
                 </Tooltip>
@@ -642,8 +645,8 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                   dashArray: '6, 6',
                 }}
               >
-                <Tooltip permanent direction="top" offset={[0, -10]}>
-                  <div className="font-mono text-[9px] font-bold text-amber-400 bg-[#0a0f1d]/95 px-2 py-0.5 rounded border border-amber-500/60 shadow-lg">
+                <Tooltip direction="top" offset={[0, -10]}>
+                  <div className="font-mono text-[9px] font-bold text-amber-400 bg-[#0a0f1d]/95 px-2 py-0.5 rounded border border-amber-500/60 ">
                     ⭕ 2 km FINAL APPROACH ALERT (CELL-701 AT 1.8 KM)
                   </div>
                 </Tooltip>
@@ -661,9 +664,9 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                   dashArray: '8, 8',
                 }}
               >
-                <Tooltip permanent direction="top" offset={[0, -10]}>
-                  <div className="font-mono text-[9px] font-bold text-sky-400 bg-[#0a0f1d]/95 px-2 py-0.5 rounded border border-sky-500/60 shadow-lg">
-                    ⭕ 3 km AERODROME NOWCAST BOUNDARY (SIH PS-26084)
+                <Tooltip direction="top" offset={[0, -10]}>
+                  <div className="font-mono text-[10px] font-bold text-[#8a99ad] bg-[#0a0d15]/95 px-1.5 py-0.5 rounded-none border border-slate-700">
+                    3 km AERODROME NOWCAST BOUNDARY
                   </div>
                 </Tooltip>
               </Circle>
@@ -715,7 +718,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                       <div style="
                         background: rgba(8, 12, 22, 0.85);
                         border: 1px solid ${sectorColor};
-                        border-radius: 4px;
+                        border-radius: 0px;
                         padding: 1px 5px;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.6);
                         transform: translate(-50%, -50%);
@@ -751,7 +754,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                     <div style="
                       background: rgba(9, 14, 26, 0.92);
                       border: 1px solid ${awsColor};
-                      border-radius: 4px;
+                      border-radius: 0px;
                       padding: 2px 5px;
                       box-shadow: 0 2px 8px rgba(0,0,0,0.8);
                       transform: translate(-50%, -50%);
@@ -771,17 +774,17 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                 })}
               >
                 <Popup className="tactical-aws-popup">
-                  <div className="bg-[#0b101b] text-white p-2 rounded text-xs font-mono min-w-[200px]">
-                    <div className="font-bold text-sky-400 border-b border-slate-700 pb-1 mb-1 flex justify-between">
+                  <div className="bg-[#0b101b] text-[#f7f8f8] p-2 rounded text-xs font-mono min-w-[200px]">
+                    <div className="font-bold text-[#5e6ad2] border-b border-[#23252a] pb-1 mb-1 flex justify-between">
                       <span>{station.name}</span>
-                      <span className="text-[10px] text-slate-400">ID: {station.code}</span>
+                      <span className="text-[10px] text-[#d0d6e0]">ID: {station.code}</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1 text-[11px] text-slate-300">
-                      <div>Temp: <strong className="text-white">{station.tempC}°C</strong></div>
-                      <div>DewPt: <strong className="text-white">{station.dewPointC}°C</strong></div>
-                      <div>Pressure: <strong className="text-white">{station.pressureHpa} hPa</strong></div>
+                    <div className="grid grid-cols-2 gap-1 text-[11px] text-[#f7f8f8]">
+                      <div>Temp: <strong className="text-[#f7f8f8]">{station.tempC}°C</strong></div>
+                      <div>DewPt: <strong className="text-[#f7f8f8]">{station.dewPointC}°C</strong></div>
+                      <div>Pressure: <strong className="text-[#f7f8f8]">{station.pressureHpa} hPa</strong></div>
                       <div>Tendency: <strong className={station.tendency3h < 0 ? 'text-rose-400' : 'text-emerald-400'}>{station.tendency3h} hPa/3h</strong></div>
-                      <div>Wind: <strong className="text-white">{station.windSpeedKt} kt @ {station.windDirDeg}°</strong></div>
+                      <div>Wind: <strong className="text-[#f7f8f8]">{station.windSpeedKt} kt @ {station.windDirDeg}°</strong></div>
                       <div>Gust: <strong className="text-amber-400">{station.windGustKt} kt</strong></div>
                     </div>
                   </div>
@@ -838,8 +841,8 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                   pathOptions={{
                     color: strokeColor,
                     fillColor: strokeColor,
-                    fillOpacity: isSelected ? 0.45 : 0.26,
-                    weight: isSelected ? 2.5 : 1.5,
+                    fillOpacity: isSelected ? 0.1 : 0.05,
+                    weight: isSelected ? 2 : 1.5,
                   }}
                   eventHandlers={{
                     click: () => handleSelectCell(cell.cell_id, 14)
@@ -929,7 +932,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                 >
                   <Tooltip direction="top" offset={[0, -20]} opacity={0.95}>
                     <div className="text-xs font-mono p-1">
-                      <strong className="text-white">{cell.cell_id}</strong>: {cell.peak_dbz} dBZ • {cell.velocity_kmh} km/h
+                      <strong className="text-[#f7f8f8]">{cell.cell_id}</strong>: {cell.peak_dbz} dBZ • {cell.velocity_kmh} km/h
                     </div>
                   </Tooltip>
                 </Marker>
@@ -943,11 +946,11 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
         <WeatherColorbarLegend format={weatherFormat} />
 
         {/* Floating On-Screen 1–3km Scale & Instruction HUD (Bottom-Left) */}
-        <div className="absolute bottom-6 left-4 z-[400] bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-3 shadow-2xl max-w-xs pointer-events-auto">
+        <div className="absolute bottom-6 left-4 z-[400] bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-3  max-w-xs pointer-events-auto">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1f293d]">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+              <span className="text-xs font-mono font-bold text-[#f7f8f8] uppercase tracking-wider">
                 1–3 km Aerodrome Radar
               </span>
             </div>
@@ -961,23 +964,23 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           <div className="space-y-1 text-[11px] font-mono">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full border border-red-500 bg-red-500/30 shrink-0" />
-              <span className="text-slate-300">
+              <span className="text-[#f7f8f8]">
                 <strong className="text-red-400">1 km Ring</strong>: Touchdown Zone
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full border border-amber-500 bg-amber-500/30 shrink-0" />
-              <span className="text-slate-300">
+              <span className="text-[#f7f8f8]">
                 <strong className="text-amber-400">2 km Ring</strong>: Final Approach Alert
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="w-2.5 h-2.5 rounded-full border border-sky-500 bg-sky-500/30 shrink-0" />
-              <span className="text-slate-300">
-                <strong className="text-sky-400">3 km Ring</strong>: Tactical Boundary
+              <span className="w-2.5 h-2.5 rounded-full border border-[#5e6ad2] bg-[#5e6ad2]/30 shrink-0" />
+              <span className="text-[#f7f8f8]">
+                <strong className="text-[#5e6ad2]">3 km Ring</strong>: Tactical Boundary
               </span>
             </div>
-            <div className="pt-1.5 text-[10px] text-slate-400 border-t border-slate-800">
+            <div className="pt-1.5 text-[10px] text-[#d0d6e0] border-t border-[#23252a]">
               ⚡ Intercept Ray: CELL-701 in <strong className="text-amber-300">1.8 km</strong> (3 min)
             </div>
           </div>
@@ -988,13 +991,13 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
       {/* 3. RIGHT FLOATING HUD: LIVE SPATIAL INTERCEPT QUEUE */}
       {/* ========================================================================= */}
       <div className="absolute top-20 right-4 bottom-24 w-84 z-[400] pointer-events-none flex flex-col justify-start">
-        <div className="pointer-events-auto bg-[#0a0f1d]/92 backdrop-blur-xl border border-[#1f293d] rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-full">
+        <div className="pointer-events-auto bg-[#0a0f1d]/92 backdrop-blur-xl border border-[#1f293d] rounded-xl overflow-hidden  flex flex-col max-h-full">
           
           {/* Header */}
           <div className="px-4 py-3 border-b border-[#1f293d] bg-[#101728]/80 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-sky-400" />
-              <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+              <Clock className="w-4 h-4 text-[#5e6ad2]" />
+              <h3 className="text-xs font-mono font-bold text-[#f7f8f8] uppercase tracking-wider">
                 Target Intercepts (ETA)
               </h3>
             </div>
@@ -1008,21 +1011,21 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
             {allTargetArrivals.map((item, idx) => {
               const isSelected = selectedCellId === item.cell.cell_id;
               const isImminent = item.eta_minutes < 6;
-              const threatColor = isImminent ? 'border-rose-500/60 bg-rose-950/20' : isSelected ? 'border-sky-500/60 bg-sky-950/20' : 'border-[#1f293d] bg-[#0c1222]/70';
+              const threatColor = isImminent ? 'border-l-[3px] border-l-[#ff3b30] border-y-[#1e2533] border-r-[#1e2533] bg-[#0a0d15]' : isSelected ? 'border-l-[3px] border-l-white border-y-[#1e2533] border-r-[#1e2533] bg-[#161a23]' : 'border-[#1e2533] bg-[#0a0d15]';
 
               return (
                 <div
                   key={`${item.cell.cell_id}-${idx}`}
                   onClick={() => handleSelectCell(item.cell.cell_id, 14)}
-                  className={`p-3 rounded-lg border transition-all cursor-pointer hover:border-sky-400/50 hover:bg-[#121c32] ${threatColor}`}
+                  className={`p-3 rounded border transition-all cursor-pointer hover:bg-[#111722] ${threatColor}`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1 pr-2">
-                      <div className="flex items-center space-x-1.5 text-xs font-bold text-white truncate">
-                        <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                      <div className="flex items-center space-x-1.5 text-xs font-bold text-[#f7f8f8] truncate">
+                        <MapPin className="w-3.5 h-3.5 text-[#8a99ad] shrink-0" />
                         <span className="truncate">{item.target_name}</span>
                       </div>
-                      <div className="text-[11px] font-mono text-slate-400 mt-1 flex items-center space-x-2">
+                      <div className="text-[11px] font-mono text-[#d0d6e0] mt-1 flex items-center space-x-2">
                         <span>Threat: <strong className="text-sky-300">{item.cell.cell_id}</strong></span>
                         <span>•</span>
                         <span className="text-amber-400 font-bold">{item.cell.peak_dbz} dBZ</span>
@@ -1033,14 +1036,14 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                       <div className={`text-sm font-mono font-black ${isImminent ? 'text-rose-400 animate-pulse' : 'text-sky-300'}`}>
                         {Math.floor(item.eta_minutes)}m {Math.floor((item.eta_minutes % 1) * 60)}s
                       </div>
-                      <div className="text-[9px] font-mono text-slate-400">
+                      <div className="text-[9px] font-mono text-[#d0d6e0]">
                         {item.eta_window_min}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-white/5">
-                    <div className="text-[10px] font-mono text-slate-400">
+                    <div className="text-[10px] font-mono text-[#d0d6e0]">
                       <span>{item.distance_km} km away</span>
                       <span className="mx-1">•</span>
                       <span>{item.cell.velocity_kmh} km/h</span>
@@ -1051,7 +1054,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                         e.stopPropagation();
                         handleDispatchCap(item.cell.cell_id);
                       }}
-                      className="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white text-[10px] font-mono font-bold flex items-center space-x-1 transition-colors shadow-sm"
+                      className="px-4 py-1 border border-[#ff3b30] bg-[#1a0505] hover:bg-[#ff3b30] text-[#ff3b30] hover:text-white rounded text-[10px] font-mono font-bold flex items-center space-x-1 transition-colors"
                     >
                       <ShieldAlert className="w-3 h-3" />
                       <span>CAP Alert</span>
@@ -1065,12 +1068,12 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
           {/* Airfield Aviation Status Pill at Bottom of Queue */}
           <div className="p-3 border-t border-[#1f293d] bg-[#0c1222] flex items-center justify-between text-xs font-mono">
             <div>
-              <span className="text-slate-400 text-[10px] uppercase">VEBS Runway 01</span>
+              <span className="text-[#d0d6e0] text-[10px] uppercase">VEBS Runway 01</span>
               <div className="text-rose-400 font-black">GROUNDED (LLWS ΔV 48 m/s)</div>
             </div>
             <button
               onClick={() => setShowTableView(!showTableView)}
-              className="px-2.5 py-1 rounded bg-[#172238] hover:bg-sky-500/20 text-sky-300 border border-[#2b3a55] text-[11px] font-mono font-semibold flex items-center space-x-1"
+              className="px-4 py-1.5 rounded-full.5 rounded-full rounded bg-[#172238] hover:bg-[#5e6ad2]/20 text-sky-300 border border-[#2b3a55] text-[11px] font-mono font-semibold flex items-center space-x-1"
             >
               <Table className="w-3 h-3" />
               <span>{showTableView ? 'Hide Matrix' : 'Data Matrix'}</span>
@@ -1084,11 +1087,11 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
       {/* 4. BOTTOM FLOATING DOCK: SPATIAL DIGITAL TWIN & PHYSICAL ATTRIBUTION */}
       {/* ========================================================================= */}
       <div className="absolute bottom-3 left-4 right-4 sm:right-92 z-[450] pointer-events-none">
-        <div className="pointer-events-auto bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-3.5 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="pointer-events-auto bg-[#0a0f1d]/95 backdrop-blur-xl border border-[#1f293d] rounded-xl p-3.5  flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           {/* Selected Cell Identity & Live Coordinates */}
           <div className="flex items-center space-x-3.5 min-w-[240px]">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center border font-mono font-black text-sm ${
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border font-mono font-black text-sm ${
               selectedCell.peak_dbz >= 64 
                 ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' 
                 : 'bg-amber-500/20 border-amber-500/50 text-amber-300'
@@ -1097,44 +1100,44 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-bold text-white font-mono">{selectedCell.cell_id}</span>
+                <span className="text-sm font-bold text-[#f7f8f8] font-mono">{selectedCell.cell_id}</span>
                 <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold uppercase ${
                   selectedCell.peak_dbz >= 64 ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'
                 }`}>
                   {selectedCell.severity}
                 </span>
-                <span className="text-xs font-mono text-sky-400 font-semibold">
+                <span className="text-xs font-mono text-[#5e6ad2] font-semibold">
                   {selectedCell.cell_id === 'CELL-805' ? 'SEC-C [R1_C1]' : selectedCell.cell_id === 'CELL-912' ? 'SEC-N [R0_C1]' : 'SEC-S [R2_C1]'}
                 </span>
               </div>
-              <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+              <div className="text-[11px] font-mono text-[#d0d6e0] mt-0.5">
                 Coord: {selectedCell.centroid_lat.toFixed(4)}°N, {selectedCell.centroid_lon.toFixed(4)}°E • Area: {selectedCell.area_km2} km²
               </div>
             </div>
           </div>
 
           {/* ConvectNet AI Physical Attribution (Spatial Diagnostics) */}
-          <div className="flex-1 border-y md:border-y-0 md:border-x border-slate-800 py-2 md:py-0 md:px-4 text-xs font-mono space-y-1">
-            <div className="flex items-center space-x-1.5 text-sky-400 font-bold text-[11px]">
+          <div className="flex-1 border-y md:border-y-0 md:border-x border-[#23252a] py-2 md:py-0 md:px-4 text-xs font-mono space-y-1">
+            <div className="flex items-center space-x-1.5 text-[#8a99ad] font-bold text-[11px]">
               <Info className="w-3.5 h-3.5" />
               <span>SPATIAL CONVECTNET ATTRIBUTION & PHYSICAL DRIVER</span>
             </div>
-            <div className="text-slate-300 text-[11px] line-clamp-2 leading-relaxed">
-              <strong className="text-white">Driver:</strong> {selectedCell.hazards?.explainability?.radar_core_driver || 'Core reflectivity aloft drives convective classification.'}
-              {' '}<strong className="text-white">Trend:</strong> {selectedCell.evolution?.trend_summary || 'Maintaining extreme convective intensity.'}
+            <div className="text-[#f7f8f8] text-[11px] line-clamp-2 leading-relaxed">
+              <strong className="text-[#f7f8f8]">Driver:</strong> {selectedCell.hazards?.explainability?.radar_core_driver || 'Core reflectivity aloft drives convective classification.'}
+              {' '}<strong className="text-[#f7f8f8]">Trend:</strong> {selectedCell.evolution?.trend_summary || 'Maintaining extreme convective intensity.'}
             </div>
           </div>
 
           {/* Quick Metrics & Dispatch Button */}
           <div className="flex items-center space-x-4 shrink-0">
             <div className="text-right font-mono">
-              <div className="text-xs text-slate-400">Rain Rate: <strong className="text-sky-300">{selectedCell.hazards?.rain_rate_mmh || 0} mm/h</strong></div>
-              <div className="text-xs text-slate-400">Speed: <strong className="text-amber-300">{selectedCell.velocity_kmh} km/h @ {selectedCell.heading_deg}°</strong></div>
+              <div className="text-xs text-[#d0d6e0]">Rain Rate: <strong className="text-sky-300">{selectedCell.hazards?.rain_rate_mmh || 0} mm/h</strong></div>
+              <div className="text-xs text-[#d0d6e0]">Speed: <strong className="text-amber-300">{selectedCell.velocity_kmh} km/h @ {selectedCell.heading_deg}°</strong></div>
             </div>
 
             <button
               onClick={() => handleDispatchCap(selectedCell.cell_id)}
-              className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-mono font-bold text-xs flex items-center space-x-2 transition-all shadow-lg shadow-rose-900/30"
+              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-[#f7f8f8] font-mono font-bold text-xs flex items-center space-x-2 transition-all  shadow-rose-900/30"
             >
               <ShieldAlert className="w-4 h-4" />
               <span>DISPATCH CAP</span>
@@ -1148,17 +1151,17 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
       {/* 5. SLIDE-UP DATA MATRIX DRAWER (When Toggled) */}
       {/* ========================================================================= */}
       {showTableView && (
-        <div className="absolute inset-x-4 bottom-24 z-[550] bg-[#0a0f1d]/98 backdrop-blur-2xl border border-[#1f293d] rounded-xl p-4 shadow-2xl max-h-[380px] overflow-y-auto">
+        <div className="absolute inset-x-4 bottom-24 z-[550] bg-[#0a0f1d]/98 backdrop-blur-2xl border border-[#1f293d] rounded-xl p-4  max-h-[380px] overflow-y-auto">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#1f293d]">
             <div className="flex items-center space-x-2">
-              <Table className="w-4 h-4 text-sky-400" />
-              <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+              <Table className="w-4 h-4 text-[#5e6ad2]" />
+              <h3 className="text-xs font-mono font-bold text-[#f7f8f8] uppercase tracking-wider">
                 Full Convective Digital Twins Telemetry (Corridor 3x3)
               </h3>
             </div>
             <button
               onClick={() => setShowTableView(false)}
-              className="text-slate-400 hover:text-white p-1 rounded hover:bg-white/10"
+              className="text-[#d0d6e0] hover:text-[#f7f8f8] p-1 rounded hover:bg-white/10"
             >
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -1166,7 +1169,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
 
           <table className="w-full text-left border-collapse text-xs font-mono">
             <thead>
-              <tr className="bg-[#12192a] text-slate-400 border-b border-[#1f293d]">
+              <tr className="bg-[#12192a] text-[#d0d6e0] border-b border-[#1f293d]">
                 <th className="px-3 py-2">Threat ID</th>
                 <th className="px-3 py-2">Coordinates</th>
                 <th className="px-3 py-2">Severity</th>
@@ -1190,11 +1193,11 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                       setShowTableView(false);
                     }}
                     className={`cursor-pointer border-b border-[#1f293d]/50 hover:bg-[#152035] transition-colors ${
-                      isSelected ? 'bg-sky-500/10' : ''
+                      isSelected ? 'bg-[#5e6ad2]/10' : ''
                     }`}
                   >
-                    <td className="px-3 py-2 font-bold text-white">{cell.cell_id}</td>
-                    <td className="px-3 py-2 text-slate-400">{cell.centroid_lat.toFixed(3)}°N, {cell.centroid_lon.toFixed(3)}°E</td>
+                    <td className="px-3 py-2 font-bold text-[#f7f8f8]">{cell.cell_id}</td>
+                    <td className="px-3 py-2 text-[#d0d6e0]">{cell.centroid_lat.toFixed(3)}°N, {cell.centroid_lon.toFixed(3)}°E</td>
                     <td className="px-3 py-2">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         cell.peak_dbz >= 64 ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'
@@ -1204,8 +1207,8 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                     </td>
                     <td className="px-3 py-2 font-bold text-amber-400">{cell.peak_dbz} dBZ</td>
                     <td className="px-3 py-2 text-sky-300">{cell.hazards?.rain_rate_mmh || 0} mm/h</td>
-                    <td className="px-3 py-2 text-slate-300">{cell.velocity_kmh} km/h @ {cell.heading_deg}°</td>
-                    <td className="px-3 py-2 text-slate-300">
+                    <td className="px-3 py-2 text-[#f7f8f8]">{cell.velocity_kmh} km/h @ {cell.heading_deg}°</td>
+                    <td className="px-3 py-2 text-[#f7f8f8]">
                       {primaryTarget ? (
                         <span>{primaryTarget.target_name} ({primaryTarget.distance_km}km, <strong>{primaryTarget.eta_minutes}m</strong>)</span>
                       ) : '--'}
@@ -1216,7 +1219,7 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                           e.stopPropagation();
                           handleDispatchCap(cell.cell_id);
                         }}
-                        className="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px] font-bold"
+                        className="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-[#f7f8f8] rounded text-[10px] font-bold"
                       >
                         CAP Alert
                       </button>
@@ -1242,18 +1245,18 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
       {/* 7. MISSION & 1–3 KM SCALE EXPLAINER MODAL (Full Interactive Guide)       */}
       {/* ========================================================================= */}
       {showMissionGuide && (
-        <div className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0b101c] border border-sky-500/40 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 text-slate-200 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-[20000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0b101c] border border-[#5e6ad2]/40 rounded-xl max-w-2xl w-full p-6  space-y-4 text-[#f7f8f8] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-[#23252a] pb-3">
               <div className="flex items-center space-x-2">
-                <Target className="w-5 h-5 text-sky-400" />
-                <h2 className="text-base font-mono font-bold text-white uppercase tracking-wider">
+                <Target className="w-5 h-5 text-[#5e6ad2]" />
+                <h2 className="text-base font-mono font-bold text-[#f7f8f8] uppercase tracking-wider">
                   Operational Guide: Why 1–3 km Aerodrome Nowcasting?
                 </h2>
               </div>
               <button 
                 onClick={() => setShowMissionGuide(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+                className="text-[#d0d6e0] hover:text-[#f7f8f8] p-1 rounded-xl hover:bg-[#08090a] transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1261,11 +1264,11 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
 
             <div className="space-y-3.5 text-xs font-mono leading-relaxed">
               {/* Point 1 */}
-              <div className="p-3.5 bg-[#101726] border border-sky-500/30 rounded-xl space-y-1.5">
-                <div className="text-sky-400 font-bold text-sm flex items-center gap-1.5">
+              <div className="p-3.5 bg-[#101726] border border-[#5e6ad2]/30 rounded-xl space-y-1.5">
+                <div className="text-[#5e6ad2] font-bold text-sm flex items-center gap-1.5">
                   <span>🎯</span> 1. The Core Purpose (SIH PS-26084)
                 </div>
-                <p className="text-slate-300">
+                <p className="text-[#f7f8f8]">
                   Standard weather apps (Windy, Google Weather) forecast broad <strong>20–50 km</strong> regions ("Rain in Bhubaneswar today"). 
                   However, an aircraft landing at Biju Patnaik Airport (VEBS) cannot use a 25 km forecast. Air Traffic Control and pilots require <strong>1–3 km sub-kilometer precision</strong> to detect deadly microburst wind shear and sudden cloudbursts before touchdown.
                 </p>
@@ -1276,11 +1279,11 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                 <div className="text-amber-400 font-bold text-sm flex items-center gap-1.5">
                   <span>⭕</span> 2. What the Map Circles & Rings Mean
                 </div>
-                <div className="space-y-1.5 text-slate-300">
+                <div className="space-y-1.5 text-[#f7f8f8]">
                   <div>• <strong className="text-red-400">1 km Range Ring</strong>: Critical Runway Touchdown Zone (&lt;2 min to touchdown). Any severe storm here mandates an immediate go-around.</div>
                   <div>• <strong className="text-amber-400">2 km Range Ring</strong>: Final Approach Alert. <strong>CELL-701 is currently at 1.8 km</strong>, advancing at 46 km/h (ETA: 3 min).</div>
-                  <div>• <strong className="text-sky-400">3 km Range Ring</strong>: Tactical Aerodrome Boundary mandated by MoES/NCMRWF.</div>
-                  <div>• <strong className="text-white">Colored Solid Circles (e.g. CELL-701 red circle)</strong>: The actual convective storm core (3–4 km across) with intense reflectivity (&gt;60 dBZ) and microburst downdrafts.</div>
+                  <div>• <strong className="text-[#5e6ad2]">3 km Range Ring</strong>: Tactical Aerodrome Boundary mandated by MoES/NCMRWF.</div>
+                  <div>• <strong className="text-[#f7f8f8]">Colored Solid Circles (e.g. CELL-701 red circle)</strong>: The actual convective storm core (3–4 km across) with intense reflectivity (&gt;60 dBZ) and microburst downdrafts.</div>
                 </div>
               </div>
 
@@ -1289,16 +1292,16 @@ export const TacticalOperationsDashboard: React.FC<TacticalOperationsDashboardPr
                 <div className="text-rose-400 font-bold text-sm flex items-center gap-1.5">
                   <span>⚡</span> 3. Intercept Rays & Travel Time
                 </div>
-                <p className="text-slate-300">
+                <p className="text-[#f7f8f8]">
                   The dashed line from a cell directly to Runway 19 shows the exact straight-line distance (<strong>1.8 km</strong>) and computed <strong>ETA (3 min)</strong> based on Doppler radial velocity.
                 </p>
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end border-t border-slate-800">
+            <div className="pt-2 flex justify-end border-t border-[#23252a]">
               <button
                 onClick={() => setShowMissionGuide(false)}
-                className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-mono font-bold text-xs shadow-lg transition active:scale-95"
+                className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-[#5e6ad2] text-[#f7f8f8] font-mono font-bold text-xs  transition active:scale-95"
               >
                 Understood &bull; Return to Radar Map
               </button>

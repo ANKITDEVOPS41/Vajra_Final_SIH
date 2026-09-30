@@ -29,3 +29,32 @@ html, body, #root {
   background: #34343a;
 }
 
+
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Professional Meteorological Map Adjustments */
+.sih-wms-smooth {
+  filter: blur(4px) contrast(1.1) saturate(1.2);
+  mix-blend-mode: screen;
+}
+
+.sih-raster-blend {
+  mix-blend-mode: overlay;
+  filter: saturate(1.2) contrast(1.1);
+}
+
+.sih-satellite-smooth {
+  filter: blur(8px) contrast(1.2);
+  image-rendering: auto;
+  opacity: 0.6;
+}
+
+
+body {
+  min-width: 1440px;
+  min-height: 800px;
+  overflow-x: auto;
+  background-color: #0a0e1a;
+}
